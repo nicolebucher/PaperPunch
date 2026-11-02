@@ -22,7 +22,6 @@ KI-Schnittstelle: Sie ruft `/api/generate` und `/api/plan` der Website (Hauptord
 ```bash
 cd mobile
 npm install
-cp .env.example .env.local   # VITE_API_BASE zeigt auf die Website
 npm run dev
 ```
 

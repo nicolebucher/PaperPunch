@@ -2,7 +2,9 @@ import type { GenerateResult, MaterialFormat, PlanGoal, Profile, QuizOutcome, St
 import { daysBetween, todayISO } from "./dates";
 
 // Die App hat keine eigene KI-Schnittstelle: Sie ruft die API der Website auf.
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "https://paper-punch.com";
+// Standard ist die feste Vercel-Adresse der Website – sie funktioniert immer, auch bevor paper-punch.com
+// eingerichtet ist. Mit VITE_API_BASE (z. B. in .env.local) lässt sich eine andere Adresse setzen.
+const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "https://snap-it-new.vercel.app";
 
 export class ApiError extends Error {
   constructor(message: string, readonly network = false) {
