@@ -191,7 +191,7 @@ export function CreationWizard() {
       <div>
         <GameShell game={game} />
         <div className="mt-8 text-center">
-          <button type="button" onClick={handleRestart} className="text-sm text-teal-400 hover:underline">
+          <button type="button" onClick={handleRestart} className="text-sm text-brand-400 hover:underline">
             {t.wizard.newMaterial}
           </button>
         </div>
@@ -228,14 +228,14 @@ export function CreationWizard() {
           <button
             type="button"
             onClick={handleBuildFollowup}
-            className="mb-4 w-full rounded-full bg-teal-400 px-6 py-3 font-medium text-black hover:bg-teal-300"
+            className="mb-4 w-full rounded-full bg-brand-400 px-6 py-3 font-medium text-black hover:bg-brand-300"
           >
             {t.spelling.buildWorksheet}
           </button>
         )}
 
         <div>
-          <button type="button" onClick={handleRestart} className="text-sm text-teal-400 hover:underline">
+          <button type="button" onClick={handleRestart} className="text-sm text-brand-400 hover:underline">
             {t.wizard.newMaterial}
           </button>
         </div>
@@ -252,7 +252,7 @@ export function CreationWizard() {
           <a
             href={podcastInfo.url}
             download={podcastInfo.filename}
-            className="inline-block rounded-full bg-teal-400 px-6 py-3 font-medium text-black hover:bg-teal-300"
+            className="inline-block rounded-full bg-brand-400 px-6 py-3 font-medium text-black hover:bg-brand-300"
           >
             {t.wizard.downloadPodcast}
           </a>
@@ -266,7 +266,7 @@ export function CreationWizard() {
             type="button"
             onClick={() => setPodcastTab("listen")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-              podcastTab === "listen" ? "bg-teal-400 text-black" : "border border-zinc-700 text-zinc-400"
+              podcastTab === "listen" ? "bg-brand-400 text-black" : "border border-zinc-700 text-zinc-400"
             }`}
           >
             {t.wizard.preview}
@@ -275,7 +275,7 @@ export function CreationWizard() {
             type="button"
             onClick={() => setPodcastTab("transcript")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-              podcastTab === "transcript" ? "bg-teal-400 text-black" : "border border-zinc-700 text-zinc-400"
+              podcastTab === "transcript" ? "bg-brand-400 text-black" : "border border-zinc-700 text-zinc-400"
             }`}
           >
             {t.wizard.transcriptTab}
@@ -294,7 +294,7 @@ export function CreationWizard() {
         )}
 
         <div className="mt-6">
-          <button type="button" onClick={handleRestart} className="text-sm text-teal-400 hover:underline">
+          <button type="button" onClick={handleRestart} className="text-sm text-brand-400 hover:underline">
             {t.wizard.newMaterial}
           </button>
         </div>
@@ -312,7 +312,7 @@ export function CreationWizard() {
           <a
             href={downloadInfo.url}
             download={downloadInfo.filename}
-            className="inline-block rounded-full bg-teal-400 px-6 py-3 font-medium text-black hover:bg-teal-300"
+            className="inline-block rounded-full bg-brand-400 px-6 py-3 font-medium text-black hover:bg-brand-300"
           >
             {downloadLabel}
           </a>
@@ -326,7 +326,7 @@ export function CreationWizard() {
             type="button"
             onClick={() => setResultTab("preview")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-              resultTab === "preview" ? "bg-teal-400 text-black" : "border border-zinc-700 text-zinc-400"
+              resultTab === "preview" ? "bg-brand-400 text-black" : "border border-zinc-700 text-zinc-400"
             }`}
           >
             {t.wizard.previewTab}
@@ -335,7 +335,7 @@ export function CreationWizard() {
             type="button"
             onClick={() => setResultTab("practice")}
             className={`rounded-full px-4 py-1.5 text-sm font-medium ${
-              resultTab === "practice" ? "bg-teal-400 text-black" : "border border-zinc-700 text-zinc-400"
+              resultTab === "practice" ? "bg-brand-400 text-black" : "border border-zinc-700 text-zinc-400"
             }`}
           >
             {t.wizard.practiceTab}
@@ -349,7 +349,7 @@ export function CreationWizard() {
         )}
 
         <div className="mt-6">
-          <button type="button" onClick={handleRestart} className="text-sm text-teal-400 hover:underline">
+          <button type="button" onClick={handleRestart} className="text-sm text-brand-400 hover:underline">
             {t.wizard.newMaterial}
           </button>
         </div>
@@ -370,7 +370,7 @@ export function CreationWizard() {
         type="button"
         onClick={handleSubmit}
         disabled={!canSubmit}
-        className="mt-6 w-full rounded-full bg-teal-400 px-6 py-3 font-medium text-black transition hover:bg-teal-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+        className="mt-6 w-full rounded-full bg-brand-400 px-6 py-3 font-medium text-black transition hover:bg-brand-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
       >
         {t.wizard.submit}
       </button>

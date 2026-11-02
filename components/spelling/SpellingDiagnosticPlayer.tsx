@@ -66,7 +66,7 @@ export function SpellingDiagnosticPlayer({
         <h2 className="text-lg font-semibold">{diagnostic.title}</h2>
         <span className="text-sm text-zinc-500">{t.game.questionOf(index + 1, diagnostic.items.length)}</span>
       </div>
-      <p className="mb-2 text-sm text-teal-300">
+      <p className="mb-2 text-sm text-brand-300">
         <span className="font-semibold">{t.spelling.hintLabel}</span> {item.hint}
       </p>
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
@@ -87,7 +87,7 @@ export function SpellingDiagnosticPlayer({
                 ? isCorrect
                   ? "border-green-400 text-green-300"
                   : "border-orange-400 text-orange-300"
-                : "border-teal-400"
+                : "border-brand-400"
             }`}
           />
           <span>{after}</span>
@@ -104,7 +104,7 @@ export function SpellingDiagnosticPlayer({
             type="button"
             onClick={handleCheck}
             disabled={value.trim() === ""}
-            className="rounded-full bg-teal-400 px-5 py-2 font-medium text-black hover:bg-teal-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+            className="rounded-full bg-brand-400 px-5 py-2 font-medium text-black hover:bg-brand-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
           >
             {t.spelling.check}
           </button>
@@ -112,7 +112,7 @@ export function SpellingDiagnosticPlayer({
           <button
             type="button"
             onClick={handleNext}
-            className="rounded-full bg-teal-400 px-5 py-2 font-medium text-black hover:bg-teal-300"
+            className="rounded-full bg-brand-400 px-5 py-2 font-medium text-black hover:bg-brand-300"
           >
             {isLast ? t.spelling.seeResults : t.spelling.next}
           </button>

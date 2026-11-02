@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 function DraftNotice({ children }: { children: ReactNode }) {
-  return <p className="mb-6 rounded-lg bg-teal-400/10 p-4 text-sm text-teal-300">{children}</p>;
+  return <p className="mb-6 rounded-lg bg-brand-400/10 p-4 text-sm text-brand-300">{children}</p>;
 }
 
 function TermsEn() {

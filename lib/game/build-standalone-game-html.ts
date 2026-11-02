@@ -53,7 +53,7 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
     display: inline-block;
     font-family: "Permanent Marker", cursive;
     font-size: 20px;
-    color: #2dd4bf;
+    color: #1fd6ea;
     transform: rotate(-4deg);
     text-shadow: 1.5px 1.5px 0 #000, -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000;
     margin: 0 0 20px;
@@ -64,7 +64,7 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
   .subject { color: #9ca3af; font-size: 13px; margin: 0 0 24px; }
   .snaps-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(45, 212, 191, 0.1); color: #5eead4;
+    background: rgba(31, 214, 234, 0.1); color: #6fe6f2;
     border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600;
     transition: transform 0.2s ease;
   }
@@ -80,8 +80,8 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
     cursor: pointer;
     font: inherit;
   }
-  .level-card:hover { border-color: #2dd4bf; }
-  .level-card.mixed { border-color: rgba(45, 212, 191, 0.6); background: rgba(45, 212, 191, 0.05); }
+  .level-card:hover { border-color: #1fd6ea; }
+  .level-card.mixed { border-color: rgba(31, 214, 234, 0.6); background: rgba(31, 214, 234, 0.05); }
   .level-card .row { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
   .level-card .difficulty { text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: #71717a; margin-top: 4px; }
   .level-card .stars { margin-top: 8px; font-size: 14px; }
@@ -110,7 +110,7 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
     font: inherit;
     cursor: pointer;
   }
-  .option:hover:not(:disabled) { border-color: #2dd4bf; }
+  .option:hover:not(:disabled) { border-color: #1fd6ea; }
   .option:disabled { cursor: not-allowed; }
   .option.correct { border-color: #4ade80; background: rgba(74, 222, 128, 0.1); }
   .option.wrong { border-color: #fb923c; background: rgba(251, 146, 60, 0.1); }
@@ -123,13 +123,13 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
   .blank-wrap { font-size: 15px; line-height: 1.7; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; }
   .blank-input {
     min-width: 8rem; text-align: center; background: transparent; border: none;
-    border-bottom: 2px solid #2dd4bf; color: #ffffff; font: inherit; padding: 2px 4px; outline: none;
+    border-bottom: 2px solid #1fd6ea; color: #ffffff; font: inherit; padding: 2px 4px; outline: none;
   }
   .blank-input.correct { border-color: #4ade80; color: #86efac; }
   .blank-input.wrong { border-color: #fb923c; color: #fdba74; }
   .check-btn { margin-top: 14px; }
   .snap-float {
-    position: absolute; top: 8px; right: 12px; color: #2dd4bf; font-weight: 700; font-size: 16px;
+    position: absolute; top: 8px; right: 12px; color: #1fd6ea; font-weight: 700; font-size: 16px;
     animation: snap-float 1.1s ease-out forwards;
   }
   @keyframes snap-float {
@@ -139,7 +139,7 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
   }
   .primary-btn {
     margin-top: 16px;
-    background: #2dd4bf;
+    background: #1fd6ea;
     color: #000000;
     border: none;
     border-radius: 999px;
@@ -148,8 +148,8 @@ export function buildStandaloneGameHtml(game: GameData, locale: Locale): string 
     font-weight: 600;
     cursor: pointer;
   }
-  .primary-btn:hover { background: #5eead4; }
-  .result-banner { background: rgba(45, 212, 191, 0.1); border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 24px; }
+  .primary-btn:hover { background: #6fe6f2; }
+  .result-banner { background: rgba(31, 214, 234, 0.1); border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 24px; }
   .result-banner p:first-child { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
   .result-banner p { margin: 0; color: #a1a1aa; font-size: 14px; }
 </style>

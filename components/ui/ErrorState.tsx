@@ -11,7 +11,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry: () 
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-full bg-teal-400 px-5 py-2 text-sm font-medium text-black hover:bg-teal-300"
+        className="rounded-full bg-brand-400 px-5 py-2 text-sm font-medium text-black hover:bg-brand-300"
       >
         {t.error.retry}
       </button>

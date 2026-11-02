@@ -81,7 +81,7 @@ export function GameShell({ game }: { game: GameData }) {
         <div className="flex shrink-0 flex-col items-end gap-2">
           <div
             key={snapBump}
-            className="flex items-center gap-1.5 rounded-full bg-teal-400/10 px-3 py-1.5 text-sm font-semibold text-teal-300 animate-snap-pop"
+            className="flex items-center gap-1.5 rounded-full bg-brand-400/10 px-3 py-1.5 text-sm font-semibold text-brand-300 animate-snap-pop"
           >
             <SnapIcon className="h-4 w-4" />
             {totalSnaps} {t.game.snapsUnit}
@@ -90,7 +90,7 @@ export function GameShell({ game }: { game: GameData }) {
             <button
               type="button"
               onClick={handleDownload}
-              className="rounded-full border border-teal-400 px-4 py-2 text-sm font-medium text-teal-400 hover:bg-teal-400/10"
+              className="rounded-full border border-brand-400 px-4 py-2 text-sm font-medium text-brand-400 hover:bg-brand-400/10"
             >
               {t.game.download}
             </button>
@@ -112,8 +112,8 @@ export function GameShell({ game }: { game: GameData }) {
               onClick={() => setActiveLevelId(level.id)}
               className={`rounded-xl border p-4 text-left transition ${
                 isMixed
-                  ? "border-teal-400/60 bg-teal-400/5 hover:border-teal-400"
-                  : "border-zinc-700 bg-zinc-950 hover:border-teal-400"
+                  ? "border-brand-400/60 bg-brand-400/5 hover:border-brand-400"
+                  : "border-zinc-700 bg-zinc-950 hover:border-brand-400"
               }`}
             >
               <div className="flex items-center justify-between">

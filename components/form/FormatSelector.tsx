@@ -65,13 +65,13 @@ export function FormatSelector({
                 disabled
                   ? "cursor-not-allowed border-zinc-800 opacity-50"
                   : selected
-                    ? "border-teal-400 bg-teal-400/10"
-                    : "border-zinc-700 hover:border-teal-400/50"
+                    ? "border-brand-400 bg-brand-400/10"
+                    : "border-zinc-700 hover:border-brand-400/50"
               }`}
             >
               <div
                 className={`relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${ROTATIONS[f.value]} ${
-                  selected && !disabled ? "bg-teal-400 text-black" : "bg-zinc-800 text-teal-400"
+                  selected && !disabled ? "bg-brand-400 text-black" : "bg-zinc-800 text-brand-400"
                 }`}
               >
                 <Icon className="h-8 w-8" />
@@ -79,7 +79,7 @@ export function FormatSelector({
                   aria-hidden
                   viewBox="0 0 20 20"
                   fill="currentColor"
-                  className={`absolute h-2.5 w-2.5 ${selected && !disabled ? "text-black/70" : "text-teal-400"}`}
+                  className={`absolute h-2.5 w-2.5 ${selected && !disabled ? "text-black/70" : "text-brand-400"}`}
                   style={{ left: "78%", top: "80%" }}
                 >
                   <path d={DRIP_PATH} />
@@ -89,7 +89,7 @@ export function FormatSelector({
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{f.label}</span>
                   {badge === "beta" && (
-                    <span className="rounded-full bg-teal-400/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-300">
+                    <span className="rounded-full bg-brand-400/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-300">
                       {t.format.betaBadge}
                     </span>
                   )}

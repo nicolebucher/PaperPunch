@@ -24,7 +24,7 @@ export function QuestionCard({
         {options.map((option, i) => {
           const isSelected = selected === i;
           const isCorrect = i === correctIndex;
-          let stateClass = "border-zinc-700 hover:border-teal-400";
+          let stateClass = "border-zinc-700 hover:border-brand-400";
           if (selected !== null) {
             if (isCorrect) stateClass = "border-green-400 bg-green-400/10";
             else if (isSelected) stateClass = "border-orange-400 bg-orange-400/10";

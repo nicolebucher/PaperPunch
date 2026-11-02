@@ -108,7 +108,7 @@ export function LevelPlayer({
           ← {t.game.back}
         </button>
         <span className="text-sm text-zinc-500">{t.game.questionOf(index + 1, level.questions.length)}</span>
-        <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-teal-400/10 px-3 py-1.5 text-xs font-semibold text-teal-300">
+        <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand-400/10 px-3 py-1.5 text-xs font-semibold text-brand-300">
           <SnapIcon className="h-3.5 w-3.5" />
           {totalSnaps} {t.game.snapsUnit}
         </div>
@@ -146,7 +146,7 @@ export function LevelPlayer({
         <button
           type="button"
           onClick={handleNext}
-          className="mt-4 rounded-full bg-teal-400 px-5 py-2 font-medium text-black hover:bg-teal-300"
+          className="mt-4 rounded-full bg-brand-400 px-5 py-2 font-medium text-black hover:bg-brand-300"
         >
           {isLast ? t.game.finishLevel : t.game.next}
         </button>

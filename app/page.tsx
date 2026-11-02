@@ -16,11 +16,11 @@ export default function Home() {
       <h1 className="text-xl font-bold sm:text-2xl">{t.landing.heading}</h1>
       <Link
         href="/create"
-        className="mt-8 rounded-full bg-teal-400 px-8 py-3 font-medium text-black hover:bg-teal-300"
+        className="mt-8 rounded-full bg-brand-400 px-8 py-3 font-medium text-black hover:bg-brand-300"
       >
         {t.landing.cta}
       </Link>
-      <h2 className="mt-12 text-sm font-semibold uppercase tracking-wide text-teal-400">{t.landing.howItWorks}</h2>
+      <h2 className="mt-12 text-sm font-semibold uppercase tracking-wide text-brand-400">{t.landing.howItWorks}</h2>
       <p className="mt-2 max-w-xl text-zinc-400">{t.landing.subtitle}</p>
       <Image
         src={locale === "de" ? "/how-it-works-de.jpg" : "/how-it-works-en.jpg"}

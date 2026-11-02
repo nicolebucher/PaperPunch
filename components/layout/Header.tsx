@@ -21,7 +21,7 @@ export function Header() {
               type="button"
               onClick={() => setLocale(option)}
               className={`rounded-full px-2 py-1 font-medium uppercase transition ${
-                locale === option ? "bg-teal-400 text-black" : "text-zinc-400 hover:text-white"
+                locale === option ? "bg-brand-400 text-black" : "text-zinc-400 hover:text-white"
               }`}
             >
               {option}

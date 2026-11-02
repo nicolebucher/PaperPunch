@@ -16,7 +16,7 @@ export function ShareButton({ getFile, compact = false }: { getFile: () => File;
     <button
       type="button"
       onClick={handleClick}
-      className={`inline-flex items-center gap-2 rounded-full border border-zinc-700 font-medium text-white hover:border-teal-400 hover:text-teal-400 ${
+      className={`inline-flex items-center gap-2 rounded-full border border-zinc-700 font-medium text-white hover:border-brand-400 hover:text-brand-400 ${
         compact ? "px-4 py-2 text-sm" : "px-6 py-3 text-sm"
       }`}
     >

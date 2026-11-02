@@ -34,8 +34,8 @@ function TaskInput({
         {options.map((option, i) => {
           const selected = value === String(i);
           const isCorrectOption = revealed && option.trim() === task.answer.trim();
-          let stateClass = "border-zinc-700 hover:border-teal-400";
-          if (selected && !revealed) stateClass = "border-teal-400 bg-teal-400/10";
+          let stateClass = "border-zinc-700 hover:border-brand-400";
+          if (selected && !revealed) stateClass = "border-brand-400 bg-brand-400/10";
           if (revealed) {
             if (isCorrectOption) stateClass = "border-green-400 bg-green-400/10";
             else if (selected) stateClass = "border-orange-400 bg-orange-400/10";
@@ -144,7 +144,7 @@ export function InteractiveWorksheet({ data }: { data: WorksheetData }) {
       <button
         type="button"
         onClick={() => setRevealed((r) => !r)}
-        className="mt-4 rounded-full bg-teal-500 px-6 py-3 font-medium text-black hover:bg-teal-400"
+        className="mt-4 rounded-full bg-brand-500 px-6 py-3 font-medium text-black hover:bg-brand-400"
       >
         {revealed ? t.practice.hideAnswers : t.practice.checkAnswers}
       </button>

@@ -40,7 +40,7 @@ export function FillBlankCard({
               ? isCorrect
                 ? "border-green-400 text-green-300"
                 : "border-orange-400 text-orange-300"
-              : "border-teal-400"
+              : "border-brand-400"
           }`}
         />
         <span>{after}</span>
@@ -50,7 +50,7 @@ export function FillBlankCard({
           type="button"
           onClick={onSubmit}
           disabled={value.trim() === ""}
-          className="mt-4 rounded-full bg-teal-400 px-5 py-2 text-sm font-medium text-black hover:bg-teal-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+          className="mt-4 rounded-full bg-brand-400 px-5 py-2 text-sm font-medium text-black hover:bg-brand-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
         >
           {t.game.check}
         </button>

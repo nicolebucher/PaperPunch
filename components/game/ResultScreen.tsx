@@ -16,7 +16,7 @@ export function ResultScreen({
   const maxStars = levels.length * 3;
 
   return (
-    <div className="mb-6 rounded-xl bg-teal-400/10 p-4 text-center">
+    <div className="mb-6 rounded-xl bg-brand-400/10 p-4 text-center">
       <p className="text-lg font-semibold">{t.game.done}</p>
       <p className="text-sm text-zinc-300">{t.game.starsCollected(totalStars, maxStars)}</p>
     </div>

@@ -35,7 +35,7 @@ export default function FeedbackPage() {
       <p className="mb-6 text-sm text-zinc-400">{t.feedback.description}</p>
 
       {status === "sent" ? (
-        <p className="rounded-lg bg-teal-400/10 p-4 text-sm text-teal-300">{t.feedback.success}</p>
+        <p className="rounded-lg bg-brand-400/10 p-4 text-sm text-brand-300">{t.feedback.success}</p>
       ) : (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium">
@@ -72,7 +72,7 @@ export default function FeedbackPage() {
           <button
             type="submit"
             disabled={status === "sending"}
-            className="rounded-full bg-teal-400 px-6 py-3 font-medium text-black hover:bg-teal-300 disabled:opacity-50"
+            className="rounded-full bg-brand-400 px-6 py-3 font-medium text-black hover:bg-brand-300 disabled:opacity-50"
           >
             {t.feedback.submit}
           </button>

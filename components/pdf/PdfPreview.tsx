@@ -53,7 +53,7 @@ export function PdfPreview({ url, label }: { url: string; label: string }) {
 
   if (failed) {
     return (
-      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-teal-400 underline">
+      <a href={url} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-400 underline">
         {label}
       </a>
     );

@@ -28,7 +28,7 @@ export function SnapEffect({ amount, snapsUnit }: { amount: number; snapsUnit: s
         {particles.map((p, i) => (
           <span
             key={i}
-            className="absolute h-1.5 w-1.5 rounded-full bg-teal-400 animate-snap-particle"
+            className="absolute h-1.5 w-1.5 rounded-full bg-brand-400 animate-snap-particle"
             style={
               {
                 "--dx": `${p.dx}px`,
@@ -39,7 +39,7 @@ export function SnapEffect({ amount, snapsUnit }: { amount: number; snapsUnit: s
           />
         ))}
       </div>
-      <div className="absolute right-3 top-0 animate-snap-float text-lg font-bold text-teal-400">
+      <div className="absolute right-3 top-0 animate-snap-float text-lg font-bold text-brand-400">
         +{amount} {snapsUnit}
       </div>
     </div>

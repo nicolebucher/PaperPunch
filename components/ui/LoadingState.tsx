@@ -23,12 +23,12 @@ export function LoadingState({ title }: { title?: string } = {}) {
 
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-zinc-700 border-t-teal-400" />
+      <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-zinc-700 border-t-brand-400" />
       <p className="text-lg font-medium">{title ?? t.loading.title}</p>
       <p className="mb-4 text-sm text-zinc-400">{t.loading.subtitle}</p>
       <div className="h-1.5 w-64 overflow-hidden rounded-full bg-zinc-800">
         <div
-          className="h-full rounded-full bg-teal-400 transition-[width] duration-300 ease-out"
+          className="h-full rounded-full bg-brand-400 transition-[width] duration-300 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>

@@ -3,7 +3,7 @@ import { formatProfileMeta, type Profile, type Task, type WorksheetData } from "
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 11, fontFamily: "Helvetica" },
-  brand: { marginBottom: 10, fontSize: 13, fontFamily: "Helvetica-BoldOblique", color: "#0d9488" },
+  brand: { marginBottom: 10, fontSize: 13, fontFamily: "Helvetica-BoldOblique", color: "#0e9fb1" },
   header: { marginBottom: 16 },
   title: { fontSize: 18, fontWeight: 700, marginBottom: 4 },
   meta: { fontSize: 10, color: "#666666" },
