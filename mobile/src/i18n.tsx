@@ -8,7 +8,7 @@ const de = {
   obFeat1: "Foto vom Hefter machen",
   obFeat2: "Arbeitsblatt, Test, Spiel oder Podcast bekommen",
   obFeat3: "Mit Lernplan bis zum Test durchstarten",
-  obStart: "Los geht's!",
+  obStart: "Let's go!",
   obPrivacy: "Kein Konto nötig. Deine Angaben bleiben auf deinem Handy.",
   obStep: (n: number) => `Schritt ${n} von 2`,
   obWhere: "Wo gehst du zur Schule?",
