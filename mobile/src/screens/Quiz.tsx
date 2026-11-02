@@ -61,7 +61,7 @@ export function Quiz({ game, checkpoint, inPlan, onClose, onFinish }: { game: Ga
         <div className="ring">
           <svg aria-hidden="true" width="180" height="180" viewBox="0 0 190 190">
             <circle cx="95" cy="95" r="80" fill="none" stroke="#27272a" strokeWidth="18" />
-            <circle cx="95" cy="95" r="80" fill="none" stroke="#2dd4bf" strokeWidth="18" strokeLinecap="round" strokeDasharray={`${Math.round(502 * ratio)} 503`} transform="rotate(-90 95 95)" />
+            <circle cx="95" cy="95" r="80" fill="none" stroke="#1fd6ea" strokeWidth="18" strokeLinecap="round" strokeDasharray={`${Math.round(502 * ratio)} 503`} transform="rotate(-90 95 95)" />
           </svg>
           <div className="center">
             <span style={{ fontSize: 48, fontWeight: 900, lineHeight: 1 }}>{correct}/{questions.length}</span>

@@ -55,7 +55,7 @@ export function Result({
         <span className="muted" style={{ fontWeight: 700 }}>{t.formats[result.format]} · {subtitle}</span>
       </div>
 
-      <div className="card" style={{ background: "#fff", color: "var(--sheet-fg)", boxShadow: "0 12px 40px rgba(45,212,191,0.25)" }}>
+      <div className="card" style={{ background: "#fff", color: "var(--sheet-fg)", boxShadow: "0 12px 40px rgba(31,214,234,0.25)" }}>
         <h2 style={{ fontSize: 19 }}>{title}</h2>
         {(result.format === "worksheet" || result.format === "test") && (
           <>

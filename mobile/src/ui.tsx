@@ -4,10 +4,14 @@ import { getCountry } from "./countries";
 import { kindOf } from "./files";
 import type { MaterialFormat, Profile } from "./types";
 
-export function Logo({ size = 26 }: { size?: number }) {
+export function Logo({ size = 26, light }: { size?: number; light?: boolean }) {
   return (
     <span className="logo" style={{ fontSize: size }}>
-      Paper<span>Punch</span>
+      <img src={light ? "/brand/logo-black.svg" : "/brand/logo-white.svg"} alt="" aria-hidden="true" />
+      <span>
+        <span className="paper">Paper</span>
+        <span className="punch">Punch</span>
+      </span>
     </span>
   );
 }
@@ -62,7 +66,7 @@ export function TopBar({ onBack, right, light }: { onBack?: () => void; right?: 
             <Icon name="back" />
           </button>
         )}
-        <Logo size={light ? 22 : 24} />
+        <Logo size={light ? 22 : 24} light={light} />
       </div>
       {right}
     </div>
