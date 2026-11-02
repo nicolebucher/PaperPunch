@@ -72,7 +72,10 @@ export function Home({
           <span className="hero-text">{t.homeQuickText}</span>
           <span className="hero-formats">
             {(["worksheet", "test", "game", "podcast"] as const).map((f) => (
-              <span key={f}><Icon name={f} size={16} stroke={2.4} /> {t.formats[f]}</span>
+              <span key={f} className={f === "podcast" ? "soon" : undefined}>
+                <Icon name={f} size={16} stroke={2.4} /> {t.formats[f]}
+                {f === "podcast" && <em>{t.comingSoon}</em>}
+              </span>
             ))}
           </span>
         </button>

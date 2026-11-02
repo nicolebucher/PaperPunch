@@ -165,10 +165,20 @@ export function Capture({
 
               <div className="grid2">
                 {FORMATS.map((f) => (
-                  <button key={f} type="button" className={format === f ? "format on" : "format"} aria-pressed={format === f} onClick={() => setFormat(f)}>
-                    <Icon name={f} size={26} stroke={2} />
-                    {t.formats[f]}
-                  </button>
+                  f === "podcast" ? (
+                    <button key={f} type="button" className="format soon" disabled aria-disabled="true">
+                      <Icon name={f} size={26} stroke={2} />
+                      <span className="stack" style={{ gap: 2, alignItems: "flex-start" }}>
+                        {t.formats[f]}
+                        <span className="soon-badge">{t.comingSoon}</span>
+                      </span>
+                    </button>
+                  ) : (
+                    <button key={f} type="button" className={format === f ? "format on" : "format"} aria-pressed={format === f} onClick={() => setFormat(f)}>
+                      <Icon name={f} size={26} stroke={2} />
+                      {t.formats[f]}
+                    </button>
+                  )
                 ))}
               </div>
 

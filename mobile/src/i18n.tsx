@@ -4,6 +4,7 @@ import { createContext, useContext, type ReactNode } from "react";
 export type Lang = "de" | "en";
 
 const de = {
+  comingSoon: "Bald",
   obTitle: "Aus deinem Lernstoff wird Übung.",
   obFeat1: "Foto vom Hefter machen",
   obFeat2: "Arbeitsblatt, Test, Spiel oder Podcast bekommen",
@@ -181,6 +182,7 @@ const de = {
 };
 
 const en: typeof de = {
+  comingSoon: "Soon",
   obTitle: "Your notes, turned into practice.",
   obFeat1: "Snap a photo of your notes",
   obFeat2: "Get a worksheet, test, game or podcast",

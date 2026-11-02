@@ -34,11 +34,11 @@ const SESSION_RULES = `Session rules:
   longer plans, and keep each day within the student's daily minutes (several sessions on one day
   must add up to no more than that).
 - "format" decides which material the app generates for the session: "worksheet" (practice sheet
-  with answer key), "test" (exam-style test), "game" (quiz levels played in the app), "podcast"
-  (audio explanation for listening). Use "podcast" mainly for introducing or revising concepts,
-  "worksheet" for practising methods, "test" close to the test date as a dress rehearsal for a
-  written test, "game" for quick drills and vocabulary.
-- "kind": "learn" (first contact with a topic), "practice", "game", "podcast", "review" (revisit
+  with answer key), "test" (exam-style test) or "game" (quiz levels played in the app). Do NOT use
+  "podcast" - it is not available yet. Use "worksheet" for introducing and practising methods,
+  "test" close to the test date as a dress rehearsal for a written test, "game" for quick drills,
+  vocabulary and revision.
+- "kind": "learn" (first contact with a topic), "practice", "game", "review" (revisit
   earlier topics, spaced repetition), "checkpoint" (an intermediate progress test).
 - Checkpoints: every "checkpoint" session MUST use format "game" (the app scores it automatically).
   Plans of 5+ days get 2 checkpoints (around the middle and a few days before the test); plans of

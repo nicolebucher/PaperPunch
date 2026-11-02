@@ -374,3 +374,9 @@ h1 .beta { position: relative; top: -3px; }
 @media (prefers-reduced-motion: reduce) {
   .mark-intro .mark-book path, .mark-intro .mark-px, .ob-intro-word, .ob-intro .ob-cta { animation: none; opacity: 1; stroke-dashoffset: 0; }
 }
+
+/* Podcast: kommt bald */
+.format.soon { opacity: 0.55; cursor: not-allowed; background: #f4f4f5; }
+.soon-badge { font-size: 11px; font-weight: 900; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pink); }
+.hero-formats .soon { opacity: 0.7; }
+.hero-formats .soon em { font-style: normal; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; background: #0b1416; color: var(--teal); border-radius: 6px; padding: 2px 5px; margin-left: 2px; }

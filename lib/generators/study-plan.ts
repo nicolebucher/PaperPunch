@@ -36,7 +36,7 @@ function mockPlan(goal: PlanGoal, locale: Locale, firstDay = 0): StudyPlan {
       });
       continue;
     }
-    const format = (["podcast", "worksheet", "game", "worksheet"] as const)[day % 4];
+    const format = (["worksheet", "game", "worksheet", "test"] as const)[day % 4];
     sessions.push({
       dayIndex: day, minutes: goal.minutesPerDay, kind: day % 4 === 0 ? "learn" : "practice", format, topic,
       title: `${goal.subject}: ${topic}`,
