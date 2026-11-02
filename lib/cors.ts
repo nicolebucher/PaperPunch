@@ -13,8 +13,18 @@ function allowedOrigins(): string[] {
   return [...BUILT_IN, ...extra];
 }
 
+// Vorschau-Deployments der App (eigenes Vercel-Projekt "paperpunch-app") haben wechselnde Adressen.
+function isAppPreview(origin: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return protocol === "https:" && hostname.startsWith("paperpunch-app") && hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
 export function corsHeaders(origin: string | null): Record<string, string> {
-  if (!origin || !allowedOrigins().includes(origin)) return {};
+  if (!origin || !(allowedOrigins().includes(origin) || isAppPreview(origin))) return {};
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "POST, OPTIONS",
