@@ -25,16 +25,17 @@ export const PIXELS: { x: number; y: number; c: string }[] = [
 
 export const PIXEL_COLORS = [CYAN, PINK, GREEN];
 
-type Mode = "still" | "punch" | "float";
+type Mode = "still" | "punch" | "float" | "intro";
 
 /**
  * still: wie das Logo. punch: Pixel springen nacheinander aus dem Buch (Ladebildschirm, in Schleife).
  * float: Pixel schweben leicht (Startseite).
+ * intro: einmalig – das Buch zeichnet sich, dann fliegen die Pixel nacheinander von weit her ein (Willkommen).
  */
 export function BrandMark({ mode = "still", stroke = "#FFFFFF", className, style }: { mode?: Mode; stroke?: string; className?: string; style?: CSSProperties }) {
   return (
     <svg className={`mark mark-${mode} ${className ?? ""}`} style={style} viewBox="14 6 180 112" role="img" aria-label="PaperPunch">
-      <g fill="none" stroke={stroke} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+      <g className="mark-book" fill="none" stroke={stroke} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M92 30C78 20 58 17 40 19V88C58 86 78 89 92 98Z" />
         <path d="M32 26V94C52 92 74 94 92 104" />
         <path d="M24 33V100C48 98 72 100 92 110" />
@@ -54,7 +55,15 @@ export function BrandMark({ mode = "still", stroke = "#FFFFFF", className, style
           width="13"
           height="13"
           fill={p.c}
-          style={{ "--i": i, "--dx": `${(p.x - 92) * 0.35}px`, "--dy": `${(p.y - 60) * 0.35}px`, transformOrigin: `${p.x + 6.5}px ${p.y + 6.5}px` } as CSSProperties}
+          style={{
+            "--i": i,
+            "--dx": `${(p.x - 92) * 0.35}px`,
+            "--dy": `${(p.y - 60) * 0.35}px`,
+            "--fx": `${Math.cos(i * 2.4) * 160}px`,
+            "--fy": `${Math.sin(i * 2.4) * 140 - 40}px`,
+            "--fr": `${(i % 2 ? 1 : -1) * (120 + i * 25)}deg`,
+            transformOrigin: `${p.x + 6.5}px ${p.y + 6.5}px`,
+          } as CSSProperties}
         />
       ))}
     </svg>

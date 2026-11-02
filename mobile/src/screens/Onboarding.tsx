@@ -5,12 +5,6 @@ import { BrandMark } from "../brand";
 import { Icon, ProfileSelects, TopBar } from "../ui";
 import type { Profile } from "../types";
 
-const FEATURES = [
-  { icon: "camera", key: "obFeat1" },
-  { icon: "game", key: "obFeat2" },
-  { icon: "flag", key: "obFeat3" },
-] as const;
-
 /**
  * Erster Start: animierter Willkommensbildschirm, dann zwei kurze Schritte (Sprache/Land, Schule).
  * Als Einstellungen: nur das Formular.
@@ -80,44 +74,21 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     );
   }
 
-  // ---------- Willkommen ----------
+  // ---------- Willkommen: nur das Logo, das langsam einfliegt, danach der Button ----------
   if (step === 0) {
     return (
       <LangProvider lang={profile.lang}>
-        <div className="screen ob-welcome">
-          <div className="ob-rain" aria-hidden="true">
-            {Array.from({ length: 14 }, (_, i) => <i key={i} style={{ ["--i" as string]: i }} />)}
-          </div>
-          <div className="ob-lang">
-            {(["de", "en"] as Lang[]).map((l) => (
-              <button key={l} type="button" className={profile.lang === l ? "on" : ""} aria-pressed={profile.lang === l} onClick={() => setProfile({ ...profile, lang: l })}>
-                {l.toUpperCase()}
-              </button>
-            ))}
-          </div>
-
-          <div className="ob-hero">
-            <BrandMark mode="punch" className="ob-mark" />
-            <div className="ob-word" aria-label="PaperPunch">
+        <div className="screen ob-intro">
+          <div className="ob-intro-stage">
+            <BrandMark mode="intro" className="ob-intro-mark" />
+            <div className="ob-intro-word" aria-label="PaperPunch">
               <span className="logo-paper">Paper</span><span className="logo-punch">Punch</span>
             </div>
-            <h1 className="display ob-title">{t.obTitle}</h1>
           </div>
-
-          <div className="stack ob-features" style={{ gap: 10 }}>
-            {FEATURES.map((f, i) => (
-              <div key={f.key} className="ob-feature" style={{ ["--d" as string]: `${0.5 + i * 0.15}s` }}>
-                <span className="ob-feature-icon"><Icon name={f.icon} size={22} /></span>
-                <span>{t[f.key]}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="stack" style={{ marginTop: "auto", gap: 10, paddingBottom: 24 }}>
+          <div className="ob-intro-cta">
             <button type="button" className="btn primary block ob-cta" onClick={() => setStep(1)}>
-              {t.obStart} <Icon name="chevron" size={20} stroke={2.6} />
+              {t.obStart}
             </button>
-            <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>{t.obPrivacy}</p>
           </div>
         </div>
       </LangProvider>
