@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useT } from "../i18n";
 import { Icon } from "../ui";
 import type { QuizOutcome, Task } from "../types";
+import { POINTS, type RewardLine } from "../punches";
+import { hapticRight, hapticWrong } from "../feedback";
 
 const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!?]$/, "");
 
@@ -14,7 +16,7 @@ function autoCheck(task: Task) {
  * Arbeitsblatt oder Test online lösen: eine Aufgabe nach der anderen. Auswahl- und Lückenaufgaben werden
  * automatisch geprüft; bei offenen Aufgaben und Zuordnungen zeigt die App die Lösung und man bewertet sich selbst.
  */
-export function Practice({ title, tasks, onClose, onFinish }: { title: string; tasks: Task[]; onClose: () => void; onFinish: (o: QuizOutcome) => void }) {
+export function Practice({ title, tasks, onClose, onFinish }: { title: string; tasks: Task[]; onClose: () => void; onFinish: (o: QuizOutcome, lines: RewardLine[]) => void }) {
   const { t } = useT();
   const list = useMemo(() => tasks, [tasks]);
   const [index, setIndex] = useState(0);
@@ -22,6 +24,7 @@ export function Practice({ title, tasks, onClose, onFinish }: { title: string; t
   const [picked, setPicked] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [results, setResults] = useState<boolean[]>([]);
+  const [selfChecked, setSelfChecked] = useState<boolean[]>([]);
   const [finished, setFinished] = useState(false);
 
   const task = list[index];
@@ -30,8 +33,11 @@ export function Practice({ title, tasks, onClose, onFinish }: { title: string; t
   const answered = results.length > index;
   const ok = results[index];
 
-  function record(right: boolean) {
+  function record(right: boolean, self = false) {
     setResults((r) => [...r.slice(0, index), right]);
+    setSelfChecked((r) => [...r.slice(0, index), self]);
+    if (right) hapticRight();
+    else hapticWrong();
   }
 
   function submitAuto(value: string) {
@@ -80,7 +86,14 @@ export function Practice({ title, tasks, onClose, onFinish }: { title: string; t
           </div>
         )}
         <div className="stack" style={{ marginTop: "auto", width: "100%", paddingBottom: 28 }}>
-          <button type="button" className="btn primary block" onClick={() => onFinish({ correct, total: list.length, missed })}>
+          <button type="button" className="btn primary block" onClick={() => {
+              const autoRight = results.filter((r, i) => r && !selfChecked[i]).length;
+              const selfRight = results.filter((r, i) => r && selfChecked[i]).length;
+              const lines: RewardLine[] = [];
+              if (autoRight) lines.push({ source: "answer", amount: autoRight * POINTS.sheetAnswer });
+              if (selfRight) lines.push({ source: "selfcheck", amount: selfRight * POINTS.selfcheck });
+              onFinish({ correct, total: list.length, missed }, lines);
+            }}>
             {t.next}
           </button>
         </div>
@@ -164,8 +177,8 @@ export function Practice({ title, tasks, onClose, onFinish }: { title: string; t
             <div className="feedback ok"><span style={{ fontWeight: 900 }}>{t.solution}</span><span>{task.answer}</span></div>
             <span style={{ fontWeight: 800, color: "var(--sheet-muted)" }}>{t.selfCheck}</span>
             <div className="grid2">
-              <button type="button" className="btn ghost" onClick={() => record(false)}>{t.selfWrong}</button>
-              <button type="button" className="btn dark" onClick={() => record(true)}>{t.selfRight}</button>
+              <button type="button" className="btn ghost" onClick={() => record(false, true)}>{t.selfWrong}</button>
+              <button type="button" className="btn dark" onClick={() => record(true, true)}>{t.selfRight}</button>
             </div>
           </div>
         )}

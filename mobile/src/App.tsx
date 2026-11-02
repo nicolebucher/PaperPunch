@@ -11,6 +11,9 @@ import { Working } from "./screens/Working";
 import { Result } from "./screens/Result";
 import { Quiz } from "./screens/Quiz";
 import { Practice } from "./screens/Practice";
+import { GameScreen } from "./screens/Game";
+import { LevelScreen, RewardProvider, useShowReward } from "./rewards";
+import { awardRun, materialKey, POINTS, type RewardLine } from "./punches";
 import { PlanSetup } from "./screens/PlanSetup";
 import { PlanView } from "./screens/PlanView";
 import { GoHomeContext, Toast } from "./ui";
@@ -30,10 +33,20 @@ type View =
   | { name: "result"; result: GenerateResult; from?: SessionRef }
   | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult }
   | { name: "practice"; result: GenerateResult & { format: "worksheet" | "test" }; from?: SessionRef }
+  | { name: "levels" }
   | { name: "planSetup" }
   | { name: "plan"; planId: string };
 
 export function App() {
+  return (
+    <RewardProvider>
+      <AppInner />
+    </RewardProvider>
+  );
+}
+
+function AppInner() {
+  const showReward = useShowReward();
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());
   const [plans, setPlansState] = useState<ActivePlan[]>(() => loadPlans());
   const [view, setView] = useState<View>(() => (loadProfile() ? { name: "home" } : { name: "onboarding" }));
@@ -74,6 +87,16 @@ export function App() {
   }, [view.name]);
 
   const goHome = useCallback(() => setView({ name: "home" }), []);
+
+  /** Bucht Punches (mit Plan-Bonus, falls die Einheit aus einem Plan stammt) und zeigt die Abrechnung. */
+  function reward(key: string, lines: RewardLine[], from: SessionRef | undefined, then: () => void, extra: RewardLine[] = []) {
+    const all = [...lines, ...(from ? [{ source: "session" as const, amount: POINTS.session }] : []), ...extra];
+    if (all.length === 0) {
+      then();
+      return;
+    }
+    showReward(awardRun(key, all), then);
+  }
 
   function errorText(error: unknown) {
     if (error instanceof ApiError) return error.network ? t.errNetwork : error.message || t.errGeneric;
@@ -179,6 +202,7 @@ export function App() {
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
+          onLevels={() => setView({ name: "levels" })}
         />
       );
       break;
@@ -213,9 +237,10 @@ export function App() {
             if (view.result.format === "worksheet" || view.result.format === "test") setView({ name: "practice", result: view.result, from: view.from });
           }}
           onDone={() => {
-            if (view.from) {
-              markDone(view.from.planId, view.from.session.id);
-              setView({ name: "plan", planId: view.from.planId });
+            const from = view.from;
+            if (from) {
+              markDone(from.planId, from.session.id);
+              reward(`session:${from.session.id}`, [], from, () => setView({ name: "plan", planId: from.planId }));
             } else setView({ name: "capture", mode: "photo" });
           }}
           onNew={() => setView(view.from ? { name: "plan", planId: view.from.planId } : { name: "capture", mode: "photo" })}
@@ -223,24 +248,43 @@ export function App() {
         />
       );
       break;
-    case "quiz":
-      screen = (
-        <Quiz
-          game={view.game}
-          checkpoint={view.from?.session.kind === "checkpoint"}
-          inPlan={!!view.from}
-          onClose={() => setView(view.from ? { name: "plan", planId: view.from.planId } : view.result ? { name: "result", result: view.result } : { name: "home" })}
-          onFinish={(outcome) => {
-            const from = view.from;
-            if (!from) return;
-            if (from.session.kind === "checkpoint") void finishCheckpoint(from.planId, from.session, outcome);
-            else {
-              markDone(from.planId, from.session.id, outcome);
-              setView({ name: "plan", planId: from.planId });
-            }
-          }}
-        />
-      );
+    case "quiz": {
+      const from = view.from;
+      const key = materialKey("game", view.game.gameTitle, view.game.levels[0]?.questions[0]?.prompt ?? "");
+      if (from?.session.kind === "checkpoint") {
+        screen = (
+          <Quiz
+            game={view.game}
+            checkpoint
+            inPlan
+            onClose={() => setView({ name: "plan", planId: from.planId })}
+            onFinish={(outcome) => {
+              const lines: RewardLine[] = [{ source: "answer", amount: outcome.correct * POINTS.sheetAnswer }];
+              const extra: RewardLine[] = [{ source: "checkpoint", amount: POINTS.checkpoint }];
+              if (outcome.correct / outcome.total >= 0.8) extra.push({ source: "checkpointBonus", amount: POINTS.checkpointBonus });
+              // Zwischentest: Plan-Bonus ersetzt durch den Zwischentest-Bonus
+              showReward(awardRun(key, [...lines, ...extra]), () => void finishCheckpoint(from.planId, from.session, outcome));
+            }}
+          />
+        );
+      } else {
+        screen = (
+          <GameScreen
+            game={view.game}
+            gameKey={key}
+            onExit={(o) => {
+              const back = () =>
+                setView(from ? { name: "plan", planId: from.planId } : view.result ? { name: "result", result: view.result } : { name: "home" });
+              if (from && o.quiz.total > 0) markDone(from.planId, from.session.id, o.quiz);
+              reward(key, o.lines, from && o.lines.length ? from : undefined, back);
+            }}
+          />
+        );
+      }
+      break;
+    }
+    case "levels":
+      screen = <LevelScreen onBack={() => setView({ name: "home" })} />;
       break;
     case "practice":
       screen = (
@@ -248,13 +292,14 @@ export function App() {
           title={view.result.data.title}
           tasks={view.result.data.tasks}
           onClose={() => setView({ name: "result", result: view.result, from: view.from })}
-          onFinish={(outcome) => {
-            if (view.from) {
-              markDone(view.from.planId, view.from.session.id, outcome);
-              setView({ name: "plan", planId: view.from.planId });
+          onFinish={(outcome, lines) => {
+            const from = view.from;
+            const key = materialKey(view.result.format, view.result.data.title, view.result.data.tasks[0]?.question ?? "");
+            if (from) {
+              markDone(from.planId, from.session.id, outcome);
+              reward(key, lines, from, () => setView({ name: "plan", planId: from.planId }));
             } else {
-              say(`${outcome.correct}/${outcome.total} ${t.score}`);
-              setView({ name: "result", result: view.result });
+              reward(key, lines, undefined, () => setView({ name: "result", result: view.result }));
             }
           }}
         />
@@ -298,6 +343,7 @@ export function App() {
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
+          onLevels={() => setView({ name: "levels" })}
         />
       );
       break;

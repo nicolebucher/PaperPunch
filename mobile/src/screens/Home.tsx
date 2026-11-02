@@ -1,8 +1,11 @@
 import { useT } from "../i18n";
 import { Beta, Icon, TopBar } from "../ui";
-import { BrandMark, PIXEL_COLORS, PixelStrip } from "../brand";
+import { BrandMark, PixelStrip } from "../brand";
+import { PunchPill } from "../rewards";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
+
+const TEAL = "#1FD6EA";
 
 function planCells(plan: ActivePlan) {
   const todayIndex = daysBetween(plan.startDate, todayISO());
@@ -11,8 +14,8 @@ function planCells(plan: ActivePlan) {
     if (d === testIndex) return { state: "test" as const };
     const sessions = plan.sessions.filter((s) => s.dayIndex === d);
     const allDone = sessions.length > 0 && sessions.every((s) => plan.done.includes(s.id));
-    if (d === todayIndex) return { state: allDone ? ("done" as const) : ("today" as const), color: PIXEL_COLORS[d % 3] };
-    if (d < todayIndex) return { state: allDone || sessions.length === 0 ? ("done" as const) : ("missed" as const), color: PIXEL_COLORS[d % 3] };
+    if (d === todayIndex) return { state: allDone ? ("done" as const) : ("today" as const), color: TEAL };
+    if (d < todayIndex) return { state: allDone || sessions.length === 0 ? ("done" as const) : ("missed" as const), color: TEAL };
     return { state: "open" as const };
   });
 }
@@ -24,12 +27,14 @@ export function Home({
   onOpenPlan,
   onNewPlan,
   onSettings,
+  onLevels,
 }: {
   plans: ActivePlan[];
   onQuick: () => void;
   onOpenPlan: (planId: string) => void;
   onNewPlan: () => void;
   onSettings: () => void;
+  onLevels: () => void;
 }) {
   const { t } = useT();
   const hour = new Date().getHours();
@@ -48,9 +53,12 @@ export function Home({
     <div className="screen home">
       <TopBar
         right={
-          <button type="button" className="iconbtn" onClick={onSettings} aria-label={t.settings}>
-            <Icon name="gear" size={20} stroke={1.8} />
-          </button>
+          <div className="row" style={{ flexWrap: "nowrap", gap: 8 }}>
+            <PunchPill onClick={onLevels} />
+            <button type="button" className="iconbtn" onClick={onSettings} aria-label={t.settings}>
+              <Icon name="gear" size={20} stroke={1.8} />
+            </button>
+          </div>
         }
       />
 
@@ -64,9 +72,6 @@ export function Home({
         </div>
 
         <button type="button" className="hero-card" onClick={onQuick}>
-          <span className="hero-pixels" aria-hidden="true">
-            <i /><i /><i /><i /><i />
-          </span>
           <span className="hero-icon"><Icon name="camera" size={30} stroke={2.2} /></span>
           <span className="hero-title">{t.homeQuickTitle}</span>
           <span className="hero-text">{t.homeQuickText}</span>
@@ -81,7 +86,7 @@ export function Home({
         </button>
 
         <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap", marginTop: 6 }}>
-          <span className="eyebrow pink"><Icon name="flag" size={16} /> {t.myPlans} <Beta /></span>
+          <span className="section-title">{t.myPlans} <Beta /></span>
           {plans.length > 0 && (
             <button type="button" className="btn ghost small" onClick={onNewPlan}>
               <Icon name="plus" size={18} /> {t.newPlanShort}
@@ -97,7 +102,7 @@ export function Home({
           return (
             <button key={plan.id} type="button" className={over ? "plan-card over" : "plan-card"} onClick={() => onOpenPlan(plan.id)}>
               <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
-                <span className="eyebrow pink"><Icon name="calendar" size={16} /> {over ? t.testDone : t.homePlanActive(daysLeft)}</span>
+                <span className="eyebrow"><Icon name="calendar" size={16} /> {over ? t.testDone : t.homePlanActive(daysLeft)}</span>
                 <Icon name="chevron" size={18} stroke={2.6} />
               </div>
               <span className="plan-title">{plan.plan.title}</span>
@@ -115,7 +120,7 @@ export function Home({
           <button type="button" className="plan-card" onClick={onNewPlan}>
             <span className="plan-title">{t.homePlanPitch}</span>
             <PixelStrip
-              cells={[...Array.from({ length: 9 }, (_, i) => ({ state: i < 4 ? ("done" as const) : ("open" as const), color: PIXEL_COLORS[i % 3] })), { state: "test" as const }]}
+              cells={[...Array.from({ length: 9 }, (_, i) => ({ state: i < 4 ? ("done" as const) : ("open" as const), color: TEAL })), { state: "test" as const }]}
               label={t.homePlanTitle}
             />
             <span className="muted" style={{ fontSize: 15 }}>{t.homePlanText}</span>
