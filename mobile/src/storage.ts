@@ -3,7 +3,8 @@ import type { ActivePlan, Profile } from "./types";
 // Alles bleibt auf dem Gerät: Profil und Plan im localStorage, Lernstoff-Dateien des Plans in IndexedDB.
 
 const PROFILE_KEY = "paperpunch-profile";
-const PLAN_KEY = "paperpunch-plan";
+const PLAN_KEY = "paperpunch-plan"; // alt: ein einzelner Plan
+const PLANS_KEY = "paperpunch-plans";
 
 function read<T>(key: string): T | null {
   try {
@@ -25,8 +26,22 @@ function write(key: string, value: unknown) {
 
 export const loadProfile = () => read<Profile>(PROFILE_KEY);
 export const saveProfile = (p: Profile) => write(PROFILE_KEY, p);
-export const loadPlan = () => read<ActivePlan>(PLAN_KEY);
-export const savePlan = (p: ActivePlan | null) => write(PLAN_KEY, p);
+/** Alle Lernpläne. Ein Plan aus der ersten Version (ein einzelner Plan) wird übernommen. */
+export function loadPlans(): ActivePlan[] {
+  const list = read<ActivePlan[]>(PLANS_KEY);
+  if (list) return list;
+  const legacy = read<ActivePlan>(PLAN_KEY);
+  if (!legacy) return [];
+  const migrated = [{ ...legacy, id: legacy.id ?? "legacy" }];
+  write(PLANS_KEY, migrated);
+  write(PLAN_KEY, null);
+  return migrated;
+}
+export const savePlans = (plans: ActivePlan[]) => write(PLANS_KEY, plans);
+
+export function newPlanId(): string {
+  return `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
 
 // --- Plan-Dateien in IndexedDB --------------------------------------------------------------
 
@@ -42,13 +57,13 @@ function openDb(): Promise<IDBDatabase> {
   });
 }
 
-export async function savePlanFiles(files: File[]): Promise<void> {
+export async function savePlanFiles(planId: string, files: File[]): Promise<void> {
   try {
     const db = await openDb();
     await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE, "readwrite");
       const blobs = files.map((f) => ({ name: f.name, type: f.type, data: f as Blob }));
-      tx.objectStore(STORE).put(blobs, "current");
+      tx.objectStore(STORE).put(blobs, planId);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
@@ -57,11 +72,12 @@ export async function savePlanFiles(files: File[]): Promise<void> {
   }
 }
 
-export async function loadPlanFiles(): Promise<File[]> {
+export async function loadPlanFiles(planId: string): Promise<File[]> {
   try {
     const db = await openDb();
     const stored = await new Promise<{ name: string; type: string; data: Blob }[] | undefined>((resolve, reject) => {
-      const req = db.transaction(STORE).objectStore(STORE).get("current");
+      // "current" = Ablage aus der ersten Version (nur ein Plan)
+      const req = db.transaction(STORE).objectStore(STORE).get(planId === "legacy" ? "current" : planId);
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => reject(req.error);
     });
@@ -71,10 +87,10 @@ export async function loadPlanFiles(): Promise<File[]> {
   }
 }
 
-export async function clearPlanFiles(): Promise<void> {
+export async function clearPlanFiles(planId: string): Promise<void> {
   try {
     const db = await openDb();
-    db.transaction(STORE, "readwrite").objectStore(STORE).delete("current");
+    db.transaction(STORE, "readwrite").objectStore(STORE).delete(planId === "legacy" ? "current" : planId);
   } catch {
     // nichts zu löschen
   }

@@ -3,7 +3,7 @@ import { useT } from "../i18n";
 import { addFiles, formatMb, totalBytes, type FileError } from "../files";
 import { createPlan } from "../api";
 import { addDays, daysBetween, todayISO } from "../dates";
-import { savePlanFiles, clearPlanFiles } from "../storage";
+import { newPlanId, savePlanFiles } from "../storage";
 import { Beta, FileChips, FilePick, Icon, TopBar } from "../ui";
 import { Working } from "./Working";
 import type { ActivePlan, PlanGoal, Profile, TestFormat } from "../types";
@@ -55,10 +55,11 @@ export function PlanSetup({
     try {
       const cleaned: PlanGoal = { ...goal, subject: goal.subject.trim(), topics: goal.topics?.trim() || undefined };
       const plan = await createPlan(profile, cleaned, files);
-      await clearPlanFiles();
-      if (files.length) await savePlanFiles(files);
+      const id = newPlanId();
+      if (files.length) await savePlanFiles(id, files);
       const { sessions, ...meta } = plan;
       onCreated({
+        id,
         plan: meta,
         sessions: sessions.map((s, i) => ({ ...s, id: `${s.dayIndex}-${i}` })),
         goal: cleaned,

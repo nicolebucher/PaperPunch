@@ -17,6 +17,7 @@ export interface Task {
   question: string;
   type: string;
   options?: string[];
+  pairs?: { left: string; right: string }[];
   points: number;
   answer: string;
 }
@@ -101,6 +102,7 @@ export interface QuizOutcome {
 
 /** Der aktive Lernplan, nur auf dem Gerät gespeichert. */
 export interface ActivePlan {
+  id: string;
   plan: Omit<StudyPlan, "sessions">;
   sessions: StoredSession[];
   goal: PlanGoal;

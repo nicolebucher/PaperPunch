@@ -48,7 +48,10 @@ export async function shareFile(opts: { filename: string; mime: string; title: s
   return "downloaded";
 }
 
-/** Öffnet ein PDF zum Ansehen: Android über das Teilen-Menü (PDF-Viewer wählbar), im Browser in neuem Tab. */
+/**
+ * Öffnet ein PDF zum Ansehen und Drucken: Android über das Teilen-Menü (dort "Drucken" bzw. PDF-Viewer wählbar),
+ * im Browser in neuem Tab, wo der Drucken-Button des PDF-Viewers bereitsteht.
+ */
 export async function openPdf(base64: string, filename: string, title: string): Promise<void> {
   if (Capacitor.isNativePlatform()) {
     await shareFile({ filename, mime: "application/pdf", title, base64 });

@@ -16,6 +16,7 @@ export function Result({
   from,
   say,
   onPlay,
+  onPractice,
   onDone,
   onNew,
   onHome,
@@ -24,6 +25,7 @@ export function Result({
   from?: SessionRef;
   say: (msg: string) => void;
   onPlay: (game: GameResult["game"]) => void;
+  onPractice: () => void;
   onDone: () => void;
   onNew: () => void;
   onHome: () => void;
@@ -127,11 +129,16 @@ export function Result({
             </button>
           )}
           {isSheet && (
-            <button type="button" className="btn primary" onClick={() => void view()}>
-              <Icon name="eye" /> {t.view}
+            <button type="button" className="btn primary" onClick={onPractice}>
+              <Icon name="play" /> {t.solveOnline}
             </button>
           )}
-          <button type="button" className={result.format === "podcast" ? "btn primary" : "btn ghost"} style={result.format === "podcast" ? { gridColumn: "1 / -1" } : undefined} onClick={() => void share()}>
+          {isSheet && (
+            <button type="button" className="btn ghost" onClick={() => void view()}>
+              <Icon name="print" /> {t.print}
+            </button>
+          )}
+          <button type="button" className={result.format === "podcast" ? "btn primary" : "btn ghost"} style={result.format !== "game" ? { gridColumn: "1 / -1" } : undefined} onClick={() => void share()}>
             <Icon name="share" /> {t.share}
           </button>
         </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
-import { loadPlan, loadPlanFiles, loadProfile, savePlan, saveProfile } from "./storage";
+import { clearPlanFiles, loadPlanFiles, loadPlans, loadProfile, savePlans, saveProfile } from "./storage";
 import { adjustPlan, ApiError, generateMaterial } from "./api";
 import { daysBetween, todayISO } from "./dates";
 import type { ActivePlan, GameResult, GenerateResult, MaterialFormat, Profile, QuizOutcome, StoredSession } from "./types";
@@ -10,12 +10,14 @@ import { Capture } from "./screens/Capture";
 import { Working } from "./screens/Working";
 import { Result } from "./screens/Result";
 import { Quiz } from "./screens/Quiz";
+import { Practice } from "./screens/Practice";
 import { PlanSetup } from "./screens/PlanSetup";
 import { PlanView } from "./screens/PlanView";
-import { Toast } from "./ui";
+import { GoHomeContext, Toast } from "./ui";
 
 /** Wenn Material aus einer Plan-Einheit stammt, merkt sich die App die Einheit. */
 export interface SessionRef {
+  planId: string;
   session: StoredSession;
 }
 
@@ -27,12 +29,13 @@ type View =
   | { name: "working"; format: MaterialFormat | "plan" | "adjust"; fileCount: number }
   | { name: "result"; result: GenerateResult; from?: SessionRef }
   | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult }
+  | { name: "practice"; result: GenerateResult & { format: "worksheet" | "test" }; from?: SessionRef }
   | { name: "planSetup" }
-  | { name: "plan" };
+  | { name: "plan"; planId: string };
 
 export function App() {
   const [profile, setProfile] = useState<Profile | null>(() => loadProfile());
-  const [plan, setPlanState] = useState<ActivePlan | null>(() => loadPlan());
+  const [plans, setPlansState] = useState<ActivePlan[]>(() => loadPlans());
   const [view, setView] = useState<View>(() => (loadProfile() ? { name: "home" } : { name: "onboarding" }));
   const [toast, setToast] = useState("");
   const toastTimer = useRef<number>();
@@ -46,9 +49,18 @@ export function App() {
     toastTimer.current = window.setTimeout(() => setToast(""), 3200);
   }, []);
 
-  const setPlan = useCallback((next: ActivePlan | null) => {
-    setPlanState(next);
-    savePlan(next);
+  const setPlans = useCallback((next: ActivePlan[]) => {
+    setPlansState(next);
+    savePlans(next);
+  }, []);
+  const getPlan = (id: string) => plans.find((p) => p.id === id) ?? null;
+  // Aktualisiert einen Plan anhand des neuesten gespeicherten Stands (auch nach await sicher).
+  const updatePlan = useCallback((id: string, change: (p: ActivePlan) => ActivePlan) => {
+    setPlansState((current) => {
+      const next = current.map((p) => (p.id === id ? change(p) : p));
+      savePlans(next);
+      return next;
+    });
   }, []);
 
   // Android-Zurück-Taste und Browser-Zurück führen zur Startseite statt die App zu schließen.
@@ -60,6 +72,8 @@ export function App() {
   useEffect(() => {
     if (view.name !== "home" && view.name !== "onboarding") window.history.pushState(null, "");
   }, [view.name]);
+
+  const goHome = useCallback(() => setView({ name: "home" }), []);
 
   function errorText(error: unknown) {
     if (error instanceof ApiError) return error.network ? t.errNetwork : error.message || t.errGeneric;
@@ -82,39 +96,40 @@ export function App() {
     }
   }
 
-  function markDone(sessionId: string, outcome?: QuizOutcome) {
-    if (!plan) return;
-    setPlan({
+  function markDone(planId: string, sessionId: string, outcome?: QuizOutcome) {
+    updatePlan(planId, (plan) => ({
       ...plan,
       done: plan.done.includes(sessionId) ? plan.done : [...plan.done, sessionId],
       results: outcome ? { ...plan.results, [sessionId]: outcome } : plan.results,
-    });
+    }));
   }
 
-  async function startSession(session: StoredSession) {
+  async function startSession(planId: string, session: StoredSession) {
+    const plan = getPlan(planId);
     if (!plan) return;
-    const files = plan.hasFiles ? await loadPlanFiles() : [];
+    const files = plan.hasFiles ? await loadPlanFiles(plan.id) : [];
     await runGenerate({
       format: session.format,
       files,
       subject: plan.goal.subject,
       notes: session.focus,
-      from: { session },
-      back: { name: "plan" },
+      from: { planId, session },
+      back: { name: "plan", planId },
     });
   }
 
-  async function finishCheckpoint(session: StoredSession, outcome: QuizOutcome) {
+  async function finishCheckpoint(planId: string, session: StoredSession, outcome: QuizOutcome) {
+    const plan = getPlan(planId);
     if (!plan || !profile) return;
     const updated: ActivePlan = {
       ...plan,
       done: [...plan.done.filter((id) => id !== session.id), session.id],
       results: { ...plan.results, [session.id]: outcome },
     };
-    setPlan(updated);
+    updatePlan(planId, () => updated);
     const todayIndex = daysBetween(updated.startDate, todayISO());
     if (todayIndex >= daysBetween(updated.startDate, updated.goal.testDate) - 1) {
-      setView({ name: "plan" });
+      setView({ name: "plan", planId });
       return;
     }
     setView({ name: "working", format: "adjust", fileCount: 0 });
@@ -131,12 +146,12 @@ export function App() {
       const kept = updated.sessions.filter((s) => s.dayIndex <= todayIndex);
       const fresh = revised.sessions.map((s, i) => ({ ...s, id: `${s.dayIndex}-${Date.now()}-${i}` }));
       const { sessions: _ignored, ...meta } = revised;
-      setPlan({ ...updated, plan: meta, sessions: [...kept, ...fresh] });
+      updatePlan(planId, (p) => ({ ...p, plan: meta, sessions: [...kept, ...fresh] }));
       say(`${t.adjusted}: ${revised.feasibilityNote}`);
     } catch (error) {
       say(errorText(error));
     }
-    setView({ name: "plan" });
+    setView({ name: "plan", planId });
   }
 
   let screen: JSX.Element;
@@ -159,9 +174,10 @@ export function App() {
     case "home":
       screen = (
         <Home
-          plan={plan}
+          plans={plans}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
-          onPlan={() => setView(plan ? { name: "plan" } : { name: "planSetup" })}
+          onOpenPlan={(planId) => setView({ name: "plan", planId })}
+          onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
         />
       );
@@ -193,13 +209,16 @@ export function App() {
           from={view.from}
           say={say}
           onPlay={(game) => setView({ name: "quiz", game, from: view.from, result: view.result })}
+          onPractice={() => {
+            if (view.result.format === "worksheet" || view.result.format === "test") setView({ name: "practice", result: view.result, from: view.from });
+          }}
           onDone={() => {
             if (view.from) {
-              markDone(view.from.session.id);
-              setView({ name: "plan" });
+              markDone(view.from.planId, view.from.session.id);
+              setView({ name: "plan", planId: view.from.planId });
             } else setView({ name: "capture", mode: "photo" });
           }}
-          onNew={() => setView(view.from ? { name: "plan" } : { name: "capture", mode: "photo" })}
+          onNew={() => setView(view.from ? { name: "plan", planId: view.from.planId } : { name: "capture", mode: "photo" })}
           onHome={() => setView({ name: "home" })}
         />
       );
@@ -210,13 +229,32 @@ export function App() {
           game={view.game}
           checkpoint={view.from?.session.kind === "checkpoint"}
           inPlan={!!view.from}
-          onClose={() => setView(view.from ? { name: "plan" } : view.result ? { name: "result", result: view.result } : { name: "home" })}
+          onClose={() => setView(view.from ? { name: "plan", planId: view.from.planId } : view.result ? { name: "result", result: view.result } : { name: "home" })}
           onFinish={(outcome) => {
-            if (!view.from) return;
-            if (view.from.session.kind === "checkpoint") void finishCheckpoint(view.from.session, outcome);
+            const from = view.from;
+            if (!from) return;
+            if (from.session.kind === "checkpoint") void finishCheckpoint(from.planId, from.session, outcome);
             else {
-              markDone(view.from.session.id, outcome);
-              setView({ name: "plan" });
+              markDone(from.planId, from.session.id, outcome);
+              setView({ name: "plan", planId: from.planId });
+            }
+          }}
+        />
+      );
+      break;
+    case "practice":
+      screen = (
+        <Practice
+          title={view.result.data.title}
+          tasks={view.result.data.tasks}
+          onClose={() => setView({ name: "result", result: view.result, from: view.from })}
+          onFinish={(outcome) => {
+            if (view.from) {
+              markDone(view.from.planId, view.from.session.id, outcome);
+              setView({ name: "plan", planId: view.from.planId });
+            } else {
+              say(`${outcome.correct}/${outcome.total} ${t.score}`);
+              setView({ name: "result", result: view.result });
             }
           }}
         />
@@ -230,39 +268,47 @@ export function App() {
           errorText={errorText}
           onBack={() => setView({ name: "home" })}
           onCreated={(p) => {
-            setPlan(p);
-            setView({ name: "plan" });
+            setPlans([p, ...plans]);
+            setView({ name: "plan", planId: p.id });
           }}
         />
       );
       break;
-    case "plan":
+    case "plan": {
+      const plan = getPlan(view.planId);
       screen = plan ? (
         <PlanView
           active={plan}
           onBack={() => setView({ name: "home" })}
-          onStart={(s) => void startSession(s)}
+          onStart={(sess) => void startSession(plan.id, sess)}
           onToggleDone={(id) =>
-            setPlan({ ...plan, done: plan.done.includes(id) ? plan.done.filter((d) => d !== id) : [...plan.done, id] })
+            updatePlan(plan.id, (p) => ({ ...p, done: p.done.includes(id) ? p.done.filter((d) => d !== id) : [...p.done, id] }))
           }
           onDelete={() => {
-            setPlan(null);
+            void clearPlanFiles(plan.id);
+            setPlans(plans.filter((p) => p.id !== plan.id));
             setView({ name: "home" });
           }}
-          onNew={() => {
-            setPlan(null);
-            setView({ name: "planSetup" });
-          }}
+          onNew={() => setView({ name: "planSetup" })}
         />
       ) : (
-        <Home plan={null} onQuick={() => setView({ name: "capture", mode: "photo" })} onPlan={() => setView({ name: "planSetup" })} onSettings={() => setView({ name: "settings" })} />
+        <Home
+          plans={plans}
+          onQuick={() => setView({ name: "capture", mode: "photo" })}
+          onOpenPlan={(planId) => setView({ name: "plan", planId })}
+          onNewPlan={() => setView({ name: "planSetup" })}
+          onSettings={() => setView({ name: "settings" })}
+        />
       );
       break;
+    }
   }
 
   return (
     <LangProvider lang={lang}>
-      {screen}
+      <GoHomeContext.Provider value={view.name === "onboarding" || view.name === "working" ? null : goHome}>
+        {screen}
+      </GoHomeContext.Provider>
       {toast && <Toast text={toast} />}
     </LangProvider>
   );

@@ -4,29 +4,45 @@ import { BrandMark, PIXEL_COLORS, PixelStrip } from "../brand";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
 
-/** Startseite: große Foto-Karte als Hauptaktion, darunter der Lernplan mit einem Pixel pro Tag bis zum Test. */
-export function Home({ plan, onQuick, onPlan, onSettings }: { plan: ActivePlan | null; onQuick: () => void; onPlan: () => void; onSettings: () => void }) {
+function planCells(plan: ActivePlan) {
+  const todayIndex = daysBetween(plan.startDate, todayISO());
+  const testIndex = daysBetween(plan.startDate, plan.goal.testDate);
+  return Array.from({ length: testIndex + 1 }, (_, d) => {
+    if (d === testIndex) return { state: "test" as const };
+    const sessions = plan.sessions.filter((s) => s.dayIndex === d);
+    const allDone = sessions.length > 0 && sessions.every((s) => plan.done.includes(s.id));
+    if (d === todayIndex) return { state: allDone ? ("done" as const) : ("today" as const), color: PIXEL_COLORS[d % 3] };
+    if (d < todayIndex) return { state: allDone || sessions.length === 0 ? ("done" as const) : ("missed" as const), color: PIXEL_COLORS[d % 3] };
+    return { state: "open" as const };
+  });
+}
+
+/** Startseite: große Karte "Lernmaterial erstellen", darunter alle Lernpläne – je ein Pixel pro Tag bis zum Test. */
+export function Home({
+  plans,
+  onQuick,
+  onOpenPlan,
+  onNewPlan,
+  onSettings,
+}: {
+  plans: ActivePlan[];
+  onQuick: () => void;
+  onOpenPlan: (planId: string) => void;
+  onNewPlan: () => void;
+  onSettings: () => void;
+}) {
   const { t } = useT();
   const hour = new Date().getHours();
   const greeting = hour < 11 ? t.greetMorning : hour < 18 ? t.greetDay : t.greetEvening;
+  const today = todayISO();
 
-  const daysLeft = plan ? daysBetween(todayISO(), plan.goal.testDate) : 0;
-  const activePlan = plan && daysLeft > 0 ? plan : null;
-  const todayIndex = activePlan ? daysBetween(activePlan.startDate, todayISO()) : 0;
-  const todayOpen = activePlan ? activePlan.sessions.filter((s) => s.dayIndex === todayIndex && !activePlan.done.includes(s.id)) : [];
-
-  // Ein Pixel pro Tag vom Planstart bis zum Testtag.
-  const cells = activePlan
-    ? Array.from({ length: daysBetween(activePlan.startDate, activePlan.goal.testDate) + 1 }, (_, d) => {
-        const testDay = d === daysBetween(activePlan.startDate, activePlan.goal.testDate);
-        if (testDay) return { state: "test" as const };
-        const sessions = activePlan.sessions.filter((s) => s.dayIndex === d);
-        const allDone = sessions.length > 0 && sessions.every((s) => activePlan.done.includes(s.id));
-        if (d === todayIndex) return { state: allDone ? ("done" as const) : ("today" as const), color: PIXEL_COLORS[d % 3] };
-        if (d < todayIndex) return { state: allDone || sessions.length === 0 ? ("done" as const) : ("missed" as const), color: PIXEL_COLORS[d % 3] };
-        return { state: "open" as const };
-      })
-    : [];
+  // Laufende Pläne nach Testdatum, vergangene ans Ende.
+  const sorted = [...plans].sort((a, b) => {
+    const da = daysBetween(today, a.goal.testDate);
+    const db = daysBetween(today, b.goal.testDate);
+    if ((da > 0) !== (db > 0)) return da > 0 ? -1 : 1;
+    return da - db;
+  });
 
   return (
     <div className="screen home">
@@ -61,27 +77,48 @@ export function Home({ plan, onQuick, onPlan, onSettings }: { plan: ActivePlan |
           </span>
         </button>
 
-        {activePlan ? (
-          <button type="button" className="plan-card" onClick={onPlan}>
-            <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
-              <span className="eyebrow pink"><Icon name="calendar" size={16} /> {t.homePlanActive(daysLeft)} <Beta /></span>
-              <Icon name="chevron" size={18} stroke={2.6} />
-            </div>
-            <span className="plan-title">{activePlan.plan.title}</span>
-            <PixelStrip cells={cells} label={t.homePlanActive(daysLeft)} />
-            <span className="muted" style={{ fontSize: 15 }}>
-              {todayOpen.length > 0 ? `${t.today}: ${todayOpen.map((s) => s.title).join(" · ")}` : t.noSessionToday}
-            </span>
-          </button>
-        ) : (
-          <button type="button" className="plan-card" onClick={onPlan}>
-            <span className="eyebrow pink"><Icon name="flag" size={16} /> {t.homePlanTitle} <Beta /></span>
+        <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap", marginTop: 6 }}>
+          <span className="eyebrow pink"><Icon name="flag" size={16} /> {t.myPlans} <Beta /></span>
+          {plans.length > 0 && (
+            <button type="button" className="btn ghost small" onClick={onNewPlan}>
+              <Icon name="plus" size={18} /> {t.newPlanShort}
+            </button>
+          )}
+        </div>
+
+        {sorted.map((plan) => {
+          const daysLeft = daysBetween(today, plan.goal.testDate);
+          const todayIndex = daysBetween(plan.startDate, today);
+          const todayOpen = plan.sessions.filter((s) => s.dayIndex === todayIndex && !plan.done.includes(s.id));
+          const over = daysLeft <= 0;
+          return (
+            <button key={plan.id} type="button" className={over ? "plan-card over" : "plan-card"} onClick={() => onOpenPlan(plan.id)}>
+              <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+                <span className="eyebrow pink"><Icon name="calendar" size={16} /> {over ? t.testDone : t.homePlanActive(daysLeft)}</span>
+                <Icon name="chevron" size={18} stroke={2.6} />
+              </div>
+              <span className="plan-title">{plan.plan.title}</span>
+              {!over && <PixelStrip cells={planCells(plan)} label={t.homePlanActive(daysLeft)} />}
+              {!over && (
+                <span className="muted" style={{ fontSize: 15 }}>
+                  {todayOpen.length > 0 ? `${t.today}: ${todayOpen.map((s) => s.title).join(" · ")}` : t.noSessionToday}
+                </span>
+              )}
+            </button>
+          );
+        })}
+
+        {plans.length === 0 && (
+          <button type="button" className="plan-card" onClick={onNewPlan}>
             <span className="plan-title">{t.homePlanPitch}</span>
             <PixelStrip
               cells={[...Array.from({ length: 9 }, (_, i) => ({ state: i < 4 ? ("done" as const) : ("open" as const), color: PIXEL_COLORS[i % 3] })), { state: "test" as const }]}
               label={t.homePlanTitle}
             />
             <span className="muted" style={{ fontSize: 15 }}>{t.homePlanText}</span>
+            <span className="btn primary small" style={{ alignSelf: "flex-start", marginTop: 4 }}>
+              <Icon name="plus" size={18} /> {t.newPlan}
+            </span>
           </button>
         )}
       </div>

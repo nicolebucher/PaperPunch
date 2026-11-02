@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import { useT } from "./i18n";
 import { getCountry } from "./countries";
 import { kindOf } from "./files";
@@ -36,6 +36,7 @@ const PATHS = {
   home: "M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5",
   eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
   plus: "M12 5v14M5 12h14",
+  print: "M6 9V3h12v6M6 18H4v-7h16v7h-2M8 14h8v7H8z",
   close: "M6 6l12 12M18 6L6 18",
   gear: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
   gallery: "M3 4h18v16H3zM9 10a2 2 0 1 0 0-.01M21 16l-5-5-9 9",
@@ -66,6 +67,20 @@ export function Icon({ name, size = 22, stroke = 2.2 }: { name: IconName; size?:
 
 export const FORMATS: MaterialFormat[] = ["worksheet", "test", "game", "podcast"];
 
+/** Klick aufs Logo führt zur Startseite (wird in App.tsx gesetzt). */
+export const GoHomeContext = createContext<(() => void) | null>(null);
+
+function HomeLogo({ light }: { light?: boolean }) {
+  const goHome = useContext(GoHomeContext);
+  const { t } = useT();
+  if (!goHome) return <Logo size={light ? 22 : 24} light={light} />;
+  return (
+    <button type="button" className="logo-btn" onClick={goHome} aria-label={t.home}>
+      <Logo size={light ? 22 : 24} light={light} />
+    </button>
+  );
+}
+
 export function TopBar({ onBack, right, light }: { onBack?: () => void; right?: ReactNode; light?: boolean }) {
   const { t } = useT();
   return (
@@ -76,7 +91,7 @@ export function TopBar({ onBack, right, light }: { onBack?: () => void; right?: 
             <Icon name="back" />
           </button>
         )}
-        <Logo size={light ? 22 : 24} light={light} />
+        <HomeLogo light={light} />
       </div>
       {right}
     </div>
