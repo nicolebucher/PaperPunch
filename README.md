@@ -1,4 +1,4 @@
-# Lernmaterial-Generator
+# PaperPunch – Lernmaterial-Generator
 
 Schüler laden Lernmaterial (PDF, JPG oder PNG) hoch, geben Alter/Klasse/Schulart an und lassen sich per KI
 ein Arbeitsblatt, eine Testarbeit oder ein Lernspiel mit Leveln daraus erstellen.

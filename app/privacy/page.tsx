@@ -12,7 +12,7 @@ function PrivacyEn() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Privacy Policy</h1>
       <DraftNotice>
-        This draft accurately describes how snap.it technically handles data today. It is not legal advice -
+        This draft accurately describes how PaperPunch technically handles data today. It is not legal advice -
         fill in the bracketed operator details and have it reviewed (e.g. against GDPR) before publishing.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
@@ -106,7 +106,7 @@ function PrivacyDe() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Datenschutzerklärung</h1>
       <DraftNotice>
-        Dieser Entwurf beschreibt korrekt, wie snap.it aktuell technisch mit Daten umgeht. Er ist keine
+        Dieser Entwurf beschreibt korrekt, wie PaperPunch aktuell technisch mit Daten umgeht. Er ist keine
         Rechtsberatung - ergänze die Platzhalter zum Anbieter und lasse den Text (z.B. im Hinblick auf die
         DSGVO) vor Veröffentlichung prüfen.
       </DraftNotice>

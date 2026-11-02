@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 
-// Macht snap.it auf dem Handy installierbar ("Zum Startbildschirm hinzufügen"): eigenes Icon,
+// Macht PaperPunch auf dem Handy installierbar ("Zum Startbildschirm hinzufügen"): eigenes Icon,
 // Vollbild ohne Browserleiste. Die Icons in public/ wurden aus dem Logo (components/brand/Logo.tsx) gerendert.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "snap.it",
-    short_name: "snap.it",
+    name: "PaperPunch",
+    short_name: "PaperPunch",
     description: "Upload your study material and get a worksheet, test, or learning game created for you.",
     start_url: "/",
     scope: "/",

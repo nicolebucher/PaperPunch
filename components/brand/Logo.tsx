@@ -26,14 +26,14 @@ export function Logo({ size = "header" }: { size?: Size }) {
           textShadow: "1.5px 1.5px 0 #000, -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000",
         }}
       >
-        snap<span className="text-white">.</span>it
+        Paper<span className="text-white">Punch</span>
       </span>
       <svg
         aria-hidden
         viewBox="0 0 20 20"
         fill="currentColor"
         className={`absolute text-teal-400 ${drips.big}`}
-        style={{ left: "20%", top: "78%" }}
+        style={{ left: "14%", top: "78%" }}
       >
         <path d={DRIP_PATH} />
       </svg>
@@ -42,7 +42,7 @@ export function Logo({ size = "header" }: { size?: Size }) {
         viewBox="0 0 20 20"
         fill="currentColor"
         className={`absolute text-teal-400 ${drips.small}`}
-        style={{ left: "74%", top: "82%" }}
+        style={{ left: "80%", top: "82%" }}
       >
         <path d={DRIP_PATH} />
       </svg>

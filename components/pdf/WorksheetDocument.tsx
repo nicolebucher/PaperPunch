@@ -93,7 +93,7 @@ export function WorksheetDocument({ data, profile }: { data: WorksheetData; prof
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.brand}>snap.it</Text>
+        <Text style={styles.brand}>PaperPunch</Text>
         <View style={styles.header}>
           <Text style={styles.title}>{data.title}</Text>
           {meta && <Text style={styles.meta}>{meta}</Text>}
@@ -120,7 +120,7 @@ export function WorksheetDocument({ data, profile }: { data: WorksheetData; prof
         ))}
       </Page>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.brand}>snap.it</Text>
+        <Text style={styles.brand}>PaperPunch</Text>
         <Text style={styles.solutionsTitle}>
           {labels.solutions} — {data.title}
         </Text>

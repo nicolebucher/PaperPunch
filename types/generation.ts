@@ -9,13 +9,24 @@ export const schoolTypes = [
   "Berufsschule",
 ] as const;
 
+// Länder der Android-App (Schulsystem, Klassenbezeichnung, Notenskala). Die Web-App sendet keins.
+export const countries = ["DE", "AT", "CH", "GB", "IE", "US", "CA", "AU", "OTHER"] as const;
+export type Country = (typeof countries)[number];
+
+const COUNTRY_NAMES: Record<Country, string> = {
+  DE: "Germany", AT: "Austria", CH: "Switzerland", GB: "the United Kingdom", IE: "Ireland",
+  US: "the United States", CA: "Canada", AU: "Australia", OTHER: "an unspecified country",
+};
+
 export const outputFormats = ["worksheet", "test", "game", "podcast", "spelling"] as const;
 export type OutputFormat = (typeof outputFormats)[number];
 
 // Alle Profilangaben sind bewusst optional - das Lernmaterial im Upload trägt den
 // eigentlichen Inhalt, Alter/Klasse/Schulart/Fach dienen nur der Feinabstimmung.
 export const profileSchema = z.object({
-  schoolType: z.enum(schoolTypes).optional(),
+  // Freitext statt fester Liste: Die App schickt länderabhängige Schularten (inkl. "Sonstiges"/"Other").
+  schoolType: z.string().trim().min(1).max(60).optional(),
+  country: z.enum(countries).optional(),
   grade: z.coerce.number().int().min(1).max(13).optional(),
   subject: z.string().trim().min(2).max(60).optional(),
   notes: z.string().trim().min(1).max(300).optional(),
@@ -27,6 +38,7 @@ export type Profile = z.infer<typeof profileSchema>;
 // fehlen: Oberschule (allgemeine Sekundarstufe) als Standardannahme, Klasse aus dem Material schätzen.
 export function describeProfile(profile: Profile, hasMaterial = true): string {
   const parts: string[] = [];
+  if (profile.country) parts.push(`school system of ${COUNTRY_NAMES[profile.country]}`);
   parts.push(
     profile.schoolType
       ? profile.schoolType
@@ -183,3 +195,65 @@ export const spellingDiagnosticSchema = z.object({
   items: z.array(spellingItemSchema).min(10).max(15),
 });
 export type SpellingDiagnostic = z.infer<typeof spellingDiagnosticSchema>;
+
+// ---------------------------------------------------------------------------
+// Lernplan (Android-App, MVP). Der Plan wird NICHT auf dem Server gespeichert: Die App hält ihn
+// lokal auf dem Gerät und schickt ihn zum Anpassen nach einem Zwischentest zurück.
+// ---------------------------------------------------------------------------
+
+export const planSessionKinds = ["learn", "practice", "game", "podcast", "checkpoint", "review"] as const;
+export const planMaterialFormats = ["worksheet", "test", "game", "podcast"] as const;
+export const testFormats = ["written", "oral", "vocabulary", "multiple-choice", "presentation", "other"] as const;
+
+export const planSessionSchema = z.object({
+  // 0 = heute. Die letzte Einheit liegt spätestens am Tag vor dem Test.
+  dayIndex: z.number().int().min(0).max(90),
+  minutes: z.number().int().min(5).max(120),
+  kind: z.enum(planSessionKinds),
+  // Welches PaperPunch-Format die Einheit erzeugt. Zwischentests sind immer "game", weil die App sie
+  // selbst auswerten kann (offene Testaufgaben lassen sich nicht automatisch bewerten).
+  format: z.enum(planMaterialFormats),
+  topic: z.string().min(1).max(80),
+  title: z.string().min(1).max(80),
+  // Wird als Notiz an /api/generate geschickt und steuert, was das Material abdeckt.
+  focus: z.string().min(1).max(280),
+  tip: z.string().max(200).optional(),
+});
+export type PlanSession = z.infer<typeof planSessionSchema>;
+
+export const studyPlanSchema = z
+  .object({
+    title: z.string().min(1).max(80),
+    summary: z.string().min(1).max(400),
+    feasibility: z.enum(["realistic", "ambitious", "very-ambitious"]),
+    feasibilityNote: z.string().min(1).max(300),
+    topics: z.array(z.string().min(1).max(80)).min(1).max(10),
+    sessions: z.array(planSessionSchema).min(1).max(45),
+  })
+  .refine((plan) => plan.sessions.every((s) => s.kind !== "checkpoint" || s.format === "game"), {
+    message: 'Every "checkpoint" session must use format "game".',
+  });
+export type StudyPlan = z.infer<typeof studyPlanSchema>;
+
+export const planGoalSchema = z.object({
+  subject: z.string().trim().min(2).max(60),
+  testFormat: z.enum(testFormats),
+  // Freitext in der Skala des Landes, z.B. "2", "11 Punkte", "Grade 7", "B".
+  targetGrade: z.string().trim().min(1).max(30),
+  currentGrade: z.string().trim().min(1).max(30).optional(),
+  // Kalendertage bis zum Test, von der App aus dem lokalen Datum berechnet (Zeitzone des Geräts).
+  daysUntilTest: z.coerce.number().int().min(1).max(90),
+  minutesPerDay: z.coerce.number().int().min(10).max(120),
+  topics: z.string().trim().max(500).optional(),
+});
+export type PlanGoal = z.infer<typeof planGoalSchema>;
+
+export const checkpointResultSchema = z.object({
+  title: z.string().max(80),
+  correct: z.number().int().min(0),
+  total: z.number().int().min(1),
+  missed: z.array(z.string().max(300)).max(40),
+  // Tage seit Planbeginn, an dem der Zwischentest gemacht wurde.
+  dayIndex: z.number().int().min(0).max(90),
+});
+export type CheckpointResult = z.infer<typeof checkpointResultSchema>;

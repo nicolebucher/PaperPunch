@@ -15,6 +15,7 @@ import { renderTestPdf } from "@/lib/pdf/render-test-pdf";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { slugify } from "@/lib/slugify";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
+import { preflight, withCors } from "@/lib/cors";
 
 export const runtime = "nodejs";
 // Lernspiel (viele Level/Fragen) und Podcast (Skript + sequenzielle TTS-Chunks) brauchen bei
@@ -35,7 +36,16 @@ function parseLocale(value: FormDataEntryValue | null): Locale {
   return typeof value === "string" && (locales as readonly string[]).includes(value) ? (value as Locale) : "en";
 }
 
+// Die Android-App ruft diese Route von einer anderen Origin auf (siehe lib/cors.ts).
+export function OPTIONS(request: NextRequest) {
+  return preflight(request);
+}
+
 export async function POST(request: NextRequest) {
+  return withCors(request, await handleGenerate(request));
+}
+
+async function handleGenerate(request: NextRequest) {
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -70,6 +80,7 @@ export async function POST(request: NextRequest) {
 
   const profileResult = profileSchema.safeParse({
     schoolType: nullToUndefined(formData.get("schoolType")),
+    country: nullToUndefined(formData.get("country")),
     grade: nullToUndefined(formData.get("grade")),
     subject: nullToUndefined(formData.get("subject")),
     notes: nullToUndefined(formData.get("notes")),

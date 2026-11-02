@@ -90,7 +90,7 @@ export function TestDocument({ data, profile }: { data: WorksheetData; profile: 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.brand}>snap.it</Text>
+        <Text style={styles.brand}>PaperPunch</Text>
         <View style={styles.header}>
           <Text style={styles.title}>{data.title}</Text>
           <Text style={styles.meta}>{[meta, `${totalPoints} ${labels.totalPoints}`].filter(Boolean).join(" · ")}</Text>
@@ -115,7 +115,7 @@ export function TestDocument({ data, profile }: { data: WorksheetData; profile: 
         ))}
       </Page>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.brand}>snap.it</Text>
+        <Text style={styles.brand}>PaperPunch</Text>
         <Text style={styles.solutionsTitle}>
           {labels.solutions} — {data.title}
         </Text>

@@ -23,12 +23,13 @@ const permanentMarker = Permanent_Marker({
 });
 
 export const metadata: Metadata = {
-  title: "snap.it",
+  metadataBase: new URL("https://paper-punch.com"),
+  title: "PaperPunch",
   description: "Upload your study material and get a worksheet, test, or learning game created for you.",
   // Installiert auf dem iPhone-Startbildschirm: Vollbild ohne Safari-Leiste, Name unter dem Icon.
   appleWebApp: {
     capable: true,
-    title: "snap.it",
+    title: "PaperPunch",
     statusBarStyle: "black",
   },
 };

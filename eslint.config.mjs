@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Android-App mit eigenem Build (eigenes Vercel-Projekt, Startordner mobile/).
+    "mobile/**",
   ]),
 ]);
 

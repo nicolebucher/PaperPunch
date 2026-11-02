@@ -19,7 +19,7 @@ function TermsEn() {
         <li>
           <h2 className="mb-1 font-semibold text-white">1. Scope</h2>
           <p>
-            This agreement governs the use of snap.it (&quot;the Service&quot;), which turns study material you
+            This agreement governs the use of PaperPunch (&quot;the Service&quot;), which turns study material you
             upload into a worksheet, test, or learning game using AI.
           </p>
         </li>
@@ -96,7 +96,7 @@ function TermsDe() {
         <li>
           <h2 className="mb-1 font-semibold text-white">1. Geltungsbereich</h2>
           <p>
-            Diese Vereinbarung regelt die Nutzung von snap.it („der Dienst“), der aus hochgeladenem Lernmaterial
+            Diese Vereinbarung regelt die Nutzung von PaperPunch („der Dienst“), der aus hochgeladenem Lernmaterial
             per KI ein Arbeitsblatt, eine Testarbeit oder ein Lernspiel erstellt.
           </p>
         </li>
