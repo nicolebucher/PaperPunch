@@ -17,7 +17,9 @@ function describeGoal(goal: PlanGoal): string {
     `subject: ${goal.subject}`,
     `the test is ${TEST_FORMAT_NAMES[goal.testFormat]}`,
     `the test is in ${goal.daysUntilTest} day(s) (day index ${goal.daysUntilTest}; today is day index 0)`,
-    `target grade the student considers "good enough": ${goal.targetGrade}`,
+    goal.targetGrade
+      ? `target grade the student considers "good enough": ${goal.targetGrade}`
+      : "no target grade given - plan for solid, confident mastery of all tested topics (a good grade)",
     goal.currentGrade ? `the student's current grade/level in this subject: ${goal.currentGrade}` : undefined,
     `time available per day: about ${goal.minutesPerDay} minutes`,
     goal.topics ? `topics the student says will be covered: "${goal.topics}"` : undefined,
@@ -46,8 +48,8 @@ const SESSION_RULES = `Session rules:
   generator, so write it as an instruction, e.g. "Practise adding fractions with different
   denominators, medium difficulty, include word problems."
 - Sequence topics sensibly: foundations first, then harder material, mixed review towards the end.
-- Map the target grade to effort: a modest target needs solid coverage of the core topics; a top
-  grade needs the harder tasks and more mixed practice.`;
+- If a target grade is given, map it to effort: a modest target needs solid coverage of the core
+  topics; a top grade needs the harder tasks and more mixed practice.`;
 
 export function buildStudyPlanSystemPrompt(profile: Profile, goal: PlanGoal, locale: Locale, hasMaterial: boolean): string {
   return `You are an experienced teacher and learning coach. Build a realistic day-by-day study plan
@@ -64,10 +66,10 @@ ${hasMaterial
 ${SESSION_RULES}
 
 Also return:
-- "title": a short name for the plan, e.g. "Fractions test - target 2".
+- "title": a short name for the plan, e.g. "Fractions test".
 - "summary": two or three sentences on how the plan gets the student to the target.
 - "feasibility": "realistic", "ambitious" or "very-ambitious", judged honestly from the time left,
-  daily minutes, the amount of material and the gap between current and target grade.
+  daily minutes, the amount of material and (if given) the gap between current and target grade.
   "feasibilityNote": one or two sentences explaining that judgement and, if it is ambitious, what
   would help (e.g. more minutes per day). Be encouraging but honest; never promise a grade.
 - "topics": the list of topics the plan covers, in learning order.

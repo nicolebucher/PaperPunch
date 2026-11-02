@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useT } from "../i18n";
-import { getCountry } from "../countries";
 import { addFiles, formatMb, totalBytes, type FileError } from "../files";
 import { createPlan } from "../api";
 import { addDays, daysBetween, todayISO } from "../dates";
 import { savePlanFiles, clearPlanFiles } from "../storage";
-import { FileChips, FilePick, Icon, TopBar } from "../ui";
+import { Beta, FileChips, FilePick, Icon, TopBar } from "../ui";
 import { Working } from "./Working";
 import type { ActivePlan, PlanGoal, Profile, TestFormat } from "../types";
 
@@ -27,11 +26,9 @@ export function PlanSetup({
   onCreated: (plan: ActivePlan) => void;
 }) {
   const { t, lang } = useT();
-  const scale = getCountry(profile.country).gradeScale;
   const [goal, setGoal] = useState<PlanGoal>({
     subject: "",
     testFormat: "written",
-    targetGrade: "",
     testDate: addDays(todayISO(), 7),
     minutesPerDay: 30,
   });
@@ -40,7 +37,7 @@ export function PlanSetup({
 
   const days = daysBetween(todayISO(), goal.testDate);
   const dateOk = days >= 1 && days <= 90;
-  const ready = goal.subject.trim().length >= 2 && !!goal.targetGrade && dateOk;
+  const ready = goal.subject.trim().length >= 2 && dateOk;
   const errors: Record<FileError, string> = { type: t.errFileType, count: t.errTooMany, size: t.errTooBig };
 
   async function add(incoming: File[]) {
@@ -84,7 +81,10 @@ export function PlanSetup({
     <div className="screen">
       <TopBar onBack={onBack} />
       <div className="stack" style={{ gap: 18, paddingBottom: 28 }}>
-        <h1>{t.planSetupTitle}</h1>
+        <div className="stack" style={{ gap: 8 }}>
+          <h1>{t.planSetupTitle} <Beta /></h1>
+          <p className="muted" style={{ fontSize: 14 }}>{t.betaNote}</p>
+        </div>
 
         <label className="field">
           {t.planSubject}
@@ -113,27 +113,6 @@ export function PlanSetup({
           </label>
         </div>
         {!dateOk && <p className="error">{t.errDate}</p>}
-
-        <div className="grid2">
-          <label className="field">
-            {t.planTarget}
-            <select className={goal.targetGrade ? "input set" : "input"} value={goal.targetGrade} onChange={(e) => set("targetGrade", e.target.value)}>
-              <option value="">{t.choose}</option>
-              {scale.map((g) => (
-                <option key={g.value} value={g.value}>{g.label[lang]}</option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            {t.planCurrent}
-            <select className={goal.currentGrade ? "input set" : "input"} value={goal.currentGrade ?? ""} onChange={(e) => set("currentGrade", e.target.value || undefined)}>
-              <option value="">{t.choose}</option>
-              {[...scale, ...extraLowGrades(profile.country)].map((g) => (
-                <option key={g.value} value={g.value}>{g.label[lang]}</option>
-              ))}
-            </select>
-          </label>
-        </div>
 
         <div className="stack" style={{ gap: 8 }}>
           <span className="muted" style={{ fontSize: 14, fontWeight: 700 }}>{t.planMinutes}</span>
@@ -172,14 +151,4 @@ export function PlanSetup({
       </div>
     </div>
   );
-}
-
-/** Für "Wo stehst du gerade?" auch schwächere Noten als die Wunschnoten-Skala anbieten. */
-function extraLowGrades(country: Profile["country"]) {
-  if (country === "DE") return [{ value: "6", label: { de: "6 – ungenügend", en: "6 – fail" } }];
-  if (country === "AT") return [{ value: "5", label: { de: "5 – Nicht genügend", en: "5 – Fail" } }];
-  if (country === "CH") return ["3.5", "3"].map((v) => ({ value: v, label: { de: v.replace(".", ","), en: v } }));
-  if (country === "GB") return ["3", "2", "1"].map((v) => ({ value: v, label: { de: `GCSE ${v}`, en: `GCSE ${v}` } }));
-  if (country === "US" || country === "CA" || country === "AU") return ["E", "F"].map((v) => ({ value: v, label: { de: v, en: v } }));
-  return ["40%+", "<40%"].map((v) => ({ value: v, label: { de: v, en: v } }));
 }

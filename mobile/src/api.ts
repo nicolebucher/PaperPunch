@@ -57,7 +57,7 @@ export async function generateMaterial(opts: {
 function goalFields(body: FormData, goal: PlanGoal) {
   body.set("subject", goal.subject);
   body.set("testFormat", goal.testFormat);
-  body.set("targetGrade", goal.targetGrade);
+  if (goal.targetGrade) body.set("targetGrade", goal.targetGrade);
   if (goal.currentGrade) body.set("currentGrade", goal.currentGrade);
   body.set("daysUntilTest", String(daysBetween(todayISO(), goal.testDate)));
   body.set("minutesPerDay", String(goal.minutesPerDay));

@@ -238,8 +238,9 @@ export type StudyPlan = z.infer<typeof studyPlanSchema>;
 export const planGoalSchema = z.object({
   subject: z.string().trim().min(2).max(60),
   testFormat: z.enum(testFormats),
-  // Freitext in der Skala des Landes, z.B. "2", "11 Punkte", "Grade 7", "B".
-  targetGrade: z.string().trim().min(1).max(30),
+  // Freitext in der Skala des Landes, z.B. "2", "11 Punkte", "Grade 7", "B". Die App fragt sie derzeit
+  // nicht ab - ohne Angabe plant die KI auf sicheres Beherrschen des Stoffs.
+  targetGrade: z.string().trim().min(1).max(30).optional(),
   currentGrade: z.string().trim().min(1).max(30).optional(),
   // Kalendertage bis zum Test, von der App aus dem lokalen Datum berechnet (Zeitzone des Geräts).
   daysUntilTest: z.coerce.number().int().min(1).max(90),

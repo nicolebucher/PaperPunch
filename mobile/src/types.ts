@@ -81,7 +81,8 @@ export interface StudyPlan {
 export interface PlanGoal {
   subject: string;
   testFormat: TestFormat;
-  targetGrade: string;
+  // Früher abgefragt, jetzt optional: ohne Angabe plant die KI auf sicheres Beherrschen des Stoffs.
+  targetGrade?: string;
   currentGrade?: string;
   testDate: string; // YYYY-MM-DD, lokales Datum
   minutesPerDay: number;

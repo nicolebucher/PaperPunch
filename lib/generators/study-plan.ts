@@ -45,7 +45,7 @@ function mockPlan(goal: PlanGoal, locale: Locale, firstDay = 0): StudyPlan {
     });
   }
   return {
-    title: de ? `${goal.subject} – Ziel ${goal.targetGrade}` : `${goal.subject} – target ${goal.targetGrade}`,
+    title: de ? `${goal.subject}-Test` : `${goal.subject} test`,
     summary: de
       ? "Erst die Grundlagen, dann die Rechenwege, zum Schluss gemischte Aufgaben wie im Test. Zwei Zwischentests zeigen, ob du auf Kurs bist."
       : "Basics first, then methods, then mixed test-style tasks. Two progress checks show whether you're on track.",

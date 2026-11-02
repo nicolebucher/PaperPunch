@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useT } from "../i18n";
 import { addDays, daysBetween, formatDay, todayISO } from "../dates";
-import { Icon, TopBar, type IconName } from "../ui";
+import { Beta, Icon, TopBar, type IconName } from "../ui";
 import type { ActivePlan, StoredSession } from "../types";
 
 const KIND_ICON: Record<StoredSession["kind"], IconName> = {
@@ -56,6 +56,7 @@ export function PlanView({
       <div className="stack" style={{ gap: 18, paddingBottom: 28 }}>
         <div className="stack" style={{ gap: 8 }}>
           <div className="row">
+            <Beta />
             <span className="status">{over ? t.testDay : t.daysLeft(daysLeft)}</span>
             <span className={`status ${active.plan.feasibility}`}>{t.feasibility[active.plan.feasibility]}</span>
             <span className="status">{doneCount}/{active.sessions.length}</span>

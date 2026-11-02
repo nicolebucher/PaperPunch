@@ -82,7 +82,7 @@ export function Quiz({ game, checkpoint, inPlan, onClose, onFinish }: { game: Ga
         {checkpoint && <p className="muted" style={{ textAlign: "center" }}>{t.checkpointHint}</p>}
         <div className="stack" style={{ marginTop: "auto", width: "100%", paddingBottom: 28 }}>
           <button type="button" className="btn primary block" onClick={() => (inPlan ? onFinish(outcome) : onClose())}>
-            {inPlan ? t.backToPlan : t.home}
+            {inPlan ? t.backToPlan : t.back}
           </button>
         </div>
       </div>

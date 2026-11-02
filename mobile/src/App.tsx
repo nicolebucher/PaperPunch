@@ -26,7 +26,7 @@ type View =
   | { name: "capture"; mode: "photo" | "topic" }
   | { name: "working"; format: MaterialFormat | "plan" | "adjust"; fileCount: number }
   | { name: "result"; result: GenerateResult; from?: SessionRef }
-  | { name: "quiz"; game: GameResult["game"]; from?: SessionRef }
+  | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult }
   | { name: "planSetup" }
   | { name: "plan" };
 
@@ -192,14 +192,15 @@ export function App() {
           result={view.result}
           from={view.from}
           say={say}
-          onPlay={(game) => setView({ name: "quiz", game, from: view.from })}
+          onPlay={(game) => setView({ name: "quiz", game, from: view.from, result: view.result })}
           onDone={() => {
             if (view.from) {
               markDone(view.from.session.id);
               setView({ name: "plan" });
-            } else setView({ name: "home" });
+            } else setView({ name: "capture", mode: "photo" });
           }}
           onNew={() => setView(view.from ? { name: "plan" } : { name: "capture", mode: "photo" })}
+          onHome={() => setView({ name: "home" })}
         />
       );
       break;
@@ -209,7 +210,7 @@ export function App() {
           game={view.game}
           checkpoint={view.from?.session.kind === "checkpoint"}
           inPlan={!!view.from}
-          onClose={() => setView(view.from ? { name: "plan" } : { name: "home" })}
+          onClose={() => setView(view.from ? { name: "plan" } : view.result ? { name: "result", result: view.result } : { name: "home" })}
           onFinish={(outcome) => {
             if (!view.from) return;
             if (view.from.session.kind === "checkpoint") void finishCheckpoint(view.from.session, outcome);
