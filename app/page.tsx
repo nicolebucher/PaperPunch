@@ -25,9 +25,9 @@ export default function Home() {
       <Image
         src={locale === "de" ? "/how-it-works-de.jpg" : "/how-it-works-en.jpg"}
         alt={t.landing.howItWorks}
-        width={2000}
-        height={1449}
-        className="mt-8 w-full max-w-3xl rounded-xl"
+        width={1438}
+        height={2576}
+        className="mt-8 w-full max-w-sm rounded-xl"
         priority
       />
     </main>
