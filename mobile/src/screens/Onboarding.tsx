@@ -6,7 +6,7 @@ import { Icon, ProfileSelects, TopBar } from "../ui";
 import type { Profile } from "../types";
 
 /**
- * Erster Start: animierter Willkommensbildschirm, dann zwei kurze Schritte (Sprache/Land, Schule).
+ * Erster Start: animierter Willkommensbildschirm, dann ein Einrichtungs-Schritt (Sprache, Land, Schule, Darstellung).
  * Als Einstellungen: nur das Formular.
  */
 export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: Profile | null; isSettings: boolean; onSave: (p: Profile) => void; onBack: () => void }) {
@@ -124,47 +124,27 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     );
   }
 
-  // ---------- Schritte 1 und 2 ----------
+  // ---------- Ein Einrichtungs-Schritt: Sprache, Land, Schule, Darstellung ----------
   return (
     <LangProvider lang={profile.lang}>
       <div className="screen">
         <div className="topbar">
-          <button type="button" className="iconbtn" onClick={() => setStep(step - 1)} aria-label={t.back}>
+          <button type="button" className="iconbtn" onClick={() => setStep(0)} aria-label={t.back}>
             <Icon name="back" />
           </button>
-          <div className="ob-steps" aria-label={`${step} / 2`}>
-            {[1, 2].map((n) => <span key={n} className={n <= step ? "on" : ""} />)}
-          </div>
-          <span style={{ width: 44 }} />
         </div>
-
-        <div className="stack ob-step" key={step} style={{ gap: 20, paddingBottom: 28, flex: 1 }}>
-          {step === 1 ? (
-            <>
-              <div className="stack" style={{ gap: 8 }}>
-                <span className="eyebrow">{t.obStep(1)}</span>
-                <h1 className="display">{t.obWhere}</h1>
-              </div>
-              {langPicker}
-              {themePicker}
-              {countryPicker}
-              <button type="button" className="btn primary block" style={{ marginTop: "auto" }} onClick={() => setStep(2)}>
-                {t.next}
-              </button>
-            </>
-          ) : (
-            <>
-              <div className="stack" style={{ gap: 8 }}>
-                <span className="eyebrow">{t.obStep(2)}</span>
-                <h1 className="display">{t.obSchool}</h1>
-                <p className="muted">{t.welcomeText}</p>
-              </div>
-              <ProfileSelects profile={profile} onChange={setProfile} />
-              <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
-                {t.start}
-              </button>
-            </>
-          )}
+        <div className="stack ob-step" style={{ gap: 20, paddingBottom: 28, flex: 1 }}>
+          <div className="stack" style={{ gap: 8 }}>
+            <h1 className="display">{t.obSetup}</h1>
+            <p className="muted">{t.welcomeText}</p>
+          </div>
+          {langPicker}
+          {countryPicker}
+          <ProfileSelects profile={profile} onChange={setProfile} />
+          {themePicker}
+          <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
+            {t.start}
+          </button>
         </div>
       </div>
     </LangProvider>

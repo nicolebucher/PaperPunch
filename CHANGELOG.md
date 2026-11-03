@@ -16,6 +16,7 @@ Small improvements to the building screen and the recent-activity list.
 | App | Building screen (“Building your learning game …”): content sits in the vertical centre, title and status text no longer bold |
 | App | “Continue & recent activity” and “My study materials” show when each material was created (“Today”, “Yesterday”, “25 Oct”) |
 | Website & App | Legal: new terms of use (German/English, beta draft); privacy policy extended with legal bases, AI provider and hosting abroad (data processing agreements, EU standard contractual clauses), children and teenagers, retention of feedback; app settings link to terms, privacy policy and imprint |
+| App | First-time setup on one screen instead of two: heading “A bit about you” matches the fields (language, country, school type, year, appearance) |
 | Website & App | Short note on every result: “Created by AI – it can make mistakes” |
 | Website & App · AI | Clear titles: worksheets, tests and games are named after the concrete topic (e.g. “Photosynthesis”, “Simplifying fractions”), no invented names like “Photosynthesis Pro”; the game's subject field is now the school subject |
 
