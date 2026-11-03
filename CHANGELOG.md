@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.6.0 – 3 November 2026
+
+Website: app-like interface in the browser under /app.
+
+| Area | Change |
+| --- | --- |
+| Website | New app interface at paper-punch.com/app, designed like the Android app: “What do you want to practise?” with three large ways (upload study material, type a topic, study plan); on a computer with a sidebar (Overview, My materials, Study plans) and the three ways as cards; on a phone with a header and menu |
+| Website | “My materials”: everything created in /app is saved in the browser (last 20, no account) and can be reopened – PDF, online practice, learning game; delete per item |
+| Website | Study plans in the browser: create a plan (subject, topics, test date, minutes per day, grade), tick off sessions, start today's practice with one tap (topic, focus and format pre-filled); reminders stay in the app |
+| Website | Info page stays as it is; its main button now leads to /app; header and footer of the info page are hidden inside /app |
+
 ## v0.5.1 – 3 November 2026
 
 Fractions like in school, real logo on the PDF, consistent “show answer”, new home screen with three ways.

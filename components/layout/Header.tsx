@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { locales, type Locale } from "@/lib/i18n/translations";
 
 export function Header() {
   const { locale, setLocale, t } = useLanguage();
+  // Die Web-App unter /app hat einen eigenen Rahmen (Seitenleiste bzw. Kopfzeile).
+  if (usePathname()?.startsWith("/app")) return null;
 
   return (
     <header className="border-b border-zinc-800">

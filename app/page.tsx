@@ -16,7 +16,7 @@ export default function Home() {
       </div>
       <h1 className="text-xl font-bold sm:text-2xl">{t.landing.heading}</h1>
       <Link
-        href="/create"
+        href="/app"
         className="mt-8 rounded-full bg-brand-400 px-8 py-3 font-medium text-black hover:bg-brand-300"
       >
         {t.landing.cta}

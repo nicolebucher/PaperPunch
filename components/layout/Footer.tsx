@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { openConsentSettings } from "@/components/consent/ConsentAnalytics";
 
 export function Footer() {
   const { t } = useLanguage();
+  // Die Web-App unter /app hat einen eigenen Rahmen (Seitenleiste bzw. Kopfzeile).
+  if (usePathname()?.startsWith("/app")) return null;
 
   return (
     <footer className="border-t border-zinc-800 py-6">

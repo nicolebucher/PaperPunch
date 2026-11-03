@@ -14,6 +14,7 @@ import { SpellingDiagnosticPlayer } from "@/components/spelling/SpellingDiagnost
 import { useLanguage } from "@/lib/i18n/language-context";
 import { MAX_TOTAL_SIZE } from "@/lib/files/extract-input";
 import type { GameData, OutputFormat, Profile, SpellingDiagnostic, SpellingItem, WorksheetData } from "@/types/generation";
+import type { WebMaterial } from "@/lib/webapp/store";
 
 type Step =
   | "input"
@@ -55,18 +56,43 @@ function base64ToBlob(base64: string, type: string): Blob {
   return new Blob([bytes], { type });
 }
 
-export function CreationWizard() {
+/**
+ * Erstellen auf der Website. Ohne Props wie bisher unter /create. In der Web-App (/app) mit
+ * mode "upload" | "topic", Vorbelegung (z. B. aus einem Lernplan), onSaved zum Speichern im Browser
+ * und saved, um ein gespeichertes Material direkt im Ergebnis zu öffnen.
+ */
+export function CreationWizard({
+  mode,
+  initialSubject,
+  initialNotes,
+  initialFormat,
+  saved,
+  onSaved,
+  onNew,
+}: {
+  mode?: "upload" | "topic";
+  initialSubject?: string;
+  initialNotes?: string;
+  initialFormat?: OutputFormat;
+  saved?: WebMaterial;
+  onSaved?: (material: WebMaterial) => void;
+  onNew?: () => void;
+} = {}) {
   const { locale, t } = useLanguage();
-  const [profile, setProfile] = useState<Partial<Profile>>({});
+  const [profile, setProfile] = useState<Partial<Profile>>(() => ({ subject: initialSubject, notes: initialNotes }));
   const [files, setFiles] = useState<File[]>([]);
-  const [format, setFormat] = useState<OutputFormat | null>(null);
-  const [step, setStep] = useState<Step>("input");
+  const [format, setFormat] = useState<OutputFormat | null>(() => saved?.format ?? initialFormat ?? null);
+  const [step, setStep] = useState<Step>(() => (saved?.game ? "result-game" : saved?.sheet ? "result-file" : "input"));
   const [resultTab, setResultTab] = useState<ResultTab>("preview");
   const [podcastTab, setPodcastTab] = useState<PodcastTab>("listen");
   const [errorMessage, setErrorMessage] = useState("");
-  const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(null);
+  const [downloadInfo, setDownloadInfo] = useState<DownloadInfo | null>(() => {
+    if (!saved?.sheet) return null;
+    const blob = base64ToBlob(saved.sheet.pdfBase64, "application/pdf");
+    return { url: URL.createObjectURL(blob), filename: saved.sheet.filename, blob, data: saved.sheet.data };
+  });
   const [podcastInfo, setPodcastInfo] = useState<PodcastInfo | null>(null);
-  const [game, setGame] = useState<GameData | null>(null);
+  const [game, setGame] = useState<GameData | null>(() => saved?.game ?? null);
   const [diagnostic, setDiagnostic] = useState<SpellingDiagnostic | null>(null);
   const [spellingResult, setSpellingResult] = useState<SpellingResult | null>(null);
   const [loadingTitle, setLoadingTitle] = useState<string | undefined>(undefined);
@@ -99,6 +125,15 @@ export function CreationWizard() {
 
       if (!response.ok) {
         throw new Error(json?.error ?? t.serverErrors.unexpected);
+      }
+
+      if (onSaved && (format === "game" || format === "worksheet" || format === "test")) {
+        const id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+        onSaved(
+          format === "game"
+            ? { id, createdAt: Date.now(), format, title: json.game.gameTitle, subject: json.game.subject, game: json.game }
+            : { id, createdAt: Date.now(), format, title: json.data.title, subject: profile.subject, sheet: { data: json.data, pdfBase64: json.pdfBase64, filename: json.filename } }
+        );
       }
 
       if (format === "game") {
@@ -167,6 +202,10 @@ export function CreationWizard() {
   }
 
   function handleRestart() {
+    if (onNew) {
+      onNew();
+      return;
+    }
     setStep("input");
     setFiles([]);
     setFormat(null);
@@ -362,8 +401,8 @@ export function CreationWizard() {
 
   return (
     <div className="mx-auto max-w-xl">
-      <FileUpload files={files} onChange={setFiles} />
-      {files.length === 0 && <p className="mb-6 -mt-2 text-sm text-zinc-400">{t.upload.noUploadHint}</p>}
+      {mode !== "topic" && <FileUpload files={files} onChange={setFiles} />}
+      {mode !== "topic" && files.length === 0 && <p className="mb-6 -mt-2 text-sm text-zinc-400">{t.upload.noUploadHint}</p>}
       <ProfileForm profile={profile} onChange={setProfile} />
       {format === "spelling" && files.length === 0 && (
         <p className="mb-4 -mt-2 text-sm text-zinc-400">{t.spelling.uploadOptionalHint}</p>
