@@ -9,6 +9,7 @@ export function Capture({
   profile: initialProfile,
   initialMode,
   initialTopic,
+  initialFormat,
   say,
   onBack,
   onCreate,
@@ -16,6 +17,7 @@ export function Capture({
   profile: Profile;
   initialMode: "photo" | "topic";
   initialTopic?: string;
+  initialFormat?: MaterialFormat;
   say: (msg: string) => void;
   onBack: () => void;
   onCreate: (format: MaterialFormat, files: File[], topic: string, profile: Profile, notes: string) => void;
@@ -26,7 +28,7 @@ export function Capture({
   const [sheet, setSheet] = useState(initialMode === "topic");
   const [topic, setTopic] = useState(initialTopic ?? "");
   const [notes, setNotes] = useState("");
-  const [format, setFormat] = useState<MaterialFormat | null>(null);
+  const [format, setFormat] = useState<MaterialFormat | null>(initialFormat ?? null);
   const [profile, setProfile] = useState(initialProfile);
   const [flash, setFlash] = useState(false);
   const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);

@@ -17,6 +17,7 @@ Challenges: play a learning game against friends via a link, without an account.
 | Website | New challenge page paper-punch.com/c/CODE: friends enter a nickname, play all levels in the browser, then see who won and can challenge back; link preview “Lena challenges you ⚔️” |
 | Website · Tech | New endpoint /api/challenges; challenges (game, nickname, score) are stored in the Vercel Blob store in Frankfurt and deleted after 30 days |
 | Website | Privacy policy: new “Challenges” section |
+| App | Home screen: “Challenge” button next to “Invite” (boxing-glove icon) opens a sheet to pick one of your learning games or create a new one, enter a nickname and share the link; without games it offers to create one first |
 
 ## v0.3.1 – 3 November 2026
 

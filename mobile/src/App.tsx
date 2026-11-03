@@ -12,6 +12,7 @@ import { daysBetween, todayISO } from "./dates";
 import type { ActivePlan, GameResult, GenerateResult, MaterialFormat, Profile, QuizOutcome, StoredSession } from "./types";
 import { Onboarding } from "./screens/Onboarding";
 import { Home } from "./screens/Home";
+import { challengePctOf } from "./challenge";
 import { Capture } from "./screens/Capture";
 import { Working } from "./screens/Working";
 import { Result } from "./screens/Result";
@@ -34,7 +35,7 @@ type View =
   | { name: "onboarding" }
   | { name: "settings" }
   | { name: "home" }
-  | { name: "capture"; mode: "photo" | "topic"; topic?: string }
+  | { name: "capture"; mode: "photo" | "topic"; topic?: string; format?: MaterialFormat }
   | { name: "working"; format: MaterialFormat | "plan" | "adjust"; fileCount: number }
   | { name: "result"; result: GenerateResult; from?: SessionRef; materialId?: string }
   | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult; materialId?: string }
@@ -331,6 +332,8 @@ function AppInner() {
           onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
           onTopic={(topic) => setView({ name: "capture", mode: "topic", topic })}
+          onNewGame={() => setView({ name: "capture", mode: "photo", format: "game" })}
+          say={say}
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
@@ -346,6 +349,7 @@ function AppInner() {
           profile={profile!}
           initialMode={view.mode}
           initialTopic={view.topic}
+          initialFormat={view.format}
           say={say}
           onBack={() => setView({ name: "home" })}
           onCreate={(format, files, topic, p, notes) => {
@@ -384,11 +388,7 @@ function AppInner() {
           rated={!view.materialId || !!materialById(view.materialId)?.rating || !materialById(view.materialId)}
           onRate={(stars, text) => rate(view.materialId, view.result, stars, text)}
           sourcesCount={materialById(view.materialId)?.sources?.length ?? 0}
-          challengePct={(() => {
-            const m = materialById(view.materialId);
-            const e = m?.finished && m.progress?.kind === "game" ? m.progress.earned : undefined;
-            return e && e.total > 0 ? Math.round((e.correct / e.total) * 100) : undefined;
-          })()}
+          challengePct={challengePctOf(materialById(view.materialId))}
           onShareSources={() => void shareSources(view.materialId)}
           onRegenerate={(format) => {
             const m = materialById(view.materialId);
@@ -527,6 +527,8 @@ function AppInner() {
           onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
           onTopic={(topic) => setView({ name: "capture", mode: "topic", topic })}
+          onNewGame={() => setView({ name: "capture", mode: "photo", format: "game" })}
+          say={say}
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}

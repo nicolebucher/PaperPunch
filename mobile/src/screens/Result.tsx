@@ -5,8 +5,7 @@ import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, type IconName } from "../ui";
 import type { GameResult, GenerateResult, MaterialFormat } from "../types";
 import { PdfPages } from "../pdfView";
-import { createChallenge } from "../api";
-import { shareLink } from "../invite";
+import { savedNickname, sendChallenge as sendChallengeLink } from "../challenge";
 import type { SessionRef } from "../App";
 import { RatingCard } from "./RatingCard";
 import { POINTS } from "../punches";
@@ -85,13 +84,7 @@ export function Result({
   const [showScript, setShowScript] = useState(false);
   const [preview, setPreview] = useState(false);
   const [challengeOpen, setChallengeOpen] = useState(false);
-  const [nickname, setNickname] = useState(() => {
-    try {
-      return localStorage.getItem("paperpunch-nickname") ?? "";
-    } catch {
-      return "";
-    }
-  });
+  const [nickname, setNickname] = useState(savedNickname);
   const [challengeBusy, setChallengeBusy] = useState(false);
 
   const isSheet = result.format === "worksheet" || result.format === "test";
@@ -143,17 +136,9 @@ export function Result({
 
   async function sendChallenge() {
     if (result.format !== "game" || challengeBusy) return;
-    const name = nickname.trim();
-    try {
-      if (name) localStorage.setItem("paperpunch-nickname", name);
-    } catch {
-      // ignorieren
-    }
     setChallengeBusy(true);
     try {
-      const url = await createChallenge(result.game, name, challengePct, lang);
-      const text = challengePct !== undefined ? t.challengeText(challengePct, result.game.gameTitle) : t.challengeTextNoScore(result.game.gameTitle);
-      const outcome = await shareLink(t.challengeTitle, text, url);
+      const outcome = await sendChallengeLink(result.game, nickname, challengePct, lang, t);
       if (outcome === "copied") say(t.inviteCopied);
       if (outcome !== "cancelled") setChallengeOpen(false);
     } catch {
@@ -170,7 +155,7 @@ export function Result({
   if (isSheet) options.push({ icon: "print", title: t.optPrint, sub: t.optPrintSub, onClick: () => void view() });
   if (result.format === "game") {
     options.push({
-      icon: "flag",
+      icon: "punch",
       title: t.challengeOpt,
       sub: challengePct !== undefined ? t.challengeOptSub(challengePct) : t.challengeOptSubNew,
       onClick: () => setChallengeOpen((v) => !v),
@@ -243,7 +228,7 @@ export function Result({
               </span>
               <Icon name="chevron" size={18} stroke={2.6} />
             </button>
-          {o.icon === "flag" && challengeOpen && result.format === "game" && (
+          {o.icon === "punch" && challengeOpen && result.format === "game" && (
             <div className="result-e-challenge">
               <span className="result-e-label">{t.nickname}</span>
               <input className="input set" value={nickname} maxLength={20} placeholder={t.nicknamePh} onChange={(e) => setNickname(e.target.value)} />
