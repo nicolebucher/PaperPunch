@@ -883,3 +883,13 @@ h1 .beta { position: relative; top: -3px; }
 :root[data-theme="light"] .logo .logo-on-dark { display: none; }
 :root[data-theme="light"] .logo .logo-on-light { display: inline; }
 :root[data-theme="light"] .logo-punch { color: var(--teal-text); }
+
+/* Vorschau: echtes PDF */
+.viewer-scroll { flex: 1; overflow-y: auto; padding: 16px; -webkit-overflow-scrolling: touch; }
+.pdf-view { position: relative; min-height: 100%; }
+.pdf-pages { display: flex; flex-direction: column; gap: 14px; }
+.pdf-page { display: block; width: 100%; height: auto; border-radius: 4px; background: #ffffff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); }
+.pdf-spinner { position: absolute; top: 40%; left: 50%; margin-left: -20px; }
+.pdf-error { margin: 40px 8px; text-align: center; color: var(--muted); font-weight: 700; }
+.viewer-actions { padding-top: 12px; }
+.pdf-spinner { border-color: var(--surface-2); border-top-color: var(--teal); }

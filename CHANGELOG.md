@@ -9,11 +9,12 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.3.1 – 3 November 2026
 
-Fix: logo visible in light mode.
+Fix: logo visible in light mode; the preview shows the real PDF.
 
 | Area | Change |
 | --- | --- |
 | App | Light mode: the logo (start screen, welcome, header, building screen, level page) now uses the black book with colourful pixels instead of the white one; “Punch” in the wordmark in a darker turquoise so it stays readable |
+| App | Result screen: “Preview” now shows the actual PDF with all pages (scrollable) instead of an excerpt of the tasks |
 
 ## v0.3.0 – 3 November 2026
 

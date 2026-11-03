@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
 import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, type IconName } from "../ui";
-import type { GameResult, GenerateResult, MaterialFormat, Task } from "../types";
+import type { GameResult, GenerateResult, MaterialFormat } from "../types";
+import { PdfPages } from "../pdfView";
 import type { SessionRef } from "../App";
 import { RatingCard } from "./RatingCard";
 import { POINTS } from "../punches";
@@ -12,17 +13,11 @@ function slug(s: string) {
   return s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 50) || "paperpunch";
 }
 
-const TASKS_PER_PAGE = 4;
-
-/** Vollbild-Vorschau des Arbeitsblatts / Tests: Seiten zum Wischen, unten Drucken und Lösen. */
-function SheetViewer({ title, intro, tasks, onClose, onPrint, onSolve }: { title: string; intro: string; tasks: Task[]; onClose: () => void; onPrint: () => void; onSolve: () => void }) {
+/** Vollbild-Vorschau: das echte PDF mit allen Seiten, unten Drucken und Lösen. */
+function SheetViewer({ base64, onClose, onPrint, onSolve }: { base64: string; onClose: () => void; onPrint: () => void; onSolve: () => void }) {
   const { t } = useT();
-  const [page, setPage] = useState(0);
-  const scroller = useRef<HTMLDivElement>(null);
-  const pages: Task[][] = [];
-  for (let i = 0; i < tasks.length; i += TASKS_PER_PAGE) pages.push(tasks.slice(i, i + TASKS_PER_PAGE));
-  if (pages.length === 0) pages.push([]);
-
+  const [pages, setPages] = useState(0);
+  const onPages = useCallback((n: number) => setPages(n), []);
   return (
     <div className="viewer" role="dialog" aria-modal="true" aria-label={t.preview}>
       <div className="viewer-top">
@@ -31,54 +26,13 @@ function SheetViewer({ title, intro, tasks, onClose, onPrint, onSolve }: { title
         </button>
         <span className="viewer-title">
           <b>{t.preview}</b>
-          <span>{t.pageOf(page + 1, pages.length)}</span>
+          {pages > 0 && <span>{t.pagesCount(pages)}</span>}
         </span>
         <span style={{ width: 44 }} />
       </div>
-      <div
-        className="viewer-pages"
-        ref={scroller}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          setPage(Math.round(el.scrollLeft / el.clientWidth));
-        }}
-      >
-        {pages.map((list, p) => (
-          <div className="viewer-slot" key={p}>
-            <div className="viewer-paper">
-              <span className="sheet-head">
-                <span className="sheet-brand">Paper<b>Punch</b></span>
-                <span>{t.sheetNameLine}</span>
-              </span>
-              {p === 0 && (
-                <>
-                  <span className="sheet-title">{title}</span>
-                  {intro && <span className="sheet-intro">{intro}</span>}
-                </>
-              )}
-              {list.map((task) => (
-                <span className="sheet-task" key={task.number}>
-                  <b>{t.taskLabel(task.number)} · {task.points} P.</b>
-                  <span>{task.question.replace("___", "________")}</span>
-                  {task.options ? (
-                    <span className="sheet-options">{task.options.map((o) => `○ ${o}`).join("   ")}</span>
-                  ) : task.type === "zuordnen" && task.pairs ? (
-                    <span className="sheet-options">{task.pairs.map((x) => x.left).join(" · ")}</span>
-                  ) : task.type !== "lueckentext" ? (
-                    <span className="sheet-line" />
-                  ) : null}
-                </span>
-              ))}
-              <span className="sheet-foot">{t.pageOf(p + 1, pages.length)}</span>
-            </div>
-          </div>
-        ))}
+      <div className="viewer-scroll">
+        <PdfPages base64={base64} onPages={onPages} errorText={t.previewError} />
       </div>
-      {pages.length > 1 && (
-        <div className="sheet-dots" aria-hidden="true">
-          {pages.map((_, i) => <span key={i} className={i === page ? "on" : ""} />)}
-        </div>
-      )}
       <div className="viewer-actions">
         <button type="button" className="btn ghost" onClick={onPrint}><Icon name="print" size={20} stroke={2} /> {t.print}</button>
         <button type="button" className="btn primary" onClick={onSolve}><Icon name="play" size={20} filled /> {t.solve}</button>
@@ -260,9 +214,7 @@ export function Result({
 
       {preview && isSheet && (
         <SheetViewer
-          title={result.data.title}
-          intro={result.data.introduction}
-          tasks={result.data.tasks}
+          base64={result.pdfBase64}
           onClose={() => setPreview(false)}
           onPrint={() => void view()}
           onSolve={() => { setPreview(false); onPractice(); }}
