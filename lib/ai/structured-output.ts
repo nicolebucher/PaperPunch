@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type Anthropic from "@anthropic-ai/sdk";
-import { getClaudeClient, CLAUDE_MODEL } from "./claude-client";
+import { getClaudeClient } from "./claude-client";
+import { currentModel, recordUsage } from "./model-context";
 
 type MessageContent = Anthropic.Messages.MessageParam["content"];
 
@@ -47,7 +48,7 @@ export async function generateStructuredOutput<T extends z.ZodTypeAny>({
     // Lernspiel mit bis zu 5 Leveln x 15 Fragen) verlangt die Anthropic-SDK Streaming,
     // da eine Non-Streaming-Anfrage sonst als potenziell zu lang abgelehnt wird.
     const stream = client.messages.stream({
-      model: CLAUDE_MODEL,
+      model: currentModel(),
       max_tokens: maxTokens,
       system: lastError
         ? `${system}\n\nDein letzter Versuch war ungültig (${lastError}). Bitte antworte exakt nach dem vorgegebenen Schema und halte dich an die unteren Grenzen der erlaubten Mengen (z.B. Anzahl Level/Fragen/Aufgaben), damit die Antwort sicher vollständig bleibt.`
@@ -57,6 +58,7 @@ export async function generateStructuredOutput<T extends z.ZodTypeAny>({
       messages: [{ role: "user", content: userContent }],
     });
     const message = await stream.finalMessage();
+    recordUsage(message.usage.input_tokens, message.usage.output_tokens);
 
     if (message.stop_reason === "max_tokens") {
       lastError = "Antwort wurde wegen Längenbegrenzung abgeschnitten";
