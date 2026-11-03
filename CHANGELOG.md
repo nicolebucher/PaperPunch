@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.6.2 – 3 November 2026
+
+Website /app: creating, results and the learning game look and work like the app.
+
+| Area | Change |
+| --- | --- |
+| Website | Creating in /app step by step like the app: upload (drag & drop, “Take a photo” opens the camera on phones, “Choose files”, file chips, limits) or type a topic (ideas to tap, optional focus note) → pick a format (worksheet, test, learning game) plus grade and school type (remembered) → “Creating …” screen with progress steps |
+| Website | Result screen like in the app: success moment, title, tasks and estimated time, “How do you want to practise?” with solve online, view PDF, download & print, share, and for learning games play and challenge friends |
+| Website | Learning game and questions in the app style: levels as large coloured rows with stars, white question card with large answer buttons, progress bar, clearer feedback |
+| Website | “Recommend” in the sidebar, the phone menu and on the overview: share menu with a link to PaperPunch, on a computer the link is copied |
+
 ## v0.6.1 – 3 November 2026
 
 Home-screen icon opens the app interface.

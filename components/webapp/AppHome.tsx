@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { daysBetween, listMaterials, listPlans, todayISO, type WebMaterial, type WebPlan } from "@/lib/webapp/store";
-import { AppIcon, SectionLabel, useAppText, WayButton } from "./ui";
+import { AppIcon, RecommendButton, SectionLabel, useAppText, WayButton } from "./ui";
 import { relDate, todaysSession } from "./util";
 
 /** Übersicht /app: drei Wege (am Handy untereinander, am Computer als Karten), darunter Weitermachen. */
@@ -89,7 +89,10 @@ export function AppHome() {
       </div>
       {!hasList && <p className="mt-3 hidden text-xs font-semibold text-zinc-500 lg:block">{tx.localNote}</p>}
 
-      <p className="mt-auto pt-8 text-center text-[11px] font-semibold text-zinc-500 lg:hidden">{tx.localNote}</p>
+      <div className="mt-auto flex flex-col items-center gap-1 pt-8 lg:hidden">
+        <RecommendButton className="flex items-center gap-2 px-2 py-2.5 text-sm font-extrabold text-zinc-400" />
+        <p className="text-center text-[11px] font-semibold text-zinc-500">{tx.localNote}</p>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { APP_TEXT } from "./text";
 
@@ -23,6 +23,15 @@ const PATHS: Record<string, string> = {
   close: "M6 6l12 12M18 6L6 18",
   check: "M5 12l5 5 9-10",
   trash: "M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13",
+  play: "M7 4l12 8-12 8z",
+  eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+  download: "M12 4v12M7 11l5 5 5-5M4 20h16",
+  share: "M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.6 13.5l6.8 4M15.4 6.5l-6.8 4",
+  upload: "M12 16V4M7 9l5-5 5 5M4 16v4h16v-4",
+  sheet: "M14 3H6v18h12V7zM14 3v4h4M9 12h6M9 16h6",
+  test: "M9 11l3 3 8-8M20 12v7H4V5h11",
+  game: "M6 9h4M8 7v4M15 10h.01M18 8h.01M3 6h18v10a3 3 0 0 1-5 2l-2-2h-4l-2 2a3 3 0 0 1-5-2z",
+  heart: "M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6C19 16.5 12 21 12 21z",
 };
 
 export function AppIcon({ name, size = 20, stroke = 2 }: { name: keyof typeof PATHS | string; size?: number; stroke?: number }) {
@@ -89,5 +98,32 @@ export function SectionLabel({ children, right }: { children: ReactNode; right?:
       <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-zinc-500">{children}</span>
       {right}
     </div>
+  );
+}
+
+/** Weiterempfehlen: Teilen-Menü mit Link zu PaperPunch; ohne Teilen-Menü (Computer) wird der Link kopiert. */
+export function RecommendButton({ className }: { className: string }) {
+  const tx = useAppText();
+  const [copied, setCopied] = useState(false);
+  async function recommend() {
+    const url = "https://paper-punch.com";
+    const text = tx.recommendText;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "PaperPunch", text, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // abgebrochen
+    }
+  }
+  return (
+    <button type="button" onClick={() => void recommend()} className={className}>
+      <AppIcon name="heart" />
+      {copied ? tx.linkCopied : tx.recommend}
+    </button>
   );
 }

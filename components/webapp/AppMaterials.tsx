@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CreationWizard } from "@/components/wizard/CreationWizard";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { deleteMaterial, getMaterial, listMaterials, type WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
 import { relDate } from "./util";
+import { ResultView } from "./ResultView";
 
 /** Meine Materialien (im Browser gespeichert); mit ?id= öffnet sich ein Material direkt im Ergebnis. */
 export function AppMaterials({ id }: { id?: string }) {
   const tx = useAppText();
   const { locale } = useLanguage();
-  const router = useRouter();
   const [list, setList] = useState<WebMaterial[] | null>(null);
   const [open, setOpen] = useState<WebMaterial | null>(null);
 
@@ -26,15 +24,12 @@ export function AppMaterials({ id }: { id?: string }) {
 
   if (id && open) {
     return (
-      <div>
-        <div className="mb-4 mt-2 flex items-center gap-3 lg:mt-0">
+      <div className="flex flex-1 flex-col">
+        <div className="mb-2 mt-2 flex items-center gap-3 lg:mt-0">
           <Link href="/app/materials" aria-label={tx.back} className="grid h-11 w-11 place-items-center rounded-full bg-[#15171b] ring-1 ring-white/[0.06]"><AppIcon name="back" /></Link>
-          <span className="flex min-w-0 flex-col">
-            <span className="text-xs font-bold text-zinc-500">{tx.formats[open.format]} · {relDate(open.createdAt, locale, tx)}</span>
-            <h1 className="truncate text-2xl font-extrabold tracking-tight">{open.title}</h1>
-          </span>
+          <span className="text-xs font-bold text-zinc-500">{tx.formats[open.format]} · {relDate(open.createdAt, locale, tx)}</span>
         </div>
-        <CreationWizard key={open.id} saved={open} onNew={() => router.push("/app")} />
+        <ResultView key={open.id} material={open} />
       </div>
     );
   }

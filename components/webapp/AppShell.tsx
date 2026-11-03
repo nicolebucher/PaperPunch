@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { AppIcon, Pixels, useAppText } from "./ui";
+import { AppIcon, Pixels, RecommendButton, useAppText } from "./ui";
 
 // Die App ist noch im geschlossenen Test – die Karte führt zur Infoseite mit Beta-Anmeldung.
 const ANDROID_INFO = "/about";
@@ -46,6 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           {n.label}
         </Link>
       ))}
+      <RecommendButton className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-[15px] font-bold text-zinc-400 hover:text-zinc-100" />
     </>
   );
 

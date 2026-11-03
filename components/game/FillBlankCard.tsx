@@ -22,8 +22,8 @@ export function FillBlankCard({
   const [before, after] = splitBlank(prompt);
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-      <p className="flex flex-wrap items-center gap-2 text-base leading-relaxed">
+    <div className="rounded-[28px] bg-white p-5 text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.25)] sm:p-6">
+      <p className="flex flex-wrap items-center gap-2 text-xl font-bold leading-relaxed">
         <span>{before}</span>
         <input
           type="text"
@@ -38,9 +38,9 @@ export function FillBlankCard({
           className={`min-w-[8rem] rounded-md border-b-2 bg-transparent px-1 py-0.5 text-center outline-none ${
             checked
               ? isCorrect
-                ? "border-green-400 text-green-300"
-                : "border-orange-400 text-orange-300"
-              : "border-brand-400"
+                ? "border-[#1fd6ea] text-[#0e6f7b]"
+                : "border-amber-500 text-amber-700"
+              : "border-[#1fd6ea]"
           }`}
         />
         <span>{after}</span>
@@ -50,7 +50,7 @@ export function FillBlankCard({
           type="button"
           onClick={onSubmit}
           disabled={value.trim() === ""}
-          className="mt-4 rounded-full bg-brand-400 px-5 py-2 text-sm font-medium text-black hover:bg-brand-300 disabled:cursor-not-allowed disabled:bg-zinc-700 disabled:text-zinc-400"
+          className="mt-5 w-full rounded-[18px] bg-zinc-900 px-5 py-3.5 text-base font-extrabold text-white disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
         >
           {t.game.check}
         </button>

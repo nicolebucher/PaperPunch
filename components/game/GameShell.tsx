@@ -75,8 +75,8 @@ export function GameShell({ game }: { game: GameData }) {
     <div className="mx-auto w-full max-w-2xl">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <h1 className="mb-1 text-2xl font-bold">{game.gameTitle}</h1>
-          <p className="text-sm text-zinc-400">{game.subject}</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.08em] text-[#1fd6ea]">{game.subject}</p>
+          <h1 className="mt-1 text-[28px] font-black leading-tight tracking-tight">{game.gameTitle}</h1>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2">
           <div
@@ -101,42 +101,40 @@ export function GameShell({ game }: { game: GameData }) {
 
       {allDone && <ResultScreen levels={sortedLevels} results={results} />}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {tiles.map((level) => {
+      <ol className="mx-auto flex max-w-md flex-col gap-3">
+        {tiles.map((level, i) => {
           const isMixed = level.id === -1;
           const result = results[level.id];
+          const colors = ["bg-[#1fd6ea] text-[#041b1e]", "bg-[#f23a8e] text-[#2a0516]", "bg-[#a8e43a] text-[#172405]"];
           return (
-            <button
-              key={level.id}
-              type="button"
-              onClick={() => setActiveLevelId(level.id)}
-              className={`rounded-xl border p-4 text-left transition ${
-                isMixed
-                  ? "border-brand-400/60 bg-brand-400/5 hover:border-brand-400"
-                  : "border-zinc-700 bg-zinc-950 hover:border-brand-400"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-semibold">
-                  {isMixed ? "🔀 " : ""}
-                  {level.title}
+            <li key={level.id}>
+              <button
+                type="button"
+                onClick={() => setActiveLevelId(level.id)}
+                className={`flex w-full items-center gap-4 rounded-[24px] p-3.5 text-left transition active:scale-[0.98] ${
+                  isMixed ? "bg-zinc-100 text-zinc-950" : "bg-[#15171b] ring-1 ring-white/[0.06]"
+                }`}
+              >
+                <span className={`grid h-16 w-16 flex-none place-items-center rounded-[20px] text-2xl font-black ${isMixed ? "bg-zinc-950 text-[#1fd6ea]" : colors[i % 3]}`}>
+                  {isMixed ? "🔀" : sortedLevels.indexOf(level) + 1}
                 </span>
-              </div>
-              <p className="mt-1 text-xs uppercase tracking-wide text-zinc-500">
-                {isMixed ? t.game.mixedSubtitle : t.difficulty[level.difficulty] ?? level.difficulty}
-                {" · "}
-                {t.game.tasksCount(level.questions.length)}
-              </p>
-              {result && (
-                <p className="mt-2 text-sm">
-                  {"⭐".repeat(result.stars)}
-                  {"☆".repeat(3 - result.stars)}
-                </p>
-              )}
-            </button>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <b className="truncate text-base">{level.title}</b>
+                  <span className={`text-xs font-semibold ${isMixed ? "text-zinc-600" : "text-zinc-400"}`}>
+                    {isMixed ? t.game.mixedSubtitle : t.difficulty[level.difficulty] ?? level.difficulty}
+                    {" · "}
+                    {t.game.tasksCount(level.questions.length)}
+                  </span>
+                  <span className="text-sm tracking-widest text-[#ffd84a]">
+                    {"★".repeat(result?.stars ?? 0)}
+                    <span className="text-zinc-600">{"★".repeat(3 - (result?.stars ?? 0))}</span>
+                  </span>
+                </span>
+              </button>
+            </li>
           );
         })}
-      </div>
+      </ol>
     </div>
   );
 }

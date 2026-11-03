@@ -19,17 +19,17 @@ export function QuestionCard({
   const correctIndex = question.correctIndex ?? -1;
 
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-5">
-      <p className="mb-4 font-medium"><MathText text={question.prompt} /></p>
-      <div className="flex flex-col gap-2">
+    <div className="rounded-[28px] bg-white p-5 text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.25)] sm:p-6">
+      <p className="mb-5 text-[22px] font-extrabold leading-snug"><MathText text={question.prompt} /></p>
+      <div className="flex flex-col gap-2.5">
         {options.map((option, i) => {
           const isSelected = selected === i;
           const isCorrect = i === correctIndex;
-          let stateClass = "border-zinc-700 hover:border-brand-400";
+          let stateClass = "border-zinc-200 bg-slate-50 hover:border-[#1fd6ea]";
           if (selected !== null) {
-            if (isCorrect) stateClass = "border-green-400 bg-green-400/10";
-            else if (isSelected) stateClass = "border-orange-400 bg-orange-400/10";
-            else stateClass = "border-zinc-800 text-zinc-600";
+            if (isCorrect) stateClass = "border-[#1fd6ea] bg-[#cff7fb]";
+            else if (isSelected) stateClass = "border-amber-400 bg-orange-100";
+            else stateClass = "border-zinc-200 bg-slate-50 text-zinc-400";
           }
           return (
             <button
@@ -37,7 +37,7 @@ export function QuestionCard({
               type="button"
               disabled={selected !== null}
               onClick={() => onSelect(i)}
-              className={`rounded-lg border px-4 py-2 text-left text-sm transition ${stateClass}`}
+              className={`min-h-[58px] rounded-[18px] border-2 px-4 py-3 text-center text-lg font-extrabold transition active:scale-[0.98] ${stateClass}`}
             >
               <MathText text={option} />
             </button>

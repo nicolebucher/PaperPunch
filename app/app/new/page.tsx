@@ -1,5 +1,7 @@
 import { AppNew } from "@/components/webapp/AppNew";
-import { outputFormats, type OutputFormat } from "@/types/generation";
+import type { WebFormat } from "@/lib/webapp/store";
+
+const FORMATS: WebFormat[] = ["worksheet", "test", "game"];
 
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
@@ -7,7 +9,7 @@ export default async function AppNewPage({ searchParams }: PageProps<"/app/new">
   const sp = await searchParams;
   const mode = one(sp.mode) === "topic" ? "topic" : "upload";
   const formatParam = one(sp.format);
-  const format = (outputFormats as readonly string[]).includes(formatParam ?? "") ? (formatParam as OutputFormat) : undefined;
+  const format = FORMATS.find((f) => f === formatParam);
   const sessionParam = one(sp.session);
   return (
     <AppNew

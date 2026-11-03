@@ -109,13 +109,15 @@ export function LevelPlayer({
         <button type="button" onClick={onExit} className="text-sm text-zinc-500 hover:text-zinc-300">
           ← {t.game.back}
         </button>
-        <span className="text-sm text-zinc-500">{t.game.questionOf(index + 1, level.questions.length)}</span>
+        <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800" aria-label={t.game.questionOf(index + 1, level.questions.length)}>
+          <span className="block h-full rounded-full bg-[#1fd6ea] transition-all" style={{ width: `${Math.round(((index + (answered ? 1 : 0)) / level.questions.length) * 100)}%` }} />
+        </span>
         <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand-400/10 px-3 py-1.5 text-xs font-semibold text-brand-300">
           <SnapIcon className="h-3.5 w-3.5" />
           {totalSnaps} {t.game.snapsUnit}
         </div>
       </div>
-      <h2 className="mb-4 text-lg font-semibold">{level.title}</h2>
+      <h2 className="mb-4 text-sm font-extrabold text-[#1fd6ea]">{level.title} · {index + 1}/{level.questions.length}</h2>
       <div className="relative">
         {isMultipleChoice ? (
           <QuestionCard question={question} selected={selected} onSelect={handleSelect} />
@@ -133,11 +135,11 @@ export function LevelPlayer({
       </div>
       {answered && (
         <div
-          className={`mt-4 rounded-lg p-4 text-sm ${
-            isCorrect ? "bg-green-400/10 text-green-300" : "bg-orange-400/10 text-orange-300"
+          className={`mt-4 rounded-[20px] p-4 text-[15px] ${
+            isCorrect ? "bg-[#cff7fb] text-[#0e4a52]" : "bg-orange-100 text-orange-900"
           }`}
         >
-          <p className="mb-1 font-medium">{isCorrect ? t.game.correct : t.game.wrong}</p>
+          <p className="mb-1 text-lg font-black">{isCorrect ? t.game.correct : t.game.wrong}</p>
           {!isCorrect && !isMultipleChoice && (
             <p className="mb-1">{t.game.correctAnswerWas(question.correctAnswer ?? "")}</p>
           )}
@@ -148,7 +150,7 @@ export function LevelPlayer({
         <button
           type="button"
           onClick={handleNext}
-          className="mt-4 rounded-full bg-brand-400 px-5 py-2 font-medium text-black hover:bg-brand-300"
+          className="mt-4 w-full rounded-[20px] bg-zinc-100 px-5 py-4 text-[17px] font-extrabold text-zinc-950 transition active:scale-[0.98]"
         >
           {isLast ? t.game.finishLevel : t.game.next}
         </button>
