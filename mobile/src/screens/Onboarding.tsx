@@ -6,8 +6,8 @@ import { Icon, ProfileSelects, TopBar } from "../ui";
 import type { Profile } from "../types";
 
 /**
- * Erster Start: animierter Willkommensbildschirm, "So funktioniert's", dann eine Frage pro Screen
- * (Sprache, Land, Schulart, Klasse, Darstellung) mit automatischem Weiter nach dem Antippen.
+ * Erster Start: animierter Willkommensbildschirm, dann eine Frage pro Screen (Sprache, Land, Schulart,
+ * Klasse, Darstellung) mit automatischem Weiter nach dem Antippen, zum Schluss "So funktioniert's".
  * Als Einstellungen: alles auf einer Seite.
  */
 export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: Profile | null; isSettings: boolean; onSave: (p: Profile) => void; onBack: () => void }) {
@@ -115,7 +115,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     );
   }
 
-  // ---------- Einrichtung: "So funktioniert's", dann eine Frage pro Screen ----------
+  // ---------- Einrichtung: eine Frage pro Screen, zum Schluss "So funktioniert's" ----------
   const TOTAL = 6;
   const country = getCountry(profile.country);
   const theme = profile.theme ?? "dark";
@@ -135,7 +135,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     setShowAll(false);
   }
 
-  const answered = step === 4 ? !!profile.schoolType : step === 5 ? profile.grade > 0 : true;
+  const answered = step === 3 ? !!profile.schoolType : step === 4 ? profile.grade > 0 : true;
 
   const option = (key: string, label: string, on: boolean, onClick: () => void, sub?: string) => (
     <button key={key} type="button" className={on ? "ob-opt on" : "ob-opt"} aria-pressed={on} onClick={onClick}>
@@ -148,7 +148,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   );
 
   let content: ReactNode;
-  if (step === 1) {
+  if (step === 6) {
     content = (
       <>
         <div className="ob-q">
@@ -181,7 +181,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 2) {
+  } else if (step === 1) {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQLang}</h1><p>{t.obQLangSub}</p></div>
@@ -192,7 +192,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 3) {
+  } else if (step === 2) {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQCountry}</h1><p>{t.obQCountrySub}</p></div>
@@ -207,7 +207,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 4) {
+  } else if (step === 3) {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQSchool}</h1><p>{country.name[profile.lang]}</p></div>
@@ -221,7 +221,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 5) {
+  } else if (step === 4) {
     const school = country.schoolTypes.find((x) => x.value === profile.schoolType);
     content = (
       <>
@@ -285,9 +285,9 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
             disabled={last ? !ready : !answered}
             onClick={() => (last ? onSave(profile) : go(step + 1))}
           >
-            {step === 1 ? t.obLetsGo : last ? t.start : t.next}
+            {last ? t.obLetsGo : t.next}
           </button>
-          <span className="ob-hint">{step === 1 ? t.obAfterHow : last ? t.obFirstTime : t.obAutoNext}</span>
+          {step !== 5 && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
         </div>
       </div>
     </LangProvider>
