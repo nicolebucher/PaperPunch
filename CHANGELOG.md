@@ -2,6 +2,7 @@
 
 Newest version on top. Every release of the website or the Android app gets an entry.
 The same history is kept as a shared doc: https://claude.ai/artifact/DRfk8rsKfQGa1KSYcjWtTH
+How everything is set up (tools, accounts, domains, email): https://claude.ai/artifact/Dmnea4bUSyD7E4CuVhW2Wu
 
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
