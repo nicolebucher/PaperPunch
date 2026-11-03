@@ -100,7 +100,7 @@ const en = {
   appPromo: {
     badge: "New",
     title: "PaperPunch is now available as an Android app",
-    text: "Everything from the website – plus study plans for your next test, reminders on study days, a learning game with levels and punches, and all your materials saved on your phone.",
+    text: "Create personalised learning materials and learning plans for your next test – right from your phone. Snap your notes, practise with worksheets, tests and learning games, get reminders on study days and keep everything in one place.",
     playCta: "Get it on Google Play",
     soon: "Coming soon to Google Play",
     betaCta: "Become a beta tester",
@@ -292,7 +292,7 @@ const de: typeof en = {
   appPromo: {
     badge: "Neu",
     title: "PaperPunch gibt es jetzt als Android-App",
-    text: "Alles von der Website – plus Lernplan für deinen nächsten Test, Erinnerungen an Lerntagen, ein Lernspiel mit Leveln und Punches und alle Materialien gespeichert auf deinem Handy.",
+    text: "Erstelle persönliche Lernmaterialien und Lernpläne für deinen nächsten Test – direkt auf dem Handy. Lernstoff fotografieren, mit Arbeitsblättern, Tests und Lernspielen üben, an Lerntagen erinnert werden und alles an einem Ort behalten.",
     playCta: "Bei Google Play laden",
     soon: "Bald bei Google Play",
     betaCta: "Beta-Tester werden",

@@ -16,7 +16,7 @@ Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).
 | Website · Tech | Internal model comparison: the AI model can be chosen per request, and real tokens and costs are counted |
 | Website | paper-punch.com is live (DNS at Strato points to Vercel); the app's invite link now uses paper-punch.com |
 | Website & App | Contact address hello@paper-punch.com (forwards to Gmail): in the website footer, About page, feedback page, imprint, privacy policy and in the app settings; “Become a beta tester” now opens an email to it |
-| Website | Fixed the app promo headline: “PaperPunch is now available as an Android app” |
+| Website | App promo reworded: headline “PaperPunch is now available as an Android app”, text leads with personalised learning materials and learning plans |
 
 ## v0.2 – 3 November 2026
 
