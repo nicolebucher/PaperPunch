@@ -89,7 +89,7 @@ function PrivacyEn() {
           <p>
             Depending on your jurisdiction, you may have the right to access, correct, delete, or object to the
             processing of your personal data, and to lodge a complaint with a supervisory authority. Contact us
-            at [your@email.example] to exercise these rights.
+            at hello@paper-punch.com to exercise these rights.
           </p>
         </section>
         <section>

@@ -84,6 +84,11 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
             {themePicker}
             {countryPicker}
             <ProfileSelects profile={profile} onChange={setProfile} />
+            <div className="stack" style={{ gap: 4 }}>
+              <span className="field-label">{t.contactTitle}</span>
+              <span className="muted" style={{ fontSize: 15 }}>{t.contactText}</span>
+              <a href="mailto:hello@paper-punch.com" className="contact-link">hello@paper-punch.com</a>
+            </div>
             <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
               {t.save}
             </button>

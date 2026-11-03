@@ -15,6 +15,7 @@ Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).
 | Website · AI | Worksheets and tests no longer get cut off: the length limit was raised from 4,096 to 12,000 tokens. Before, long sheets were regenerated up to 3 times, which tripled cost and waiting time |
 | Website · Tech | Internal model comparison: the AI model can be chosen per request, and real tokens and costs are counted |
 | Website | paper-punch.com is live (DNS at Strato points to Vercel); the app's invite link now uses paper-punch.com |
+| Website & App | Contact address hello@paper-punch.com (forwards to Gmail): in the website footer, About page, feedback page, imprint, privacy policy and in the app settings; “Become a beta tester” now opens an email to it |
 
 ## v0.2 – 3 November 2026
 

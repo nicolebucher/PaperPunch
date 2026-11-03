@@ -24,7 +24,7 @@ function ImprintEn() {
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Contact</h2>
-          <p>Email: [your@email.example]</p>
+          <p>Email: hello@paper-punch.com</p>
           <p>Phone: [optional]</p>
         </section>
         <section>
@@ -60,7 +60,7 @@ function ImprintDe() {
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Kontakt</h2>
-          <p>E-Mail: [deine@email.de]</p>
+          <p>E-Mail: hello@paper-punch.com</p>
           <p>Telefon: [optional]</p>
         </section>
         <section>

@@ -24,6 +24,9 @@ export function Footer() {
         <Link href="/feedback" className="hover:text-brand-400">
           {t.footer.feedback}
         </Link>
+        <a href="mailto:hello@paper-punch.com" className="hover:text-brand-400">
+          {t.footer.contact}: hello@paper-punch.com
+        </a>
       </div>
     </footer>
   );

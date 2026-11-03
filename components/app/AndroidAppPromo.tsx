@@ -42,9 +42,12 @@ export function AndroidAppPromo({ showMore = true }: { showMore?: boolean }) {
             ) : (
               <>
                 <span className="rounded-full border border-zinc-600 px-4 py-2.5 text-sm font-semibold text-zinc-300">{p.soon}</span>
-                <Link href="/feedback" className="rounded-full bg-brand-400 px-6 py-3 font-semibold text-black hover:bg-brand-300">
+                <a
+                  href="mailto:hello@paper-punch.com?subject=Beta%20Android%20App"
+                  className="rounded-full bg-brand-400 px-6 py-3 font-semibold text-black hover:bg-brand-300"
+                >
                   {p.betaCta}
-                </Link>
+                </a>
               </>
             )}
             {showMore && (

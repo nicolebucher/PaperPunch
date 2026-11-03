@@ -66,6 +66,12 @@ export default function AboutPage() {
       <section className="flex flex-col gap-4 rounded-3xl border border-zinc-800 p-6">
         <h2 className="text-xl font-bold">{a.contactTitle}</h2>
         <p className="text-zinc-300">{a.contactText}</p>
+        <p className="text-zinc-300">
+          {a.emailLabel}{" "}
+          <a href="mailto:hello@paper-punch.com" className="font-semibold text-brand-400 hover:text-brand-300">
+            hello@paper-punch.com
+          </a>
+        </p>
         <div className="flex flex-wrap gap-3">
           <Link href="/create" className="rounded-full bg-brand-400 px-6 py-3 font-semibold text-black hover:bg-brand-300">
             {a.startCta}

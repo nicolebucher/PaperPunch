@@ -95,6 +95,7 @@ const en = {
     privacy: "Privacy Policy",
     feedback: "Feedback",
     about: "About",
+    contact: "Contact",
   },
   appPromo: {
     badge: "New",
@@ -137,6 +138,7 @@ const en = {
     contactTitle: "Questions or ideas?",
     contactText: "We are building PaperPunch together with students and parents. Tell us what would help you.",
     contactCta: "Send feedback",
+    emailLabel: "Or write to us:",
     startCta: "Create study material",
   },
   feedback: {
@@ -285,6 +287,7 @@ const de: typeof en = {
     privacy: "Datenschutz",
     feedback: "Feedback",
     about: "Über uns",
+    contact: "Kontakt",
   },
   appPromo: {
     badge: "Neu",
@@ -327,6 +330,7 @@ const de: typeof en = {
     contactTitle: "Fragen oder Ideen?",
     contactText: "Wir entwickeln PaperPunch zusammen mit Schüler:innen und Eltern. Sag uns, was dir helfen würde.",
     contactCta: "Feedback senden",
+    emailLabel: "Oder schreib uns:",
     startCta: "Lernmaterial erstellen",
   },
   feedback: {

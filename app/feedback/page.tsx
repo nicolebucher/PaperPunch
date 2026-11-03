@@ -32,7 +32,13 @@ export default function FeedbackPage() {
   return (
     <main className="mx-auto max-w-xl flex-1 px-4 py-16">
       <h1 className="mb-2 text-2xl font-bold">{t.feedback.heading}</h1>
-      <p className="mb-6 text-sm text-zinc-400">{t.feedback.description}</p>
+      <p className="mb-2 text-sm text-zinc-400">{t.feedback.description}</p>
+      <p className="mb-6 text-sm text-zinc-400">
+        {t.about.emailLabel}{" "}
+        <a href="mailto:hello@paper-punch.com" className="font-semibold text-brand-400 hover:text-brand-300">
+          hello@paper-punch.com
+        </a>
+      </p>
 
       {status === "sent" ? (
         <p className="rounded-lg bg-brand-400/10 p-4 text-sm text-brand-300">{t.feedback.success}</p>
