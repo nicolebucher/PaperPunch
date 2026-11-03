@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
-import { clearPlanFiles, loadPlanFiles, loadPlans, loadProfile, savePlans, saveProfile } from "./storage";
+import { clearPlanFiles, listMaterials, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
 import { adjustPlan, ApiError, generateMaterial } from "./api";
 import { daysBetween, todayISO } from "./dates";
 import type { ActivePlan, GameResult, GenerateResult, MaterialFormat, Profile, QuizOutcome, StoredSession } from "./types";
@@ -30,9 +30,9 @@ type View =
   | { name: "home" }
   | { name: "capture"; mode: "photo" | "topic" }
   | { name: "working"; format: MaterialFormat | "plan" | "adjust"; fileCount: number }
-  | { name: "result"; result: GenerateResult; from?: SessionRef }
-  | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult }
-  | { name: "practice"; result: GenerateResult & { format: "worksheet" | "test" }; from?: SessionRef }
+  | { name: "result"; result: GenerateResult; from?: SessionRef; materialId?: string }
+  | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult; materialId?: string }
+  | { name: "practice"; result: GenerateResult & { format: "worksheet" | "test" }; from?: SessionRef; materialId?: string }
   | { name: "levels" }
   | { name: "planSetup" }
   | { name: "plan"; planId: string };
@@ -51,6 +51,7 @@ function AppInner() {
   const [plans, setPlansState] = useState<ActivePlan[]>(() => loadPlans());
   const [view, setView] = useState<View>(() => (loadProfile() ? { name: "home" } : { name: "onboarding" }));
   const [toast, setToast] = useState("");
+  const [materials, setMaterials] = useState<StoredMaterial[]>([]);
   const toastTimer = useRef<number>();
 
   const lang = profile?.lang ?? deviceLang();
@@ -88,14 +89,20 @@ function AppInner() {
 
   const goHome = useCallback(() => setView({ name: "home" }), []);
 
+  // "Meine Materialien" neu laden, sobald man zur Startseite oder zu einem Ergebnis kommt
+  useEffect(() => {
+    if (view.name === "home" || view.name === "result") void listMaterials().then(setMaterials);
+  }, [view.name]);
+  const materialById = (id?: string) => (id ? materials.find((m) => m.id === id) : undefined);
+
   /** Bucht Punches (mit Plan-Bonus, falls die Einheit aus einem Plan stammt) und zeigt die Abrechnung. */
-  function reward(key: string, lines: RewardLine[], from: SessionRef | undefined, then: () => void, extra: RewardLine[] = []) {
+  function reward(key: string, lines: RewardLine[], from: SessionRef | undefined, then: () => void, extra: RewardLine[] = [], countsAsPlay = true) {
     const all = [...lines, ...(from ? [{ source: "session" as const, amount: POINTS.session }] : []), ...extra];
     if (all.length === 0) {
       then();
       return;
     }
-    showReward(awardRun(key, all), then);
+    showReward(awardRun(key, all, { countsAsPlay }), then);
   }
 
   function errorText(error: unknown) {
@@ -111,7 +118,10 @@ function AppInner() {
       if (result.format === "game" && opts.from?.session.kind === "checkpoint") {
         setView({ name: "quiz", game: result.game, from: opts.from });
       } else {
-        setView({ name: "result", result, from: opts.from });
+        const materialId = newPlanId();
+        const now = Date.now();
+        await saveMaterial({ id: materialId, createdAt: now, updatedAt: now, result, from: opts.from });
+        setView({ name: "result", result, from: opts.from, materialId });
       }
     } catch (error) {
       say(errorText(error));
@@ -198,6 +208,8 @@ function AppInner() {
       screen = (
         <Home
           plans={plans}
+          materials={materials}
+          onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
@@ -232,9 +244,10 @@ function AppInner() {
           result={view.result}
           from={view.from}
           say={say}
-          onPlay={(game) => setView({ name: "quiz", game, from: view.from, result: view.result })}
+          onPlay={(game) => setView({ name: "quiz", game, from: view.from, result: view.result, materialId: view.materialId })}
           onPractice={() => {
-            if (view.result.format === "worksheet" || view.result.format === "test") setView({ name: "practice", result: view.result, from: view.from });
+            if (view.result.format === "worksheet" || view.result.format === "test")
+              setView({ name: "practice", result: view.result, from: view.from, materialId: view.materialId });
           }}
           onDone={() => {
             const from = view.from;
@@ -272,11 +285,24 @@ function AppInner() {
           <GameScreen
             game={view.game}
             gameKey={key}
+            initial={(() => {
+              const p = materialById(view.materialId)?.progress;
+              return p?.kind === "game" ? p : undefined;
+            })()}
+            onProgress={(p) => view.materialId && void updateMaterial(view.materialId, { progress: p })}
             onExit={(o) => {
               const back = () =>
-                setView(from ? { name: "plan", planId: from.planId } : view.result ? { name: "result", result: view.result } : { name: "home" });
+                setView(
+                  from
+                    ? { name: "plan", planId: from.planId }
+                    : view.result
+                      ? { name: "result", result: view.result, materialId: view.materialId }
+                      : { name: "home" }
+                );
+              if (o.finished && view.materialId) void updateMaterial(view.materialId, { finished: true, progress: undefined });
               if (from && o.quiz.total > 0) markDone(from.planId, from.session.id, o.quiz);
-              reward(key, o.lines, from && o.lines.length ? from : undefined, back);
+              // Unterbrochene Runden zählen erst beim Abschluss als "gespielt" (Wiederholungsregel)
+              reward(key, o.lines, from && o.lines.length ? from : undefined, back, [], o.finished);
             }}
           />
         );
@@ -291,15 +317,21 @@ function AppInner() {
         <Practice
           title={view.result.data.title}
           tasks={view.result.data.tasks}
-          onClose={() => setView({ name: "result", result: view.result, from: view.from })}
+          initial={(() => {
+            const p = materialById(view.materialId)?.progress;
+            return p?.kind === "practice" ? p : undefined;
+          })()}
+          onProgress={(p) => view.materialId && void updateMaterial(view.materialId, { progress: p })}
+          onClose={() => setView({ name: "result", result: view.result, from: view.from, materialId: view.materialId })}
           onFinish={(outcome, lines) => {
             const from = view.from;
             const key = materialKey(view.result.format, view.result.data.title, view.result.data.tasks[0]?.question ?? "");
+            if (view.materialId) void updateMaterial(view.materialId, { finished: true, progress: undefined });
             if (from) {
               markDone(from.planId, from.session.id, outcome);
               reward(key, lines, from, () => setView({ name: "plan", planId: from.planId }));
             } else {
-              reward(key, lines, undefined, () => setView({ name: "result", result: view.result }));
+              reward(key, lines, undefined, () => setView({ name: "result", result: view.result, materialId: view.materialId }));
             }
           }}
         />
@@ -339,6 +371,8 @@ function AppInner() {
       ) : (
         <Home
           plans={plans}
+          materials={materials}
+          onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}

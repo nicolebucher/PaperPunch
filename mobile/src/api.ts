@@ -1,5 +1,6 @@
 import type { GenerateResult, MaterialFormat, PlanGoal, Profile, QuizOutcome, StudyPlan } from "./types";
 import { daysBetween, todayISO } from "./dates";
+import { answerMatches } from "./answerMatch";
 
 // Die App hat keine eigene KI-Schnittstelle: Sie ruft die API der Website auf.
 // Standard ist die feste Vercel-Adresse der Website – sie funktioniert immer, auch bevor paper-punch.com
@@ -105,4 +106,35 @@ export async function adjustPlan(opts: {
   );
   const { plan } = await post<{ plan: StudyPlan }>("/api/plan", body);
   return plan;
+}
+
+export interface CheckResult {
+  correct: boolean;
+  feedback: string;
+}
+
+/**
+ * Prüft eine getippte Antwort: erst tolerant auf dem Gerät, nur im Zweifel per KI (kurzer Aufruf).
+ * Ohne Verbindung zählt das Ergebnis des Vergleichs auf dem Gerät.
+ */
+export async function checkTypedAnswer(opts: { question: string; expected: string; accepted?: string[]; given: string; lang: string }): Promise<CheckResult> {
+  if (answerMatches(opts.given, opts.expected, opts.accepted)) return { correct: true, feedback: "" };
+  try {
+    const res = await fetch(`${API_BASE}/api/check`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: opts.question.slice(0, 600),
+        expected: opts.expected.slice(0, 300),
+        accepted: opts.accepted?.slice(0, 8),
+        given: opts.given.slice(0, 300),
+        locale: opts.lang,
+      }),
+    });
+    if (!res.ok) return { correct: false, feedback: "" };
+    const json = (await res.json()) as CheckResult;
+    return { correct: !!json.correct, feedback: json.feedback ?? "" };
+  } catch {
+    return { correct: false, feedback: "" };
+  }
 }

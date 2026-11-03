@@ -75,6 +75,8 @@ export const taskSchema = z
     pairs: z.array(z.object({ left: z.string(), right: z.string() })).optional(),
     points: z.number(),
     answer: z.string(),
+    // Weitere richtige Schreibweisen/Synonyme für die Online-Prüfung (z. B. "GCF", "ggT", "0,75").
+    acceptedAnswers: z.array(z.string()).max(8).optional(),
   })
   // Verhindert eine Lösung, die nicht zur Aufgabe passt: bei multiple-choice/unterstreichen muss
   // "answer" wortgleich eine der "options" sein, statt z.B. ein Buchstabe oder eine Umschreibung -
@@ -133,6 +135,8 @@ export const questionSchema = z
     correctIndex: z.number().int().min(0).optional(),
     // nur "lueckentext": "prompt" enthält eine "___"-Lücke, der Schüler tippt die Antwort.
     correctAnswer: z.string().optional(),
+    // nur "lueckentext": weitere richtige Schreibweisen/Synonyme/Abkürzungen.
+    acceptedAnswers: z.array(z.string()).max(8).optional(),
     explanation: z.string(),
   })
   // Verhindert eine Lösung, die nicht zur Aufgabe passt (fehlende/inkonsistente Felder je Typ).
@@ -258,3 +262,11 @@ export const checkpointResultSchema = z.object({
   dayIndex: z.number().int().min(0).max(90),
 });
 export type CheckpointResult = z.infer<typeof checkpointResultSchema>;
+
+// Prüfung einer Freitext-Antwort durch die KI, wenn der einfache Vergleich nicht reicht.
+export const answerCheckSchema = z.object({
+  correct: z.boolean(),
+  // kurz, freundlich, in der Sprache der Frage; bei "falsch" ein Hinweis ohne die Lösung zu verraten
+  feedback: z.string().max(200),
+});
+export type AnswerCheck = z.infer<typeof answerCheckSchema>;

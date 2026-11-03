@@ -28,7 +28,12 @@ For every level:
   - "lueckentext": "prompt" is a sentence with a single "___" gap standing in for the word/term
     the student must recall and type themselves (no options/correctIndex - instead
     "correctAnswer" holds the exact correct word/phrase, correctly spelled) - use this for
-    recall-from-memory items (a term, a formula, a missing word) rather than pure recognition
+    recall-from-memory items (a term, a formula, a missing word) rather than pure recognition.
+    Also fill "acceptedAnswers" with other answers that must count as correct: common synonyms,
+    the abbreviation and the spelled-out form, British/American spellings, equivalent numbers
+    (e.g. "3/4", "0.75", "0,75"), and the answer without articles - e.g. for "greatest common
+    factor" also "GCF", "highest common factor", "largest common factor". Leave it out if there
+    are no real alternatives. Never put a wrong or merely related answer there.
   - roughly balance the two types across a level's questions rather than using only one or two of
     one type
 - a short, clear explanation per question of why the answer is correct

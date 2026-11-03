@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useT } from "../i18n";
 import { Icon } from "../ui";
 import type { GameResult, Question, QuizOutcome } from "../types";
+import { answerMatches } from "../answerMatch";
 
 const CHECKPOINT_MAX = 15;
 
@@ -31,13 +32,15 @@ export function Quiz({ game, checkpoint, inPlan, onClose, onFinish }: { game: Ga
   const q = questions[index];
   const answer = answerOf(q);
   const answered = picked !== null;
-  const ok = answered && normalize(picked) === normalize(answer);
+  // Zwischentest: ein Versuch, aber getippte Antworten werden tolerant verglichen (Synonyme, Tippfehler, Zahlformate)
+  const isRight = (v: string) => (q.type === "multiple-choice" ? normalize(v) === normalize(answer) : answerMatches(v, answer, q.acceptedAnswers));
+  const ok = answered && isRight(picked);
   const last = index === questions.length - 1;
 
   function submit(value: string) {
     if (answered || !value.trim()) return;
     setPicked(value);
-    setResults((r) => [...r, normalize(value) === normalize(answer)]);
+    setResults((r) => [...r, isRight(value)]);
   }
 
   function next() {

@@ -1,4 +1,4 @@
-import type { ActivePlan, Profile } from "./types";
+import type { ActivePlan, GenerateResult, Profile, StoredSession } from "./types";
 
 // Alles bleibt auf dem Gerät: Profil und Plan im localStorage, Lernstoff-Dateien des Plans in IndexedDB.
 
@@ -47,11 +47,16 @@ export function newPlanId(): string {
 
 const DB = "paperpunch";
 const STORE = "planFiles";
+const MATERIALS = "materials";
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(STORE);
+    const req = indexedDB.open(DB, 2);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      if (!db.objectStoreNames.contains(MATERIALS)) db.createObjectStore(MATERIALS, { keyPath: "id" });
+    };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
@@ -93,5 +98,87 @@ export async function clearPlanFiles(planId: string): Promise<void> {
     db.transaction(STORE, "readwrite").objectStore(STORE).delete(planId === "legacy" ? "current" : planId);
   } catch {
     // nichts zu löschen
+  }
+}
+
+// --- Meine Materialien: erstelltes Material samt Fortschritt, damit man später weitermachen kann ---------------
+
+export interface GameProgress {
+  kind: "game";
+  stars: number[];
+  bossDone: boolean;
+  earned: { answer: number; boss: number; correct: number; total: number; missed: string[] };
+}
+export interface PracticeProgress {
+  kind: "practice";
+  index: number;
+  results: boolean[];
+  selfChecked: boolean[];
+  secondTry: boolean[];
+}
+export interface StoredMaterial {
+  id: string;
+  createdAt: number;
+  updatedAt: number;
+  result: GenerateResult;
+  from?: { planId: string; session: StoredSession };
+  progress?: GameProgress | PracticeProgress;
+  finished?: boolean;
+}
+
+const MAX_MATERIALS = 20;
+
+async function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T> | void): Promise<T | undefined> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(MATERIALS, mode);
+    const req = run(t.objectStore(MATERIALS));
+    t.oncomplete = () => resolve(req ? (req.result as T) : undefined);
+    t.onerror = () => reject(t.error);
+  });
+}
+
+export async function listMaterials(): Promise<StoredMaterial[]> {
+  try {
+    const all = (await tx<StoredMaterial[]>("readonly", (s) => s.getAll() as IDBRequest<StoredMaterial[]>)) ?? [];
+    return all.sort((a, b) => b.updatedAt - a.updatedAt);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveMaterial(m: StoredMaterial): Promise<void> {
+  try {
+    await tx("readwrite", (s) => {
+      s.put(m);
+    });
+    const all = await listMaterials();
+    if (all.length > MAX_MATERIALS) {
+      const old = all.slice(MAX_MATERIALS);
+      await tx("readwrite", (s) => {
+        old.forEach((o) => s.delete(o.id));
+      });
+    }
+  } catch {
+    // ohne Speicher geht nur das Weitermachen verloren
+  }
+}
+
+export async function updateMaterial(id: string, change: Partial<StoredMaterial>): Promise<void> {
+  try {
+    const current = await tx<StoredMaterial>("readonly", (s) => s.get(id) as IDBRequest<StoredMaterial>);
+    if (current) await saveMaterial({ ...current, ...change, updatedAt: Date.now() });
+  } catch {
+    // ignorieren
+  }
+}
+
+export async function deleteMaterial(id: string): Promise<void> {
+  try {
+    await tx("readwrite", (s) => {
+      s.delete(id);
+    });
+  } catch {
+    // ignorieren
   }
 }

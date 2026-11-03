@@ -5,7 +5,9 @@ import { PIXEL_COLORS } from "../brand";
 import { PunchIcon } from "../rewards";
 import { POINTS, spend, totalPunches, type RewardLine } from "../punches";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
+import { checkTypedAnswer } from "../api";
 import type { GameResult, Question, QuizOutcome } from "../types";
+import type { GameProgress } from "../storage";
 
 type Game = GameResult["game"];
 type Q = Question & { difficulty: string };
@@ -16,7 +18,6 @@ const BOSS_SIZE = 8;
 function answerOf(q: Question): string {
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
 }
-const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!?]$/, "");
 const comboFactor = (streak: number) => (streak >= 9 ? 4 : streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
 const starsFor = (mistakes: number) => (mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
 
@@ -29,7 +30,19 @@ export interface GameOutcome {
  * Das Lernspiel: Level-Karte mit Sternen, 3 Leben pro Level, Combo-Multiplikator, Boss-Level am Ende,
  * Joker 50:50 gegen Punches. Beim Verlassen werden die verdienten Punches gemeldet.
  */
-export function GameScreen({ game, gameKey, onExit }: { game: Game; gameKey: string; onExit: (o: GameOutcome) => void }) {
+export function GameScreen({
+  game,
+  gameKey,
+  initial,
+  onProgress,
+  onExit,
+}: {
+  game: Game;
+  gameKey: string;
+  initial?: GameProgress;
+  onProgress?: (p: GameProgress) => void;
+  onExit: (o: GameOutcome & { finished: boolean }) => void;
+}) {
   const { t } = useT();
   // Boss: die schwersten Fragen aus allen Leveln, gemischt
   const boss = useMemo<Q[]>(() => {
@@ -38,9 +51,10 @@ export function GameScreen({ game, gameKey, onExit }: { game: Game; gameKey: str
     return [...all].sort((a, b) => (rank[a.difficulty] ?? 1) - (rank[b.difficulty] ?? 1)).slice(0, BOSS_SIZE).sort(() => Math.random() - 0.5);
   }, [game]);
 
-  const [stars, setStars] = useState<number[]>(() => game.levels.map(() => 0));
-  const [bossDone, setBossDone] = useState(false);
+  const [stars, setStars] = useState<number[]>(() => (initial?.stars.length === game.levels.length ? initial.stars : game.levels.map(() => 0)));
+  const [bossDone, setBossDone] = useState(initial?.bossDone ?? false);
   const [playing, setPlaying] = useState<number | "boss" | null>(null);
+  // Punches aus einer früheren, unterbrochenen Runde wurden schon gutgeschrieben – hier nur Neues sammeln.
   const earned = useRef<{ answer: number; boss: number; correct: number; total: number; missed: string[] }>({ answer: 0, boss: 0, correct: 0, total: 0, missed: [] });
 
   const unlockedUpTo = stars.findIndex((s) => s === 0); // erstes ungespieltes Level
@@ -51,7 +65,7 @@ export function GameScreen({ game, gameKey, onExit }: { game: Game; gameKey: str
     const lines: RewardLine[] = [];
     if (e.answer) lines.push({ source: "answer", amount: e.answer });
     if (e.boss) lines.push({ source: "boss", amount: e.boss });
-    onExit({ lines, quiz: { correct: e.correct, total: Math.max(e.total, 1), missed: e.missed } });
+    onExit({ lines, quiz: { correct: e.correct, total: Math.max(e.total, 1), missed: e.missed }, finished: bossDone });
   }
 
   if (playing !== null) {
@@ -72,10 +86,11 @@ export function GameScreen({ game, gameKey, onExit }: { game: Game; gameKey: str
           e.correct += r.correct;
           e.total += r.total;
           e.missed.push(...r.missed);
-          if (r.won) {
-            if (isBoss) setBossDone(true);
-            else setStars((s) => s.map((v, i) => (i === playing ? Math.max(v, starsFor(r.mistakes)) : v)));
-          }
+          const nextStars = r.won && !isBoss ? stars.map((v, i) => (i === playing ? Math.max(v, starsFor(r.mistakes)) : v)) : stars;
+          const nextBoss = bossDone || (r.won && isBoss);
+          setStars(nextStars);
+          setBossDone(nextBoss);
+          onProgress?.({ kind: "game", stars: nextStars, bossDone: nextBoss, earned: { ...e, missed: [...e.missed] } });
           setPlaying(null);
         }}
       />
@@ -152,45 +167,107 @@ function LevelPlay({
   onQuit: () => void;
   onDone: (r: { won: boolean; mistakes: number; points: number; correct: number; total: number; missed: string[] }) => void;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [index, setIndex] = useState(0);
   const [lives, setLives] = useState(LIVES);
   const [streak, setStreak] = useState(0);
   const [points, setPoints] = useState(0);
-  const [picked, setPicked] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
   const [hidden, setHidden] = useState<string[]>([]);
+  // Antwortstatus der aktuellen Frage: offen → (2. Versuch) → richtig/aufgelöst
+  const [status, setStatus] = useState<"open" | "checking" | "retry" | "right" | "revealed">("open");
+  const [wrongPicks, setWrongPicks] = useState<string[]>([]);
+  const [hint, setHint] = useState("");
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, mistakes: 0, missed: [] as string[] });
   const [end, setEnd] = useState<"won" | "lost" | null>(null);
 
   const q = questions[index];
   const answer = answerOf(q);
-  const answered = picked !== null;
-  const ok = answered && normalize(picked) === normalize(answer);
+  const answered = status === "right" || status === "revealed";
+  const ok = status === "right";
+  const secondTry = status === "retry";
   const factor = comboFactor(streak);
 
-  function submit(value: string) {
-    if (answered || !value.trim()) return;
-    setPicked(value);
-    const right = normalize(value) === normalize(answer);
+  function handle(right: boolean, feedback = "") {
+    setHint(feedback);
     if (right) {
       const base = POINTS.answer[q.difficulty] ?? 10;
-      const newStreak = streak + 1;
-      const f = comboFactor(newStreak);
-      const gain = base * f * (isBoss ? POINTS.boss : 1);
+      const firstTry = wrongPicks.length === 0 && status !== "retry";
+      const newStreak = firstTry ? streak + 1 : 0;
+      const f = firstTry ? comboFactor(newStreak) : 1;
+      // im zweiten Versuch halbe Punches, keine Combo
+      const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5));
       setStreak(newStreak);
       setPoints((p) => p + gain);
-      setStats((s) => ({ ...s, correct: s.correct + 1 }));
+      setStats((s) => ({ ...s, correct: s.correct + 1, mistakes: s.mistakes + (firstTry ? 0 : 1) }));
       setFx({ id: Date.now(), kind: "right", gain, factor: f });
+      setStatus("right");
       hapticRight();
-    } else {
-      setStreak(0);
-      setLives((l) => l - 1);
-      setStats((s) => ({ ...s, mistakes: s.mistakes + 1, missed: [...s.missed, q.prompt] }));
-      setFx({ id: Date.now(), kind: "wrong", gain: 0, factor: 1 });
-      hapticWrong();
+      return;
     }
+    setStreak(0);
+    setFx({ id: Date.now(), kind: "wrong", gain: 0, factor: 1 });
+    hapticWrong();
+    if (status === "retry") {
+      reveal();
+    } else {
+      setStatus("retry"); // erster Fehler: nochmal versuchen, kostet noch kein Leben
+    }
+  }
+
+  /** Lösung zeigen (zweiter Fehler oder aufgegeben): kostet ein Leben. */
+  function reveal() {
+    setLives((l) => l - 1);
+    setStats((s) => ({ ...s, mistakes: s.mistakes + 1, missed: [...s.missed, q.prompt] }));
+    setStatus("revealed");
+  }
+
+  async function submit(value: string) {
+    if (answered || status === "checking" || !value.trim()) return;
+    if (q.type === "multiple-choice") {
+      if (value === answer) handle(true);
+      else {
+        setWrongPicks((w) => [...w, value]);
+        handle(false);
+      }
+      return;
+    }
+    setStatus("checking");
+    const prev = status;
+    const result = await checkTypedAnswer({ question: q.prompt, expected: answer, accepted: q.acceptedAnswers, given: value, lang });
+    // Status vor dem Prüfen wiederherstellen, damit handle() den richtigen Versuch erkennt
+    setStatus(prev);
+    if (result.correct) handleAfterCheck(true, result.feedback, prev);
+    else handleAfterCheck(false, result.feedback, prev);
+  }
+
+  // handle() liest `status` aus dem Render; nach dem await steht dort noch "checking"
+  function handleAfterCheck(right: boolean, feedback: string, prev: typeof status) {
+    if (prev === "retry") {
+      setWrongPicks((w) => (w.length ? w : ["typed"]));
+    }
+    if (right) {
+      const base = POINTS.answer[q.difficulty] ?? 10;
+      const firstTry = prev !== "retry";
+      const newStreak = firstTry ? streak + 1 : 0;
+      const f = firstTry ? comboFactor(newStreak) : 1;
+      const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5));
+      setHint(feedback);
+      setStreak(newStreak);
+      setPoints((p) => p + gain);
+      setStats((s) => ({ ...s, correct: s.correct + 1, mistakes: s.mistakes + (firstTry ? 0 : 1) }));
+      setFx({ id: Date.now(), kind: "right", gain, factor: f });
+      setStatus("right");
+      hapticRight();
+      return;
+    }
+    setHint(feedback);
+    setStreak(0);
+    setFx({ id: Date.now(), kind: "wrong", gain: 0, factor: 1 });
+    hapticWrong();
+    if (prev === "retry") reveal();
+    else setStatus("retry");
   }
 
   function next() {
@@ -204,17 +281,19 @@ function LevelPlay({
       return;
     }
     setIndex((i) => i + 1);
-    setPicked(null);
     setTyped("");
     setHidden([]);
+    setWrongPicks([]);
+    setHint("");
+    setStatus("open");
     setFx(null);
   }
 
   function joker() {
     if (answered || q.type !== "multiple-choice" || !q.options || q.options.length < 3 || hidden.length) return;
     if (!spend(POINTS.joker5050, gameKey)) return;
-    const wrong = q.options.filter((o) => o !== answer).sort(() => Math.random() - 0.5);
-    setHidden(wrong.slice(0, Math.max(1, q.options.length - 2)));
+    const wrong = q.options.filter((o) => o !== answer && !wrongPicks.includes(o)).sort(() => Math.random() - 0.5);
+    setHidden(wrong.slice(0, Math.max(1, q.options.length - 2 - wrongPicks.length)));
   }
 
   if (end) {
@@ -297,22 +376,35 @@ function LevelPlay({
           <div className="stack">
             {(q.options ?? []).map((opt) => {
               if (hidden.includes(opt)) return <div key={opt} className="option gone" aria-hidden="true" />;
-              const cls = answered && opt === answer ? "option right" : picked === opt ? "option wrong" : "option";
+              const tried = wrongPicks.includes(opt);
+              const cls = answered && opt === answer ? "option right" : tried ? "option wrong" : "option";
               return (
-                <button key={opt} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => submit(opt)} disabled={answered}>
+                <button key={opt} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => void submit(opt)} disabled={answered || tried}>
                   {opt}
                 </button>
               );
             })}
           </div>
         ) : (
-          <form className="stack" onSubmit={(e) => { e.preventDefault(); submit(typed); }}>
+          <form className="stack" onSubmit={(e) => { e.preventDefault(); void submit(typed); }}>
             <label className="field">
               {t.typeAnswer}
-              <input id="game-answer" className="input" value={typed} onChange={(e) => setTyped(e.target.value)} disabled={answered} autoComplete="off" autoCapitalize="off" />
+              <input id="game-answer" className="input" value={typed} onChange={(e) => setTyped(e.target.value)} disabled={answered || status === "checking"} autoComplete="off" autoCapitalize="off" />
             </label>
-            {!answered && <button type="submit" className="btn dark block" disabled={!typed.trim()}>{t.check}</button>}
+            {!answered && (
+              <button type="submit" className="btn dark block" disabled={!typed.trim() || status === "checking"}>
+                {status === "checking" ? t.checking : secondTry ? t.checkAgain : t.check}
+              </button>
+            )}
           </form>
+        )}
+
+        {secondTry && (
+          <div className="feedback retry" role="status">
+            <span style={{ fontSize: 18, fontWeight: 900 }}>{t.tryAgain2}</span>
+            {hint && <span>{hint}</span>}
+            <button type="button" className="link-btn" onClick={reveal}>{t.giveUp}</button>
+          </div>
         )}
 
         {canJoker && (
@@ -324,6 +416,7 @@ function LevelPlay({
         {answered && (
           <div className={ok ? "feedback ok" : "feedback no"} role="status">
             <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : t.wrong(answer)}</span>
+            {ok && hint && <span style={{ fontWeight: 700 }}>{hint}</span>}
             <span>{q.explanation}</span>
           </div>
         )}

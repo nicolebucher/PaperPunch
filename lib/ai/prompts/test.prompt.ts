@@ -30,7 +30,9 @@ Create a realistic test with:
 - 6 to 10 tasks with a sensible points distribution (about 20-30 points total)
 - the exact, correct solution for every task ("answer") - for "zuordnen" describe the correct
   matches (e.g. "1-B, 2-A, 3-C"); for "unterstreichen" give the correct word/phrase (this will be
-  shown separately as an answer key)
+  shown separately as an answer key). For "lueckentext" and short "offen" answers, also fill
+  "acceptedAnswers" with other answers that must count as correct (synonyms, abbreviation and
+  spelled-out form, equivalent numbers); leave it out when there are none
 
 Answer-key accuracy is critical - a wrong or mismatched answer key is a serious failure, worse than
 a slightly-off difficulty level:

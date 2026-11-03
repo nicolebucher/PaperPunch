@@ -20,6 +20,7 @@ export interface Task {
   pairs?: { left: string; right: string }[];
   points: number;
   answer: string;
+  acceptedAnswers?: string[];
 }
 
 export interface SheetResult {
@@ -34,6 +35,7 @@ export interface Question {
   options?: string[];
   correctIndex?: number;
   correctAnswer?: string;
+  acceptedAnswers?: string[];
   explanation: string;
 }
 

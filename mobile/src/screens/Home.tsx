@@ -4,6 +4,7 @@ import { BrandMark, PixelStrip } from "../brand";
 import { PunchPill } from "../rewards";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
+import type { StoredMaterial } from "../storage";
 
 const TEAL = "#1FD6EA";
 
@@ -23,6 +24,8 @@ function planCells(plan: ActivePlan) {
 /** Startseite: große Karte "Lernmaterial erstellen", darunter alle Lernpläne – je ein Pixel pro Tag bis zum Test. */
 export function Home({
   plans,
+  materials = [],
+  onOpenMaterial,
   onQuick,
   onOpenPlan,
   onNewPlan,
@@ -30,6 +33,8 @@ export function Home({
   onLevels,
 }: {
   plans: ActivePlan[];
+  materials?: StoredMaterial[];
+  onOpenMaterial?: (m: StoredMaterial) => void;
   onQuick: () => void;
   onOpenPlan: (planId: string) => void;
   onNewPlan: () => void;
@@ -48,6 +53,23 @@ export function Home({
     if ((da > 0) !== (db > 0)) return da > 0 ? -1 : 1;
     return da - db;
   });
+
+  // Angefangene Materialien zuerst, danach die neuesten – höchstens 4 auf der Startseite.
+  const shownMaterials = [...materials]
+    .sort((a, b) => Number(!!a.progress && !a.finished) === Number(!!b.progress && !b.finished) ? b.updatedAt - a.updatedAt : a.progress && !a.finished ? -1 : 1)
+    .slice(0, 4);
+  const resumable = shownMaterials.some((m) => m.progress && !m.finished);
+
+  function materialStatus(m: StoredMaterial) {
+    if (m.finished) return t.matDone;
+    const p = m.progress;
+    if (p?.kind === "practice") {
+      const total = "tasks" in m.result ? m.result.tasks.length : p.results.length;
+      return t.matProgressTasks(Math.min(p.index + 1, total), total);
+    }
+    if (p?.kind === "game") return t.matProgressLevels(p.stars.filter((x) => x > 0).length + (p.bossDone ? 1 : 0), p.stars.length + 1);
+    return t.matNew;
+  }
 
   return (
     <div className="screen home">
@@ -84,6 +106,24 @@ export function Home({
             ))}
           </span>
         </button>
+
+        {shownMaterials.length > 0 && (
+          <div className="stack" style={{ gap: 10 }}>
+            <span className="section-title">{resumable ? t.continueTitle : t.myMaterials}</span>
+            {shownMaterials.map((m) => (
+              <button key={m.id} type="button" className="material-row" onClick={() => onOpenMaterial?.(m)}>
+                <span className="material-icon"><Icon name={m.result.format} size={20} stroke={2.2} /></span>
+                <span className="stack" style={{ gap: 2, minWidth: 0, flex: 1 }}>
+                  <span className="material-title">{m.result.title}</span>
+                  <span className={m.progress && !m.finished ? "material-sub active" : "material-sub"}>
+                    {t.formats[m.result.format]} · {materialStatus(m)}
+                  </span>
+                </span>
+                <Icon name="chevron" size={18} stroke={2.6} />
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap", marginTop: 6 }}>
           <span className="section-title">{t.myPlans} <Beta /></span>

@@ -4,6 +4,10 @@ import { createContext, useContext, type ReactNode } from "react";
 export type Lang = "de" | "en";
 
 const de = {
+  tryAgain2: "Nicht ganz – versuch's nochmal!",
+  giveUp: "Lösung zeigen",
+  checkAgain: "Nochmal prüfen",
+  checking: "Prüfe …",
   levelAria: (n: number, p: number) => `Level ${n}, ${p} Punches`,
   levelNumber: (n: number) => `Level ${n}`,
   levelLabel: "Level",
@@ -35,6 +39,12 @@ const de = {
   backToMap: "Zur Level-Karte",
   seeResult: "Ergebnis ansehen",
   comingSoon: "Bald",
+  continueTitle: "Weitermachen",
+  myMaterials: "Meine Lernmaterialien",
+  matProgressTasks: (done: number, total: number) => `Aufgabe ${done} von ${total}`,
+  matProgressLevels: (done: number, total: number) => `Level ${done} von ${total}`,
+  matDone: "Fertig",
+  matNew: "Noch nicht angefangen",
   obTitle: "Aus deinem Lernstoff wird Übung.",
   obFeat1: "Foto vom Hefter machen",
   obFeat2: "Arbeitsblatt, Test, Spiel oder Podcast bekommen",
@@ -212,6 +222,10 @@ const de = {
 };
 
 const en: typeof de = {
+  tryAgain2: "Not quite – try again!",
+  giveUp: "Show answer",
+  checkAgain: "Check again",
+  checking: "Checking …",
   levelAria: (n: number, p: number) => `Level ${n}, ${p} punches`,
   levelNumber: (n: number) => `Level ${n}`,
   levelLabel: "Level",
@@ -243,6 +257,12 @@ const en: typeof de = {
   backToMap: "Back to level map",
   seeResult: "See result",
   comingSoon: "Soon",
+  continueTitle: "Continue",
+  myMaterials: "My study materials",
+  matProgressTasks: (done: number, total: number) => `Task ${done} of ${total}`,
+  matProgressLevels: (done: number, total: number) => `Level ${done} of ${total}`,
+  matDone: "Done",
+  matNew: "Not started yet",
   obTitle: "Your notes, turned into practice.",
   obFeat1: "Snap a photo of your notes",
   obFeat2: "Get a worksheet, test, game or podcast",

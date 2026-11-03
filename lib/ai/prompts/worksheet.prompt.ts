@@ -35,7 +35,12 @@ Create a thorough worksheet for independent practice that spans several A4 pages
   is fine and expected to directly reuse the specific terms/facts from the material, since the
   content itself is what is being learned.
 - a short, correct sample answer for every task ("answer") - for "zuordnen" describe the correct
-  matches (e.g. "1-B, 2-A, 3-C"); for "unterstreichen" give the correct word/phrase
+  matches (e.g. "1-B, 2-A, 3-C"); for "unterstreichen" give the correct word/phrase.
+  For "lueckentext" and short "offen" answers (a single term, number or short phrase), also fill
+  "acceptedAnswers" with other answers that must count as correct when the student types them:
+  common synonyms, abbreviation and spelled-out form, equivalent numbers ("3/4", "0.75", "0,75"),
+  e.g. for "greatest common factor" also "GCF", "highest common factor", "largest common factor".
+  Leave it out when there are no real alternatives; never list wrong or merely related answers.
 - a short, motivating introduction (2-3 sentences)
 
 Answer-key accuracy is critical - a wrong or mismatched answer key is a serious failure, worse than
