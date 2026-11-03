@@ -96,6 +96,14 @@ const en = {
     feedback: "Feedback",
     about: "About",
     contact: "Contact",
+    cookies: "Cookie settings",
+  },
+  consent: {
+    title: "Help us improve PaperPunch",
+    text: "With your consent we use Google Analytics to see which pages and features are used. No ads, no personalised tracking. You can change this any time under “Cookie settings”.",
+    more: "Privacy policy",
+    accept: "Accept",
+    decline: "Decline",
   },
   appPromo: {
     badge: "New",
@@ -288,6 +296,14 @@ const de: typeof en = {
     feedback: "Feedback",
     about: "Über uns",
     contact: "Kontakt",
+    cookies: "Cookie-Einstellungen",
+  },
+  consent: {
+    title: "Hilf uns, PaperPunch besser zu machen",
+    text: "Mit deiner Einwilligung nutzen wir Google Analytics, um zu sehen, welche Seiten und Funktionen genutzt werden. Keine Werbung, kein personalisiertes Tracking. Du kannst das jederzeit unter „Cookie-Einstellungen“ ändern.",
+    more: "Datenschutz",
+    accept: "Akzeptieren",
+    decline: "Ablehnen",
   },
   appPromo: {
     badge: "Neu",

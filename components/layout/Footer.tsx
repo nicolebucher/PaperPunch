@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { openConsentSettings } from "@/components/consent/ConsentAnalytics";
 
 export function Footer() {
   const { t } = useLanguage();
@@ -24,6 +25,9 @@ export function Footer() {
         <Link href="/feedback" className="hover:text-brand-400">
           {t.footer.feedback}
         </Link>
+        <button type="button" onClick={openConsentSettings} className="hover:text-brand-400">
+          {t.footer.cookies}
+        </button>
         <a href="mailto:hello@paper-punch.com" className="hover:text-brand-400">
           {t.footer.contact}: hello@paper-punch.com
         </a>

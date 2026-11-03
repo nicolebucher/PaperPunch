@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { LanguageProvider } from "@/lib/i18n/language-context";
+import { ConsentAnalytics } from "@/components/consent/ConsentAnalytics";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Header />
           {children}
           <Footer />
+          <ConsentAnalytics />
         </LanguageProvider>
         <Analytics />
       </body>

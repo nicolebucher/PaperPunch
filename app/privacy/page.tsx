@@ -73,8 +73,16 @@ function PrivacyEn() {
           <p>
             We use Vercel Web Analytics to understand overall traffic (e.g. page views, referring pages). It is
             cookie-free and does not use persistent identifiers to track you across visits or sites; data is
-            aggregated and no individual profile is built. We do not use advertising cookies or third-party
-            tracking scripts.
+            aggregated and no individual profile is built.
+          </p>
+          <p className="mt-2">
+            Only if you click “Accept” in the cookie banner do we also use Google Analytics 4 (Google Ireland
+            Limited, Gordon House, Barrow Street, Dublin 4, Ireland) to measure which pages and features are used.
+            Google Analytics sets cookies (_ga, _ga_*) and processes usage data such as pages visited, device
+            type and approximate region; IP addresses are not stored by Google Analytics 4. Google signals and
+            ad personalisation are switched off. Legal basis is your consent (Art. 6(1)(a) GDPR, § 25(1) TDDDG).
+            You can withdraw it any time via “Cookie settings” at the bottom of every page. Data may be
+            transferred to the USA under the EU-US Data Privacy Framework. We do not use advertising cookies.
           </p>
         </section>
         <section>
@@ -171,8 +179,17 @@ function PrivacyDe() {
             Wir nutzen Vercel Web Analytics, um den allgemeinen Besucherverkehr zu verstehen (z.B. Seitenaufrufe,
             verweisende Seiten). Der Dienst ist cookie-frei und verwendet keine dauerhaften Kennungen, um dich
             über Besuche oder Websites hinweg zu verfolgen; die Daten werden aggregiert, es wird kein
-            individuelles Profil erstellt. Wir verwenden keine Werbe-Cookies oder Tracking-Skripte von
-            Drittanbietern.
+            individuelles Profil erstellt.
+          </p>
+          <p className="mt-2">
+            Nur wenn du im Cookie-Banner auf „Akzeptieren“ klickst, nutzen wir zusätzlich Google Analytics 4
+            (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland), um zu messen, welche Seiten
+            und Funktionen genutzt werden. Google Analytics setzt dafür Cookies (_ga, _ga_*) und verarbeitet
+            Nutzungsdaten wie aufgerufene Seiten, Gerätetyp und ungefähre Region; IP-Adressen werden von Google
+            Analytics 4 nicht gespeichert. Google Signals und Werbe-Personalisierung sind ausgeschaltet.
+            Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Du kannst
+            sie jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite widerrufen. Eine Übermittlung in die
+            USA ist auf Grundlage des EU-US Data Privacy Framework möglich. Werbe-Cookies verwenden wir nicht.
           </p>
         </section>
         <section>
