@@ -12,7 +12,7 @@ export const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "applicati
 
 // Vercel Serverless Functions cap the request body at ~4.5MB - stay safely under that
 // across ALL uploaded files combined (multipart overhead included).
-export const MAX_FILES = 5;
+export const MAX_FILES = 8;
 export const MAX_TOTAL_SIZE = 4 * 1024 * 1024;
 
 /**

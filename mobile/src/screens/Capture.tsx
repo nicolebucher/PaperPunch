@@ -27,13 +27,16 @@ export function Capture({
   const [format, setFormat] = useState<MaterialFormat | null>(null);
   const [profile, setProfile] = useState(initialProfile);
   const [flash, setFlash] = useState(false);
+  const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);
 
   const n = files.length;
   const errors: Record<FileError, string> = { type: t.errFileType, count: t.errTooMany, size: t.errTooBig };
 
   async function add(incoming: File[]) {
-    if (!incoming.length) return;
-    const result = await addFiles(files, incoming);
+    if (!incoming.length || busy) return;
+    setBusy({ done: 0, total: incoming.length });
+    const result = await addFiles(files, incoming, (done, total) => setBusy({ done, total }));
+    setBusy(null);
     setFiles(result.files);
     if (result.error) say(errors[result.error]);
     if (result.files.length) {
@@ -91,6 +94,12 @@ export function Capture({
             <span className="corner tl" /><span className="corner tr" /><span className="corner bl" /><span className="corner br" />
             <span className="hint">{n === 0 ? t.cameraHint0 : n >= MAX_FILES ? t.cameraHintFull : t.cameraHintN(n)}</span>
             {flash && <div style={{ position: "absolute", inset: 0, background: "#fff", opacity: 0.8 }} />}
+            {busy && (
+              <div className="busy-overlay" role="status" aria-live="polite">
+                <span className="busy-spinner" aria-hidden="true" />
+                <span>{t.preparingPhotos(Math.min(busy.done + 1, busy.total), busy.total)}</span>
+              </div>
+            )}
           </div>
           <div className="shutterbar">
             <FilePick className="square" label={t.uploadFiles} onFiles={(f) => void add(f)}>

@@ -7,6 +7,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.2.2 – 3 November 2026
+
+Fix: uploading many photos at once.
+
+| Area | Change |
+| --- | --- |
+| App | Uploading 5–6+ photos from the gallery looked like nothing happened: photos are now prepared with a visible progress indicator (“Preparing photos … 2 of 6”) |
+| Website & App | Up to 8 files per material (was 5); photos are shrunk to 1,400 px so 8 pages fit into the 4 MB limit; a clear message when files are left out |
+
 ## v0.2.1 – 3 November 2026
 
 Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).

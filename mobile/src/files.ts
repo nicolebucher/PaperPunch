@@ -1,9 +1,9 @@
 import { Capacitor } from "@capacitor/core";
 import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
-// Grenzen wie auf der Website: 5 Dateien, zusammen 4 MB (Vercel nimmt pro Anfrage ~4,5 MB an).
-// Fotos werden vorher verkleinert, PDFs zählen mit voller Größe.
-export const MAX_FILES = 5;
+// Grenzen wie auf der Website: 8 Dateien, zusammen 4 MB (Vercel nimmt pro Anfrage ~4,5 MB an).
+// Fotos werden vorher auf ~1400 px verkleinert (je ca. 200–400 KB), PDFs zählen mit voller Größe.
+export const MAX_FILES = 8;
 export const MAX_BYTES = 4 * 1024 * 1024;
 
 export type FileError = "type" | "count" | "size";
@@ -25,17 +25,19 @@ export function formatMb(bytes: number, lang: "de" | "en"): string {
   return lang === "de" ? mb.replace(".", ",") : mb;
 }
 
-/** Shrinks a photo to max 1600 px on the long side as JPEG, so five pages fit under 4 MB. */
+/** Shrinks a photo to max 1400 px on the long side as JPEG, so eight pages fit under 4 MB (text stays readable). */
 async function compressImage(file: File): Promise<File> {
-  if (file.size < 450 * 1024) return file;
+  if (file.size < 350 * 1024) return file;
   try {
     const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+    const scale = Math.min(1, 1400 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);
     canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.8));
+    bitmap.close?.();
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.75));
+    canvas.width = 0; // Speicher freigeben (wichtig bei vielen großen Handyfotos)
     if (!blob || blob.size >= file.size) return file;
     return new File([blob], file.name.replace(/\.(png|jpe?g)$/i, "") + ".jpg", { type: "image/jpeg" });
   } catch {
@@ -44,10 +46,17 @@ async function compressImage(file: File): Promise<File> {
 }
 
 /** Adds files to the list, respecting type, count and size limits. Returns the new list and the first error. */
-export async function addFiles(current: File[], incoming: File[]): Promise<{ files: File[]; error?: FileError }> {
+export async function addFiles(
+  current: File[],
+  incoming: File[],
+  onProgress?: (done: number, total: number) => void
+): Promise<{ files: File[]; error?: FileError }> {
   const files = current.slice();
   let error: FileError | undefined;
+  let done = 0;
+  onProgress?.(0, incoming.length);
   for (const raw of incoming) {
+    onProgress?.(done++, incoming.length);
     const kind = kindOf(raw);
     if (!kind) {
       error ??= "type";
@@ -68,6 +77,7 @@ export async function addFiles(current: File[], incoming: File[]): Promise<{ fil
     }
     files.push(file);
   }
+  onProgress?.(incoming.length, incoming.length);
   return { files, error };
 }
 
@@ -92,7 +102,7 @@ export async function takeNativePhoto(index: number): Promise<File | null> {
       source: CameraSource.Camera,
       resultType: CameraResultType.DataUrl,
       quality: 80,
-      width: 1600,
+      width: 1400,
       correctOrientation: true,
       saveToGallery: false,
     });
