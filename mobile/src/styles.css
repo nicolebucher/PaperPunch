@@ -654,3 +654,16 @@ h1 .beta { position: relative; top: -3px; }
   font: inherit; font-size: 13px; font-weight: 900; letter-spacing: 0.04em; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); cursor: pointer;
 }
 .sheet-pdf-badge:active { transform: scale(0.95); }
+
+/* Startseite: Lernplan-Button (grau, Beta), Tage-Kachel, Haken für fertig */
+.home-a-secondary {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 0 18px; margin-top: 4px;
+  border: 1px solid var(--row-line); border-radius: 18px; background: var(--surface-2); color: var(--fg);
+  font: inherit; font-size: 16px; font-weight: 800; text-align: left; cursor: pointer;
+}
+.home-a-secondary:active { transform: scale(0.98); }
+.home-a-days { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--row-line); display: flex; flex-direction: column; align-items: center; justify-content: center; flex: none; line-height: 1; }
+.home-a-days b { font-size: 17px; font-weight: 900; color: var(--teal-text); }
+.home-a-days small { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.home-a-rowicon.done { color: var(--teal-text); background: rgba(31, 214, 234, 0.12); border-color: transparent; }
+.home-a .home-a-body > :first-child { margin-top: 28px; }

@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { useT } from "../i18n";
-import { Icon, TopBar } from "../ui";
+import { Beta, Icon, TopBar } from "../ui";
 import { PunchPill } from "../rewards";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
@@ -35,8 +35,6 @@ export function Home({
   onInvite?: () => void;
 }) {
   const { t } = useT();
-  const hour = new Date().getHours();
-  const greeting = hour < 11 ? t.greetMorning : hour < 18 ? t.greetDay : t.greetEvening;
   const today = todayISO();
 
   // Laufende Pläne nach Testdatum; vorbei ist vorbei.
@@ -46,15 +44,17 @@ export function Home({
   const resumable = [...materials].filter(isResumable).sort((a, b) => b.updatedAt - a.updatedAt);
   const latest = [...materials].sort((a, b) => b.updatedAt - a.updatedAt);
 
-  // Höchstens zwei Einträge: zuerst der nächste Lernplan, dann angefangenes (oder sonst neuestes) Material.
+  // "Weitermachen & letzte Aktivitäten": höchstens drei Einträge – zuerst der nächste Lernplan,
+  // dann angefangenes Material, danach die zuletzt genutzten.
   type Item = { kind: "plan"; plan: ActivePlan } | { kind: "material"; m: StoredMaterial };
+  const MAX_ITEMS = 3;
   const items: Item[] = [];
   if (running[0]) items.push({ kind: "plan", plan: running[0] });
-  for (const m of resumable.length ? resumable : latest) {
-    if (items.length >= 2) break;
+  for (const m of [...resumable, ...latest.filter((x) => !isResumable(x))]) {
+    if (items.length >= MAX_ITEMS) break;
     items.push({ kind: "material", m });
   }
-  if (items.length < 2 && running[1]) items.push({ kind: "plan", plan: running[1] });
+  if (items.length < MAX_ITEMS && running[1]) items.push({ kind: "plan", plan: running[1] });
 
   return (
     <div className="screen home home-a">
@@ -70,10 +70,7 @@ export function Home({
       />
 
       <div className="stack home-a-body">
-        <div className="stack" style={{ gap: 8 }}>
-          <span className="home-a-greet">{greeting}</span>
-          <h1 className="home-a-title">{t.homeHeadline}</h1>
-        </div>
+        <h1 className="home-a-title">{t.homeHeadline}</h1>
 
         <div className="stack" style={{ gap: 10 }}>
           <button type="button" className="home-a-cta" onClick={onQuick}>
@@ -82,12 +79,17 @@ export function Home({
             <Icon name="chevron" size={20} stroke={2.6} />
           </button>
           <span className="home-a-formats">{t.homeCtaSub}</span>
+          <button type="button" className="home-a-secondary" onClick={onNewPlan}>
+            <Icon name="calendar" size={20} stroke={2} />
+            <span style={{ flex: 1 }}>{t.createPlan}</span>
+            <Beta />
+          </button>
         </div>
 
         {items.length > 0 && (
           <div className="stack" style={{ gap: 12 }}>
             <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
-              <span className="home-a-label">{t.continueTitle}</span>
+              <span className="home-a-label">{t.continueAndRecent}</span>
               {materials.length > 0 && onAllMaterials && (
                 <button type="button" className="link-btn" onClick={onAllMaterials}>{t.allMaterials}</button>
               )}
@@ -103,7 +105,6 @@ export function Home({
         )}
 
         <div className="home-a-links">
-          <button type="button" className="link-btn" onClick={onNewPlan}>+ {t.planForTest}</button>
           {onInvite && (
             <button type="button" className="link-btn muted-link" onClick={onInvite}>{t.inviteFriends}</button>
           )}
@@ -120,7 +121,10 @@ function PlanRow({ plan, today, onClick }: { plan: ActivePlan; today: string; on
   const open = plan.sessions.filter((s) => s.dayIndex === todayIndex && !plan.done.includes(s.id));
   return (
     <button type="button" className="home-a-row" onClick={onClick}>
-      <span className="home-a-rowicon"><Icon name="calendar" size={20} stroke={2} /></span>
+      <span className="home-a-days" aria-label={t.homePlanActive(daysLeft)}>
+        <b>{daysLeft}</b>
+        <small>{t.daysShort}</small>
+      </span>
       <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
         <span className="material-title">{plan.plan.title}</span>
         <span className={open.length ? "material-sub active" : "material-sub"}>
@@ -134,23 +138,27 @@ function PlanRow({ plan, today, onClick }: { plan: ActivePlan; today: string; on
 
 function MaterialRow({ m, onClick }: { m: StoredMaterial; onClick: () => void }) {
   const { t } = useT();
+  // Fortschritt für den Ring: angefangen oder noch nicht begonnen (0/N); fertige Materialien bekommen einen Haken.
   const p = m.progress;
-  let ratio = 0;
-  let label = "";
-  if (p?.kind === "practice") {
-    const total = m.result.format === "worksheet" || m.result.format === "test" ? m.result.data.tasks.length : p.results.length;
-    ratio = total ? p.index / total : 0;
-    label = `${p.index}/${total}`;
-  } else if (p?.kind === "game") {
-    const done = p.stars.filter((x) => x > 0).length + (p.bossDone ? 1 : 0);
-    ratio = done / (p.stars.length + 1);
-    label = `${done}/${p.stars.length + 1}`;
+  const r = m.result;
+  let done = 0;
+  let total = 0;
+  if (r.format === "worksheet" || r.format === "test") {
+    total = r.data.tasks.length;
+    done = p?.kind === "practice" ? Math.min(p.index, total) : 0;
+  } else if (r.format === "game") {
+    total = r.game.levels.length + 1; // + Boss-Level
+    done = p?.kind === "game" ? p.stars.filter((x) => x > 0).length + (p.bossDone ? 1 : 0) : 0;
   }
+  const ratio = total ? done / total : 0;
+  const label = `${done}/${total}`;
   const ringStyle = { "--p": `${Math.round(ratio * 100)}%` } as CSSProperties;
   return (
     <button type="button" className="home-a-row" onClick={onClick}>
-      {isResumable(m) ? (
-        <span className="home-a-ring" style={ringStyle}>
+      {m.finished ? (
+        <span className="home-a-rowicon done" aria-label={t.matDone}><Icon name="check" size={20} stroke={2.6} /></span>
+      ) : total > 0 ? (
+        <span className="home-a-ring" style={ringStyle} aria-label={materialStatus(m, t)}>
           <span>{label}</span>
         </span>
       ) : (
