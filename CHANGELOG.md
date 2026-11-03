@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.6.1 – 3 November 2026
+
+Home-screen icon opens the app interface.
+
+| Area | Change |
+| --- | --- |
+| Website | Added to the home screen (iPhone “Add to Home Screen”, Android “Install app”), PaperPunch now opens straight at paper-punch.com/app instead of the home page; already-added icons need to be removed and added again |
+
 ## v0.6.0 – 3 November 2026
 
 Website: app-like interface in the browser under /app.

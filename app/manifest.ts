@@ -7,7 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "PaperPunch",
     short_name: "PaperPunch",
     description: "Upload your study material and get a worksheet, test, or learning game created for you.",
-    start_url: "/",
+    // Vom Startbildschirm direkt in die App-Oberfläche; scope "/" hält Links auf andere Seiten im Vollbild.
+    start_url: "/app",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
