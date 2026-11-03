@@ -54,6 +54,7 @@ const en = {
     submit: "Create material",
     newMaterial: "Create new material",
     done: "Done! 🎉",
+    aiNote: "Created by AI – it can make mistakes. Please check against your material.",
     downloadWorksheet: "Download worksheet",
     downloadTest: "Download test",
     downloadPodcast: "Download podcast",
@@ -91,7 +92,7 @@ const en = {
   },
   footer: {
     imprint: "Imprint",
-    terms: "Service Agreement",
+    terms: "Terms of Use",
     privacy: "Privacy Policy",
     feedback: "Feedback",
     about: "About",
@@ -254,6 +255,7 @@ const de: typeof en = {
     submit: "Material erstellen",
     newMaterial: "Neues Material erstellen",
     done: "Fertig! 🎉",
+    aiNote: "Von einer KI erstellt – sie kann Fehler machen. Prüf es mit deinem Material.",
     downloadWorksheet: "Arbeitsblatt herunterladen",
     downloadTest: "Testarbeit herunterladen",
     downloadPodcast: "Podcast herunterladen",
@@ -291,7 +293,7 @@ const de: typeof en = {
   },
   footer: {
     imprint: "Impressum",
-    terms: "Nutzungsvereinbarung",
+    terms: "Nutzungsbedingungen",
     privacy: "Datenschutz",
     feedback: "Feedback",
     about: "Über uns",

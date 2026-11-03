@@ -247,6 +247,8 @@ export function Result({
           )}
         </span>
 
+        <p className="result-a-ainote">{t.aiNote}</p>
+
         {!rated && onRate && <RatingCard onSend={onRate} />}
 
         <button type="button" className="btn ghost block" onClick={onDone}>

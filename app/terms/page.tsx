@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 
@@ -7,79 +8,104 @@ function DraftNotice({ children }: { children: ReactNode }) {
   return <p className="mb-6 rounded-lg bg-brand-400/10 p-4 text-sm text-brand-300">{children}</p>;
 }
 
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section>
+      <h2 className="mb-1 font-semibold text-white">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+const STAND_DE = "3. November 2026";
+const STAND_EN = "3 November 2026";
+
 function TermsEn() {
   return (
     <>
-      <h1 className="mb-2 text-2xl font-bold">Service Agreement</h1>
+      <h1 className="mb-1 text-2xl font-bold">Terms of Use</h1>
+      <p className="mb-4 text-sm text-zinc-400">Version of {STAND_EN}</p>
       <DraftNotice>
-        This is a draft template, not legal advice. Have it reviewed by a lawyer and fill in the bracketed
-        placeholders before publishing.
+        Draft for the beta phase, not legal advice. To be reviewed before the public launch.
       </DraftNotice>
-      <ol className="flex flex-col gap-5 text-sm leading-relaxed text-zinc-300">
-        <li>
-          <h2 className="mb-1 font-semibold text-white">1. Scope</h2>
+      <div className="flex flex-col gap-5 text-sm leading-relaxed text-zinc-300">
+        <Section title="1. Who we are and what these terms cover">
           <p>
-            This agreement governs the use of PaperPunch (&quot;the Service&quot;), which turns study material you
-            upload into a worksheet, test, or learning game using AI.
+            PaperPunch is offered by the operator named in the <Link href="/imprint" className="underline">imprint</Link>.
+            These terms apply to the website paper-punch.com and the PaperPunch Android app (together “PaperPunch”).
+            For the app, Google Play&apos;s terms also apply.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">2. Description of the Service</h2>
+        </Section>
+        <Section title="2. What PaperPunch does">
           <p>
-            You upload study material (PDF, JPG, or PNG); the Service uses AI to generate derived learning
-            material from it. Output quality depends on the AI and on the material you provide - we do not
-            guarantee accuracy or exam-readiness.
+            You upload photos or PDFs of your study material or type a topic. PaperPunch uses artificial
+            intelligence (AI) to create worksheets, tests, learning games and study plans from it. No account is
+            needed. PaperPunch is currently a free beta: features can change, be paused or end, and there is no
+            claim to permanent availability.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">3. Eligibility and minors</h2>
+        </Section>
+        <Section title="3. AI-generated content can contain mistakes">
           <p>
-            If you are under the age of legal majority in your country, please get permission from a parent or
-            guardian before using this Service. [Placeholder - adapt to applicable law, e.g. GDPR Art. 8 for
-            children under 16 in the EU.]
+            All learning materials are generated automatically by AI. They can contain factual errors, wrong
+            answers in the answer key or tasks that do not fit your class. They do not replace your teacher, your
+            textbook or the official requirements of your school. If something looks wrong, check it with your
+            material or ask your teacher – and tell us at hello@paper-punch.com so we can improve.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">4. Uploaded content</h2>
+        </Section>
+        <Section title="4. Children and teenagers">
           <p>
-            You confirm you have the right to upload the material you submit. Uploaded files are used only to
-            generate the material you requested and are deleted immediately afterwards - they are not stored.
+            PaperPunch is made for students. If you are under 16, please use it together with or with the
+            permission of a parent or guardian. Do not upload anything with personal details such as full names,
+            addresses, photos of people or grades of other students.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">5. AI-generated content</h2>
+        </Section>
+        <Section title="5. What you upload">
           <p>
-            Generated worksheets, tests, and games are created automatically and may contain errors. Always
-            double-check content before using it to study or teach.
+            Only upload material you are allowed to use for your own studying – for example your own notes,
+            worksheets from your class or pages from your textbook for private study. Do not upload anything
+            unlawful, offensive or other people&apos;s personal data. You keep all rights to your material. You
+            allow us to process it only to create the material you asked for; it is not used for anything else
+            (see the <Link href="/privacy" className="underline">privacy policy</Link>).
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">6. Acceptable use</h2>
+        </Section>
+        <Section title="6. Using the results">
           <p>
-            Do not upload unlawful, harmful material, or copyrighted material you don&apos;t have the rights to,
-            and do not use the Service to generate harmful content.
+            You may use, print and share the generated material for learning and teaching, for example with
+            classmates or your study group. Please do not sell it or publish it as your own product.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">7. Availability</h2>
+        </Section>
+        <Section title="7. Fair use">
           <p>
-            The Service is provided &quot;as is&quot; without uptime guarantees. [Placeholder - adjust for your
-            actual hosting and support commitments.]
+            Do not try to overload, attack or misuse PaperPunch (e.g. automated mass requests). We may limit or
+            block access if that happens.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">8. Liability</h2>
-          <p>[Placeholder - insert a limitation-of-liability clause appropriate to your jurisdiction.]</p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">9. Changes to this agreement</h2>
-          <p>This agreement may be updated from time to time; continued use after changes means acceptance of the new terms.</p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">10. Governing law</h2>
-          <p>[Placeholder - insert the applicable jurisdiction.]</p>
-        </li>
-      </ol>
+        </Section>
+        <Section title="8. Your data in the app">
+          <p>
+            The app stores your profile, study plans and materials only on your phone. If you delete the app or
+            its data, they are gone – we cannot restore them.
+          </p>
+        </Section>
+        <Section title="9. Liability">
+          <p>
+            PaperPunch is free of charge. We are therefore liable only for intent and gross negligence. This does
+            not limit liability for injury to life, body or health, under the Product Liability Act, or where a
+            limitation is not permitted by law.
+          </p>
+        </Section>
+        <Section title="10. Changes">
+          <p>
+            We may update these terms, for example when new features are added. The version shown here at the time
+            you use PaperPunch applies. We will point out important changes in the app or on the website.
+          </p>
+        </Section>
+        <Section title="11. Applicable law and contact">
+          <p>
+            German law applies. If you are a consumer living in another country, the mandatory consumer protection
+            rules of that country remain unaffected. Questions: hello@paper-punch.com.
+          </p>
+        </Section>
+      </div>
     </>
   );
 }
@@ -87,79 +113,91 @@ function TermsEn() {
 function TermsDe() {
   return (
     <>
-      <h1 className="mb-2 text-2xl font-bold">Nutzungsvereinbarung</h1>
-      <DraftNotice>
-        Dies ist eine Vorlage, keine Rechtsberatung. Lasse den Text von einer Rechtsanwältin/einem Rechtsanwalt
-        prüfen und ergänze die Platzhalter vor der Veröffentlichung.
-      </DraftNotice>
-      <ol className="flex flex-col gap-5 text-sm leading-relaxed text-zinc-300">
-        <li>
-          <h2 className="mb-1 font-semibold text-white">1. Geltungsbereich</h2>
+      <h1 className="mb-1 text-2xl font-bold">Nutzungsbedingungen</h1>
+      <p className="mb-4 text-sm text-zinc-400">Stand: {STAND_DE}</p>
+      <DraftNotice>Entwurf für die Beta-Phase, keine Rechtsberatung. Wird vor dem öffentlichen Start geprüft.</DraftNotice>
+      <div className="flex flex-col gap-5 text-sm leading-relaxed text-zinc-300">
+        <Section title="1. Wer wir sind und wofür diese Bedingungen gelten">
           <p>
-            Diese Vereinbarung regelt die Nutzung von PaperPunch („der Dienst“), der aus hochgeladenem Lernmaterial
-            per KI ein Arbeitsblatt, eine Testarbeit oder ein Lernspiel erstellt.
+            PaperPunch wird von der im <Link href="/imprint" className="underline">Impressum</Link> genannten Person
+            angeboten. Diese Bedingungen gelten für die Website paper-punch.com und die Android-App PaperPunch
+            (zusammen „PaperPunch“). Für die App gelten zusätzlich die Bedingungen von Google Play.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">2. Leistungsbeschreibung</h2>
+        </Section>
+        <Section title="2. Was PaperPunch macht">
           <p>
-            Du lädst Lernmaterial hoch (PDF, JPG oder PNG); der Dienst nutzt KI, um daraus abgeleitetes
-            Lernmaterial zu erstellen. Die Qualität der Ausgabe hängt von der KI und dem bereitgestellten
-            Material ab - wir garantieren keine Richtigkeit oder Prüfungstauglichkeit.
+            Du lädst Fotos oder PDFs von deinem Lernstoff hoch oder tippst ein Thema ein. PaperPunch erstellt daraus
+            mit künstlicher Intelligenz (KI) Arbeitsblätter, Tests, Lernspiele und Lernpläne. Ein Konto brauchst du
+            nicht. PaperPunch ist derzeit eine kostenlose Beta: Funktionen können sich ändern, pausieren oder
+            eingestellt werden; einen Anspruch auf dauerhafte Verfügbarkeit gibt es nicht.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">3. Nutzungsberechtigung und Minderjährige</h2>
+        </Section>
+        <Section title="3. KI-Inhalte können Fehler enthalten">
           <p>
-            Bist du minderjährig, hole bitte vorab die Erlaubnis eines Erziehungsberechtigten ein. [Platzhalter -
-            an geltendes Recht anpassen, z.B. Art. 8 DSGVO für unter 16-Jährige in der EU.]
+            Alle Lernmaterialien werden automatisch von einer KI erstellt. Sie können sachliche Fehler, falsche
+            Lösungen oder Aufgaben enthalten, die nicht zu deiner Klasse passen. Sie ersetzen nicht deine
+            Lehrkraft, dein Schulbuch oder die Vorgaben deiner Schule. Wenn dir etwas falsch vorkommt, prüfe es mit
+            deinem Material oder frag deine Lehrkraft – und schreib uns gern an hello@paper-punch.com, damit wir
+            besser werden.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">4. Hochgeladene Inhalte</h2>
+        </Section>
+        <Section title="4. Kinder und Jugendliche">
           <p>
-            Du bestätigst, dass du zum Hochladen des eingereichten Materials berechtigt bist. Hochgeladene
-            Dateien werden nur zur Erstellung des angeforderten Materials genutzt und danach sofort gelöscht -
-            sie werden nicht gespeichert.
+            PaperPunch ist für Schülerinnen und Schüler gemacht. Wenn du unter 16 bist, nutze PaperPunch bitte
+            gemeinsam mit oder mit Erlaubnis deiner Eltern bzw. Erziehungsberechtigten. Lade nichts mit
+            persönlichen Angaben hoch, z. B. vollständige Namen, Adressen, Fotos von Personen oder Noten anderer.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">5. KI-generierte Inhalte</h2>
+        </Section>
+        <Section title="5. Was du hochlädst">
           <p>
-            Erstellte Arbeitsblätter, Testarbeiten und Spiele werden automatisiert generiert und können Fehler
-            enthalten. Prüfe Inhalte immer, bevor du sie zum Lernen oder Lehren einsetzt.
+            Lade nur Material hoch, das du für dein eigenes Lernen nutzen darfst – zum Beispiel eigene Notizen,
+            Arbeitsblätter aus deinem Unterricht oder Seiten aus deinem Schulbuch zum privaten Lernen. Lade nichts
+            Rechtswidriges, Beleidigendes und keine personenbezogenen Daten anderer hoch. Alle Rechte an deinem
+            Material bleiben bei dir. Du erlaubst uns nur, es zu verarbeiten, um das gewünschte Lernmaterial zu
+            erstellen; für nichts anderes wird es genutzt (siehe{" "}
+            <Link href="/privacy" className="underline">Datenschutzerklärung</Link>).
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">6. Zulässige Nutzung</h2>
+        </Section>
+        <Section title="6. Nutzung der Ergebnisse">
           <p>
-            Lade keine rechtswidrigen, schädlichen oder urheberrechtlich geschützten Inhalte hoch, an denen du
-            keine Rechte hast, und nutze den Dienst nicht zur Erstellung schädlicher Inhalte.
+            Du darfst das erstellte Material zum Lernen und Unterrichten nutzen, ausdrucken und teilen, zum Beispiel
+            mit deiner Klasse oder Lerngruppe. Bitte verkaufe es nicht und veröffentliche es nicht als eigenes
+            Produkt.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">7. Verfügbarkeit</h2>
+        </Section>
+        <Section title="7. Faire Nutzung">
           <p>
-            Der Dienst wird „wie besehen“ ohne Verfügbarkeitsgarantie bereitgestellt. [Platzhalter - an dein
-            tatsächliches Hosting und Support-Angebot anpassen.]
+            Versuche nicht, PaperPunch zu überlasten, anzugreifen oder zu missbrauchen (z. B. durch automatisierte
+            Massenanfragen). Sonst können wir den Zugang einschränken oder sperren.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">8. Haftung</h2>
-          <p>[Platzhalter - füge eine für deine Rechtsordnung passende Haftungsbeschränkung ein.]</p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">9. Änderungen dieser Vereinbarung</h2>
+        </Section>
+        <Section title="8. Deine Daten in der App">
           <p>
-            Diese Vereinbarung kann von Zeit zu Zeit aktualisiert werden; die weitere Nutzung nach einer Änderung
-            gilt als Zustimmung zu den neuen Bedingungen.
+            Die App speichert Profil, Lernpläne und Materialien nur auf deinem Handy. Wenn du die App oder ihre
+            Daten löschst, sind sie weg – wir können sie nicht wiederherstellen.
           </p>
-        </li>
-        <li>
-          <h2 className="mb-1 font-semibold text-white">10. Anwendbares Recht</h2>
-          <p>[Platzhalter - anwendbare Rechtsordnung einfügen.]</p>
-        </li>
-      </ol>
+        </Section>
+        <Section title="9. Haftung">
+          <p>
+            PaperPunch ist kostenlos. Wir haften deshalb nur für Vorsatz und grobe Fahrlässigkeit. Das gilt nicht
+            für Schäden aus der Verletzung von Leben, Körper oder Gesundheit, für die Haftung nach dem
+            Produkthaftungsgesetz und soweit eine Beschränkung gesetzlich nicht zulässig ist.
+          </p>
+        </Section>
+        <Section title="10. Änderungen">
+          <p>
+            Wir können diese Bedingungen anpassen, z. B. wenn neue Funktionen dazukommen. Es gilt die Fassung, die
+            hier zum Zeitpunkt deiner Nutzung steht. Auf wichtige Änderungen weisen wir in der App oder auf der
+            Website hin.
+          </p>
+        </Section>
+        <Section title="11. Anwendbares Recht und Kontakt">
+          <p>
+            Es gilt deutsches Recht. Wenn du als Verbraucher in einem anderen Land lebst, bleiben die zwingenden
+            Verbraucherschutzvorschriften dieses Landes unberührt. Fragen: hello@paper-punch.com.
+          </p>
+        </Section>
+      </div>
     </>
   );
 }

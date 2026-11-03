@@ -12,13 +12,13 @@ function PrivacyEn() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Privacy Policy</h1>
       <DraftNotice>
-        This draft accurately describes how PaperPunch technically handles data today. It is not legal advice -
-        fill in the bracketed operator details and have it reviewed (e.g. against GDPR) before publishing.
+        Version of 3 November 2026. This draft describes how PaperPunch handles data today; it is not legal
+        advice and will be reviewed before the public launch.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
           <h2 className="mb-1 font-semibold text-white">1. Controller</h2>
-          <p>[Your name or company name], [address], [email] - see the Imprint page for full details.</p>
+          <p>[Your name], [postal address], hello@paper-punch.com - see the Imprint page for full details.</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">2. Uploaded study material (PDF, JPG, PNG)</h2>
@@ -39,17 +39,20 @@ function PrivacyEn() {
         <section>
           <h2 className="mb-1 font-semibold text-white">4. AI processing (sub-processor)</h2>
           <p>
-            To generate results, your uploaded material and profile details are sent to Anthropic (the provider
-            of the Claude AI models) for processing. [Placeholder - add Anthropic&apos;s role as processor to your
-            records of processing activity / data processing agreement as required under Art. 28 GDPR.]
+            To generate results, your uploaded material, typed topic/notes and profile details are sent to
+            Anthropic, PBC (USA), the provider of the Claude AI models, which processes them on our behalf under a
+            data processing agreement (Art. 28 GDPR). The transfer to the USA is based on the EU Standard
+            Contractual Clauses (Art. 46 GDPR). Under Anthropic&apos;s commercial terms, content sent through its
+            API is not used to train AI models and is deleted after a short retention period.
           </p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">5. Feedback form</h2>
           <p>
             If you use the feedback page, the message you write (and name/email if you choose to provide them)
-            is stored so we can read and, if you left an email, respond to it. [Placeholder - state your actual
-            retention period and storage location.]
+            and ratings from the app reach us by email or in a spreadsheet in our Google Workspace (Google Ireland
+            Limited) so we can read them, respond if you left an email, and improve PaperPunch. We delete them when
+            they are no longer needed for that, at the latest after 24 months.
           </p>
         </section>
         <section>
@@ -64,8 +67,9 @@ function PrivacyEn() {
           <p>
             This site is hosted on Vercel. Standard web server logs (e.g. IP address, timestamp) may be recorded
             by the hosting provider for security and abuse prevention; your IP address is also briefly used
-            in-memory to rate-limit excessive requests. [Placeholder - confirm your hosting provider&apos;s log
-            retention and add them as a sub-processor if applicable.]
+            in-memory to rate-limit excessive requests. Vercel Inc. (USA) acts as our processor under a data
+            processing agreement; transfers to the USA are based on the EU-US Data Privacy Framework and the EU
+            Standard Contractual Clauses. Our server runs in Frankfurt (EU).
           </p>
         </section>
         <section>
@@ -101,22 +105,34 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">9. Minors</h2>
+          <h2 className="mb-1 font-semibold text-white">9. Legal bases</h2>
           <p>
-            This service may be used by students who are minors. If you are under the age of legal majority in
-            your country, please only use this service with the permission of a parent or guardian.
+            Creating the material you ask for and running the website and app: Art. 6(1)(b) GDPR (providing the
+            service you use). Security logs, rate limiting and evaluating ratings to improve quality: Art. 6(1)(f)
+            GDPR (our legitimate interest in a secure, working service). Google Analytics on the website: only with
+            your consent, Art. 6(1)(a) GDPR.
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">10. Your rights</h2>
+          <h2 className="mb-1 font-semibold text-white">10. Children and teenagers</h2>
+          <p>
+            PaperPunch is made for students and is often used by minors, so we collect as little as possible: no
+            account, no names, no tracking in the app. Under 16, consent-based processing (Google Analytics on the
+            website) needs the consent of a parent or guardian – if you are under 16, please do not click
+            “Accept” without them. Please do not upload anything with personal details of yourself or others
+            (full names, addresses, photos of people).
+          </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">11. Your rights</h2>
           <p>
             Depending on your jurisdiction, you may have the right to access, correct, delete, or object to the
-            processing of your personal data, and to lodge a complaint with a supervisory authority. Contact us
-            at hello@paper-punch.com to exercise these rights.
+            processing of your personal data, to withdraw consent at any time, and to lodge a complaint with a
+            data protection supervisory authority. Contact us at hello@paper-punch.com to exercise these rights.
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">11. Changes to this policy</h2>
+          <h2 className="mb-1 font-semibold text-white">12. Changes to this policy</h2>
           <p>We may update this policy as the service changes; the current version always applies.</p>
         </section>
       </div>
@@ -129,14 +145,13 @@ function PrivacyDe() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Datenschutzerklärung</h1>
       <DraftNotice>
-        Dieser Entwurf beschreibt korrekt, wie PaperPunch aktuell technisch mit Daten umgeht. Er ist keine
-        Rechtsberatung - ergänze die Platzhalter zum Anbieter und lasse den Text (z.B. im Hinblick auf die
-        DSGVO) vor Veröffentlichung prüfen.
+        Stand: 3. November 2026. Dieser Entwurf beschreibt, wie PaperPunch heute mit Daten umgeht; er ist
+        keine Rechtsberatung und wird vor dem öffentlichen Start geprüft.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
           <h2 className="mb-1 font-semibold text-white">1. Verantwortlicher</h2>
-          <p>[Name oder Firma], [Adresse], [E-Mail] - vollständige Angaben siehe Impressum.</p>
+          <p>[Name], [Anschrift], hello@paper-punch.com - vollständige Angaben siehe Impressum.</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">2. Hochgeladenes Lernmaterial (PDF, JPG, PNG)</h2>
@@ -158,18 +173,21 @@ function PrivacyDe() {
         <section>
           <h2 className="mb-1 font-semibold text-white">4. KI-Verarbeitung (Auftragsverarbeiter)</h2>
           <p>
-            Zur Erstellung der Ergebnisse werden dein hochgeladenes Material und deine Profilangaben an
-            Anthropic (Anbieter der Claude-KI-Modelle) zur Verarbeitung übermittelt. [Platzhalter - Anthropic
-            als Auftragsverarbeiter in dein Verzeichnis von Verarbeitungstätigkeiten aufnehmen bzw. einen
-            Auftragsverarbeitungsvertrag nach Art. 28 DSGVO abschließen.]
+            Zur Erstellung der Ergebnisse werden dein hochgeladenes Material, dein eingetipptes Thema bzw. deine
+            Notiz und deine Profilangaben an Anthropic, PBC (USA), den Anbieter der Claude-KI-Modelle, übermittelt.
+            Anthropic verarbeitet sie in unserem Auftrag auf Grundlage eines Auftragsverarbeitungsvertrags
+            (Art. 28 DSGVO). Die Übermittlung in die USA erfolgt auf Grundlage der EU-Standardvertragsklauseln
+            (Art. 46 DSGVO). Nach den geschäftlichen Bedingungen von Anthropic werden über die API gesendete
+            Inhalte nicht zum Training von KI-Modellen verwendet und nach kurzer Zeit gelöscht.
           </p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">5. Feedback-Formular</h2>
           <p>
             Wenn du die Feedback-Seite nutzt, wird deine Nachricht (sowie Name/E-Mail, falls angegeben)
-            gespeichert, damit wir sie lesen und ggf. beantworten können. [Platzhalter - tatsächliche
-            Speicherdauer und Speicherort ergänzen.]
+            sowie Bewertungen aus der App erreichen uns per E-Mail bzw. in einer Tabelle in unserem Google Workspace
+            (Google Ireland Limited), damit wir sie lesen, ggf. beantworten und PaperPunch verbessern können. Wir
+            löschen sie, sobald sie dafür nicht mehr nötig sind, spätestens nach 24 Monaten.
           </p>
         </section>
         <section>
@@ -184,8 +202,10 @@ function PrivacyDe() {
           <p>
             Diese Seite wird bei Vercel gehostet. Übliche Server-Logs (z.B. IP-Adresse, Zeitstempel) können
             vom Hosting-Anbieter zu Sicherheits- und Missbrauchszwecken erfasst werden; deine IP-Adresse wird
-            außerdem kurzzeitig im Arbeitsspeicher genutzt, um übermäßige Anfragen zu begrenzen. [Platzhalter -
-            Speicherdauer beim Hosting-Anbieter prüfen und ggf. als Auftragsverarbeiter aufnehmen.]
+            außerdem kurzzeitig im Arbeitsspeicher genutzt, um übermäßige Anfragen zu begrenzen. Vercel Inc. (USA)
+            ist unser Auftragsverarbeiter (Auftragsverarbeitungsvertrag); Übermittlungen in die USA erfolgen auf
+            Grundlage des EU-US Data Privacy Framework und der EU-Standardvertragsklauseln. Unser Server läuft in
+            Frankfurt (EU).
           </p>
         </section>
         <section>
@@ -224,22 +244,37 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">9. Minderjährige</h2>
+          <h2 className="mb-1 font-semibold text-white">9. Rechtsgrundlagen</h2>
           <p>
-            Dieser Dienst kann von minderjährigen Schülerinnen und Schülern genutzt werden. Bist du
-            minderjährig, nutze den Dienst bitte nur mit Erlaubnis eines Erziehungsberechtigten.
+            Erstellen des gewünschten Materials und Betrieb von Website und App: Art. 6 Abs. 1 lit. b DSGVO
+            (Bereitstellung des Dienstes, den du nutzt). Sicherheits-Logs, Begrenzung von Anfragen und Auswertung
+            von Bewertungen zur Qualitätsverbesserung: Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einem
+            sicheren, funktionierenden Dienst). Google Analytics auf der Website: nur mit deiner Einwilligung,
+            Art. 6 Abs. 1 lit. a DSGVO.
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">10. Deine Rechte</h2>
+          <h2 className="mb-1 font-semibold text-white">10. Kinder und Jugendliche</h2>
+          <p>
+            PaperPunch ist für Schülerinnen und Schüler gemacht und wird oft von Minderjährigen genutzt. Deshalb
+            erheben wir so wenig wie möglich: kein Konto, keine Namen, kein Tracking in der App. Unter 16 Jahren
+            braucht eine einwilligungsbasierte Verarbeitung (Google Analytics auf der Website) die Zustimmung der
+            Eltern bzw. Erziehungsberechtigten – wenn du unter 16 bist, klicke bitte nicht ohne sie auf
+            „Akzeptieren“. Lade bitte nichts mit persönlichen Angaben von dir oder anderen hoch (vollständige
+            Namen, Adressen, Fotos von Personen).
+          </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">11. Deine Rechte</h2>
           <p>
             Je nach Rechtsordnung hast du das Recht auf Auskunft, Berichtigung, Löschung oder Widerspruch
-            gegen die Verarbeitung deiner personenbezogenen Daten sowie das Recht auf Beschwerde bei einer
-            Aufsichtsbehörde. Kontaktiere uns dazu unter [deine@email.de].
+            gegen die Verarbeitung deiner personenbezogenen Daten, das Recht, eine Einwilligung jederzeit zu
+            widerrufen, sowie das Recht auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde. Schreib uns dazu an
+            hello@paper-punch.com.
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">11. Änderungen dieser Erklärung</h2>
+          <h2 className="mb-1 font-semibold text-white">12. Änderungen dieser Erklärung</h2>
           <p>Wir können diese Erklärung bei Änderungen am Dienst aktualisieren; es gilt jeweils die aktuelle Fassung.</p>
         </section>
       </div>

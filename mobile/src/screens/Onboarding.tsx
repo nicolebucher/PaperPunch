@@ -88,6 +88,11 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
               <span className="field-label">{t.contactTitle}</span>
               <span className="muted" style={{ fontSize: 15 }}>{t.contactText}</span>
               <a href="mailto:hello@paper-punch.com" className="contact-link">hello@paper-punch.com</a>
+              <span className="legal-links">
+                <a href="https://paper-punch.com/terms" target="_blank" rel="noopener noreferrer">{t.legalTerms}</a>
+                <a href="https://paper-punch.com/privacy" target="_blank" rel="noopener noreferrer">{t.legalPrivacy}</a>
+                <a href="https://paper-punch.com/imprint" target="_blank" rel="noopener noreferrer">{t.legalImprint}</a>
+              </span>
             </div>
             <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
               {t.save}

@@ -190,7 +190,8 @@ export function CreationWizard() {
     return (
       <div>
         <GameShell game={game} />
-        <div className="mt-8 text-center">
+        <p className="mt-6 text-center text-xs text-zinc-500">{t.wizard.aiNote}</p>
+        <div className="mt-6 text-center">
           <button type="button" onClick={handleRestart} className="text-sm text-brand-400 hover:underline">
             {t.wizard.newMaterial}
           </button>
@@ -246,7 +247,8 @@ export function CreationWizard() {
   if (step === "result-podcast" && podcastInfo) {
     return (
       <div className="mx-auto max-w-2xl text-center">
-        <p className="mb-4 text-lg font-semibold">{t.wizard.done}</p>
+        <p className="mb-1 text-lg font-semibold">{t.wizard.done}</p>
+        <p className="mb-4 text-xs text-zinc-500">{t.wizard.aiNote}</p>
 
         <div className="sticky top-2 z-10 mb-4 flex flex-wrap items-center justify-center gap-3 rounded-full bg-black/90 p-2 backdrop-blur">
           <a
@@ -306,7 +308,8 @@ export function CreationWizard() {
     const downloadLabel = format === "test" ? t.wizard.downloadTest : t.wizard.downloadWorksheet;
     return (
       <div className="mx-auto max-w-2xl text-center">
-        <p className="mb-4 text-lg font-semibold">{t.wizard.done}</p>
+        <p className="mb-1 text-lg font-semibold">{t.wizard.done}</p>
+        <p className="mb-4 text-xs text-zinc-500">{t.wizard.aiNote}</p>
 
         <div className="sticky top-2 z-10 mb-4 flex flex-wrap items-center justify-center gap-3 rounded-full bg-black/90 p-2 backdrop-blur">
           <a
