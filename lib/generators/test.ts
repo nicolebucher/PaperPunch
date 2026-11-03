@@ -18,6 +18,9 @@ export async function generateTest(profile: Profile, fileBlocks: ClaudeFileBlock
         userContent: [...fileBlocks, { type: "text", text: fileBlocks.length > 0 ? "Create a matching test from this material." : "Create the test for this topic." }],
         schema: testSchema,
         toolName: "create_test",
+        // 20+ Aufgaben mit Lösungen und Synonymen brauchen oft über 4.000 Tokens; bei 4.096 wurde abgeschnitten und
+        // teuer neu erzeugt (Modellvergleich 3.11.2026).
+        maxTokens: 12000,
         toolDescription: "Creates a structured test (classroom exam) based on the study material.",
       });
   return { ...data, tasks: shuffleTaskOptions(data.tasks) };

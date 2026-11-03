@@ -22,6 +22,9 @@ export async function generateWorksheet(
         userContent: [...fileBlocks, { type: "text", text: fileBlocks.length > 0 ? "Create a matching worksheet from this material." : "Create the worksheet for this topic." }],
         schema: worksheetSchema,
         toolName: "create_worksheet",
+        // 20+ Aufgaben mit Lösungen und Synonymen brauchen oft über 4.000 Tokens; bei 4.096 wurde abgeschnitten und
+        // teuer neu erzeugt (Modellvergleich 3.11.2026).
+        maxTokens: 12000,
         toolDescription: "Creates a structured practice worksheet based on the study material.",
       });
   return { ...data, tasks: shuffleTaskOptions(data.tasks) };

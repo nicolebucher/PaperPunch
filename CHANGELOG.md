@@ -6,6 +6,15 @@ The same history is kept as a shared doc: https://claude.ai/artifact/DRfk8rsKfQG
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.2.1 – 3 November 2026
+
+Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).
+
+| Area | Change |
+| --- | --- |
+| Website · AI | Worksheets and tests no longer get cut off: the length limit was raised from 4,096 to 12,000 tokens. Before, long sheets were regenerated up to 3 times, which tripled cost and waiting time |
+| Website · Tech | Internal model comparison: the AI model can be chosen per request, and real tokens and costs are counted |
+
 ## v0.2 – 3 November 2026
 
 Focus: tester feedback, a cleaner home screen and the first growth features.
