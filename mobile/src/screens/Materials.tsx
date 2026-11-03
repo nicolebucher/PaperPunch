@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useT } from "../i18n";
 import { Icon, TopBar } from "../ui";
 import type { StoredMaterial } from "../storage";
-import { materialStatus, materialTitle } from "./materialInfo";
+import { materialDate, materialStatus, materialTitle } from "./materialInfo";
 
 /** Alle gespeicherten Lernmaterialien (die letzten 20), mit Weitermachen und Löschen. */
 export function Materials({
@@ -16,7 +16,7 @@ export function Materials({
   onDelete: (m: StoredMaterial) => void;
   onBack: () => void;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [editing, setEditing] = useState(false);
 
   return (
@@ -42,7 +42,7 @@ export function Materials({
               <span className="stack" style={{ gap: 2, minWidth: 0, flex: 1 }}>
                 <span className="material-title">{materialTitle(m)}</span>
                 <span className={m.progress && !m.finished ? "material-sub active" : "material-sub"}>
-                  {t.formats[m.result.format]} · {materialStatus(m, t)}
+                  {t.formats[m.result.format]} · {materialDate(m, t, lang)} · {materialStatus(m, t)}
                   {m.sources?.length ? ` · ${t.photosCount(m.sources.length)}` : ""}
                 </span>
               </span>

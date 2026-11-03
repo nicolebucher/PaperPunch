@@ -19,3 +19,14 @@ export function materialStatus(m: StoredMaterial, t: Dict): string {
 }
 
 export const isResumable = (m: StoredMaterial) => !!m.progress && !m.finished;
+
+/** Erstellungsdatum kurz: "Heute", "Gestern" oder "3. Nov." / "3 Nov". */
+export function materialDate(m: StoredMaterial, t: Dict, lang: string): string {
+  const d = new Date(m.createdAt);
+  const startOf = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  const days = Math.round((startOf(new Date()) - startOf(d)) / 86400000);
+  if (days <= 0) return t.today;
+  if (days === 1) return t.yesterday;
+  const sameYear = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString(lang === "de" ? "de-DE" : "en-GB", sameYear ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" });
+}

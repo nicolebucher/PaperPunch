@@ -249,6 +249,7 @@ const de = {
   errPlanFields: "Bitte Fach und Datum angeben.",
   // Lernplan ansehen
   today: "Heute",
+  yesterday: "Gestern",
   tomorrow: "Morgen",
   testDay: "Testtag",
   daysLeft: (d: number) => (d === 1 ? "Noch 1 Tag" : `Noch ${d} Tage`),
@@ -511,6 +512,7 @@ const en: typeof de = {
   errDate: "The test must be 1 to 90 days away.",
   errPlanFields: "Please enter subject and date.",
   today: "Today",
+  yesterday: "Yesterday",
   tomorrow: "Tomorrow",
   testDay: "Test day",
   daysLeft: (d: number) => (d === 1 ? "1 day left" : `${d} days left`),

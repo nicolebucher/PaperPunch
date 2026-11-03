@@ -5,7 +5,7 @@ import { PunchPill } from "../rewards";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
 import type { StoredMaterial } from "../storage";
-import { isResumable, materialStatus, materialTitle } from "./materialInfo";
+import { isResumable, materialDate, materialStatus, materialTitle } from "./materialInfo";
 
 /**
  * Startseite (Design A "Fokus"): ein Hauptbutton, darunter höchstens zwei Einträge zum Weitermachen
@@ -137,7 +137,7 @@ function PlanRow({ plan, today, onClick }: { plan: ActivePlan; today: string; on
 }
 
 function MaterialRow({ m, onClick }: { m: StoredMaterial; onClick: () => void }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   // Fortschritt für den Ring: angefangen oder noch nicht begonnen (0/N); fertige Materialien bekommen einen Haken.
   const p = m.progress;
   const r = m.result;
@@ -166,7 +166,7 @@ function MaterialRow({ m, onClick }: { m: StoredMaterial; onClick: () => void })
       )}
       <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
         <span className="material-title">{materialTitle(m)}</span>
-        <span className="material-sub">{t.formats[m.result.format]} · {materialStatus(m, t)}</span>
+        <span className="material-sub">{t.formats[m.result.format]} · {materialDate(m, t, lang)}</span>
       </span>
       <Icon name="chevron" size={18} stroke={2.6} />
     </button>

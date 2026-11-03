@@ -9,11 +9,13 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.2.4 – 3 November 2026
 
-Design tweak.
+Small improvements to the building screen and the recent-activity list.
 
 | Area | Change |
 | --- | --- |
 | App | Building screen (“Building your learning game …”): content sits in the vertical centre, title and status text no longer bold |
+| App | “Continue & recent activity” and “My study materials” show when each material was created (“Today”, “Yesterday”, “25 Oct”) |
+| Website & App · AI | Clear titles: worksheets, tests and games are named after the concrete topic (e.g. “Photosynthesis”, “Simplifying fractions”), no invented names like “Photosynthesis Pro”; the game's subject field is now the school subject |
 
 ## v0.2.3 – 3 November 2026
 

@@ -1,6 +1,6 @@
 import { describeProfile, type Profile } from "@/types/generation";
 import type { Locale } from "@/lib/i18n/translations";
-import { contentBasis, contentLanguage, levelSource } from "./material-source";
+import { contentBasis, contentLanguage, levelSource, titleRule } from "./material-source";
 
 export function buildTestSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean): string {
   return `You are an experienced teacher creating a test (exam) for a student to prepare for a real classroom test.
@@ -46,6 +46,8 @@ a slightly-off difficulty level:
   the options, or always the same translation direction) - do not mix different framings for the
   same vocabulary set, since that produces items where more than one option could defensibly be
   "correct"
+
+${titleRule("title")}
 
 ${contentLanguage(hasMaterial, locale, "title, introduction, questions, answers")}
 

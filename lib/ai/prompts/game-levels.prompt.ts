@@ -1,6 +1,6 @@
 import { describeProfile, type Profile } from "@/types/generation";
 import type { Locale } from "@/lib/i18n/translations";
-import { contentBasis, contentLanguage, levelSource } from "./material-source";
+import { contentBasis, contentLanguage, levelSource, titleRule } from "./material-source";
 
 export function buildGameLevelsSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean): string {
   return `You create the content for a quiz-style learning game for a student.
@@ -49,6 +49,9 @@ of them using ONE consistent question template (e.g. always "What does '___' mea
 translations as the options, or always the same translation direction) - do not mix different
 framings for the same vocabulary set, since that produces items where more than one option could
 defensibly be "correct".
+
+${titleRule("gameTitle")}
+"subject" is the school subject only (e.g. "Biologie", "Mathe", "English"), in the same language.
 
 ${contentLanguage(hasMaterial, locale, "titles, questions, options, explanations")}
 

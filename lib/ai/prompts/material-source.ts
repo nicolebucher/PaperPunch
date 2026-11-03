@@ -51,3 +51,13 @@ gives German output. Only if the typed words give no clear signal (e.g. a single
 languages) fall back to ${LANGUAGE_NAMES[locale]}. If the topic is learning a foreign language, practise that
 language the way a school textbook would.`;
 }
+
+/** Titel, die man in der Materialliste sofort versteht: das konkrete Thema, keine Fantasienamen. */
+export function titleRule(field: string): string {
+  return `Title rule: "${field}" must say plainly what is practised - the concrete topic the way a student
+or parent would name it, so it is instantly clear in a list of saved materials and clearly matches the
+content. 2-6 words, at most 40 characters, e.g. "Brüche kürzen und erweitern", "Photosynthese",
+"Simple past: irregular verbs", "Causes of World War I". No invented or playful names (not
+"Photosynthese-Profi", "Fraction Adventure", "Quiz Master"), no format words (worksheet, test, quiz,
+game, Arbeitsblatt, Lernspiel), no grade or school type, no emojis.`;
+}
