@@ -932,3 +932,15 @@ h1 .beta { position: relative; top: -3px; }
 .home-b-sheet-badge { width: 72px; height: 72px; border-radius: 24px; display: grid; place-items: center; background: linear-gradient(135deg, var(--pink), var(--teal)); color: #0b0c0f; }
 :root[data-theme="light"] .home-b-game.on { color: #ffffff; }
 .home-b-sheet-empty .link-btn { color: var(--muted); }
+
+/* Lernspiel: Nachschlag-Runde am Levelende */
+.replay-cta {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; border: none; border-radius: 22px; text-align: left; cursor: pointer;
+  background: var(--fg); color: var(--bg); font: inherit;
+}
+.replay-cta:active { transform: scale(0.98); }
+.replay-cta-icon { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; flex: none; background: var(--teal); color: #062a2f; }
+.replay-cta-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.replay-cta-text b { font-size: 16px; font-weight: 900; line-height: 1.25; }
+.replay-cta-text span { font-size: 13px; font-weight: 600; opacity: 0.65; }
+:root[data-theme="light"] .replay-cta { color: #ffffff; }

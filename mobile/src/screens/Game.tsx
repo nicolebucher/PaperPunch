@@ -19,11 +19,11 @@ function answerOf(q: Question): string {
 }
 const comboFactor = (streak: number) => (streak >= 9 ? 4 : streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
 /**
- * Sterne nach Trefferquote: im ersten Versuch richtig = 1 Punkt, im zweiten = ½, aufgelöst = 0.
+ * Sterne nach Trefferquote: im ersten Versuch richtig = 1 Punkt, im zweiten = ½, in der Nachschlag-Runde = ¾, aufgelöst = 0.
  * ab 85 % drei Sterne, ab 60 % zwei, sonst einer – wer ein Level zu Ende spielt, bekommt immer mindestens einen.
  */
-const starsFor = (firstTry: number, secondTry: number, total: number) => {
-  const ratio = total ? (firstTry + secondTry * 0.5) / total : 0;
+const starsFor = (scores: number[]) => {
+  const ratio = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
   return ratio >= 0.85 ? 3 : ratio >= 0.6 ? 2 : 1;
 };
 
@@ -186,8 +186,14 @@ function LevelPlay({
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
   const [end, setEnd] = useState(false);
+  // Punkte pro Frage (1 / ¾ / ½ / 0) und die Reihenfolge der aktuellen Runde.
+  // Nachschlag-Runde: am Levelende kommen die nicht im ersten Versuch gelösten Fragen noch einmal.
+  const [scores, setScores] = useState<number[]>(() => questions.map(() => 0));
+  const [round, setRound] = useState<number[]>(() => questions.map((_, i) => i));
+  const [replay, setReplay] = useState(false);
 
-  const q = questions[index];
+  const qi = round[index];
+  const q = questions[qi];
   const answer = answerOf(q);
   const answered = status === "right" || status === "revealed";
   const ok = status === "right";
@@ -202,7 +208,8 @@ function LevelPlay({
       const newStreak = firstTry ? streak + 1 : 0;
       const f = firstTry ? comboFactor(newStreak) : 1;
       // im zweiten Versuch halbe Punches, keine Combo
-      const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5));
+      const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5) * (replay ? 0.5 : 1));
+      score(firstTry);
       setStreak(newStreak);
       setPoints((p) => p + gain);
       setStats((s) => ({ ...s, correct: s.correct + 1, firstTry: s.firstTry + (firstTry ? 1 : 0), mistakes: s.mistakes + (firstTry ? 0 : 1) }));
@@ -256,7 +263,8 @@ function LevelPlay({
       const firstTry = prev !== "retry";
       const newStreak = firstTry ? streak + 1 : 0;
       const f = firstTry ? comboFactor(newStreak) : 1;
-      const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5));
+      const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5) * (replay ? 0.5 : 1));
+      score(firstTry);
       setHint(feedback);
       setStreak(newStreak);
       setPoints((p) => p + gain);
@@ -275,7 +283,7 @@ function LevelPlay({
   }
 
   function next() {
-    if (index === questions.length - 1) {
+    if (index === round.length - 1) {
       setEnd(true);
       hapticWin();
       return;
@@ -296,8 +304,30 @@ function LevelPlay({
     setHidden(wrong.slice(0, Math.max(1, q.options.length - 2 - wrongPicks.length)));
   }
 
+  function score(firstTry: boolean) {
+    const value = replay ? (firstTry ? 0.75 : 0.5) : firstTry ? 1 : 0.5;
+    setScores((sc) => sc.map((v, i) => (i === qi ? Math.max(v, value) : v)));
+  }
+
+  function startReplay(open: number[]) {
+    setRound(open);
+    setIndex(0);
+    setReplay(true);
+    setStreak(0);
+    setTyped("");
+    setHidden([]);
+    setWrongPicks([]);
+    setHint("");
+    setStatus("open");
+    setFx(null);
+    setEnd(false);
+  }
+
   if (end) {
-    const s = starsFor(stats.firstTry, stats.correct - stats.firstTry, questions.length);
+    const s = starsFor(scores);
+    const correctCount = scores.filter((v) => v > 0).length;
+    const open = scores.map((v, i) => (v < 1 ? i : -1)).filter((i) => i >= 0);
+    const canReplay = !replay && s < 3 && open.length > 0;
     return (
       <div className="screen level-end">
         <div className="stack" style={{ alignItems: "center", textAlign: "center", gap: 14, marginTop: 40 }}>
@@ -309,14 +339,24 @@ function LevelPlay({
             ))}
           </div>
           <h1 className="display">{isBoss ? t.bossBeaten : t.levelWon}</h1>
-          <p className="muted">{t.levelWonSub(stats.correct, questions.length)}</p>
+          <p className="muted">{t.levelWonSub(correctCount, questions.length)}</p>
           <div className="end-points"><PunchIcon size={20} /> +{points}</div>
         </div>
         <div className="stack" style={{ marginTop: "auto", gap: 10, paddingBottom: 28 }}>
+          {canReplay && (
+            <button type="button" className="replay-cta" onClick={() => startReplay(open)}>
+              <span className="replay-cta-icon"><Icon name="review" size={22} stroke={2.2} /></span>
+              <span className="replay-cta-text">
+                <b>{t.replayCta(open.length)}</b>
+                <span>{t.replaySub}</span>
+              </span>
+              <Icon name="chevron" size={18} stroke={2.6} />
+            </button>
+          )}
           <button
             type="button"
-            className="btn primary block"
-            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: stats.correct, total: questions.length, missed: stats.missed })}
+            className={canReplay ? "btn ghost block" : "btn primary block"}
+            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: correctCount, total: questions.length, missed: stats.missed })}
           >
             {t.backToMap}
           </button>
@@ -332,12 +372,12 @@ function LevelPlay({
         <div className="row" style={{ flexWrap: "nowrap" }}>
           <button type="button" className="iconbtn" onClick={onQuit} aria-label={t.back}><Icon name="close" size={20} stroke={2.6} /></button>
           <div className="progress" aria-hidden="true">
-            <div style={{ width: `${Math.round(((index + (answered ? 1 : 0)) / questions.length) * 100)}%` }} />
+            <div style={{ width: `${Math.round(((index + (answered ? 1 : 0)) / round.length) * 100)}%` }} />
           </div>
         </div>
 
         <div className="row" style={{ justifyContent: "space-between" }}>
-          <span style={{ fontSize: 14, fontWeight: 800, color: isBoss ? "var(--pink)" : "var(--teal-dark)" }}>{title} · {index + 1}/{questions.length}</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: isBoss ? "var(--pink)" : "var(--teal-dark)" }}>{replay ? `${t.replayTitle} · ${title}` : title} · {index + 1}/{round.length}</span>
           {streak > 0 ? (
             <span className={`combo c${factor}`} key={factor}>{factor > 1 ? `×${factor} ${t.combo}` : t.inARow(streak)}</span>
           ) : (
@@ -345,7 +385,7 @@ function LevelPlay({
           )}
         </div>
 
-        <div className={`qcard ${fx?.kind === "wrong" ? "shake" : ""}`} key={`q${index}-${fx?.id ?? 0}`}>
+        <div className={`qcard ${fx?.kind === "wrong" ? "shake" : ""}`} key={`q${replay ? "r" : ""}${index}-${fx?.id ?? 0}`}>
           <h1 style={{ fontSize: 24, lineHeight: 1.3 }}>{q.type === "lueckentext" ? q.prompt.replace("___", "______") : q.prompt}</h1>
           {fx?.kind === "right" && (
             <>

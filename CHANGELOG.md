@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.5.0 – 3 November 2026
+
+Bonus round in the learning game.
+
+| Area | Change |
+| --- | --- |
+| App | Learning game: after a level with fewer than three stars, a bonus round (“2 questions again – grab the next star!”) repeats the questions that weren't right on the first try; right there = ¾ point, so the missing star can still be earned; half punches in the bonus round |
+
 ## v0.4.1 – 3 November 2026
 
 Fix: fair stars in the learning game, no more lives.
