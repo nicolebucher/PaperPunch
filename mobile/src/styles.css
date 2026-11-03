@@ -667,3 +667,12 @@ h1 .beta { position: relative; top: -3px; }
 .home-a-days small { font-size: 9px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
 .home-a-rowicon.done { color: var(--teal-text); background: rgba(31, 214, 234, 0.12); border-color: transparent; }
 .home-a .home-a-body > :first-child { margin-top: 28px; }
+
+/* Startbildschirm bei jedem App-Start */
+.splash {
+  position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; align-items: stretch;
+  padding: env(safe-area-inset-top, 0px) 24px env(safe-area-inset-bottom, 0px);
+  border: none; background: var(--bg); color: var(--fg); font: inherit; cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.splash.leaving { opacity: 0; pointer-events: none; }

@@ -6,6 +6,7 @@ import { shareFiles } from "./platform";
 import { inviteShares, shareInvite } from "./invite";
 import { loadReminderSettings, requestReminderPermission, rescheduleReminders, saveReminderSettings } from "./reminders";
 import { Materials } from "./screens/Materials";
+import { Splash } from "./screens/Splash";
 import { materialTitle } from "./screens/materialInfo";
 import { daysBetween, todayISO } from "./dates";
 import type { ActivePlan, GameResult, GenerateResult, MaterialFormat, Profile, QuizOutcome, StoredSession } from "./types";
@@ -57,6 +58,9 @@ function AppInner() {
   const [plans, setPlansState] = useState<ActivePlan[]>(() => loadPlans());
   const [view, setView] = useState<View>(() => (loadProfile() ? { name: "home" } : { name: "onboarding" }));
   const [toast, setToast] = useState("");
+  // Logo-Animation bei jedem Start (beim allerersten Start übernimmt das Onboarding diese Rolle)
+  const [splash, setSplash] = useState(() => !!loadProfile());
+  const endSplash = useCallback(() => setSplash(false), []);
   const [materials, setMaterials] = useState<StoredMaterial[]>([]);
   const toastTimer = useRef<number>();
 
@@ -489,6 +493,7 @@ function AppInner() {
         {screen}
       </GoHomeContext.Provider>
       {toast && <Toast text={toast} />}
+      {splash && <Splash onDone={endSplash} />}
     </LangProvider>
   );
 }

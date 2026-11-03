@@ -24,6 +24,7 @@ Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).
 | App · Design | Home screen: greeting removed; grey “Create study plan” button with Beta label under the main button; section renamed “Continue & recent activity” (up to 3 items); progress ring for every unfinished material (0/N when not started), check mark when done, days-left tile for study plans |
 | Website | Google Analytics 4 (G-MQJJH71D5X) with a consent banner: nothing is loaded before “Accept”; “Cookie settings” in the footer to change it; privacy policy updated; Google signals and ad personalisation off |
 | App | New optional text field when creating material: “Anything we should focus on?” (e.g. only chapter 3, more word problems, harder); sent to the AI as the student's note |
+| App · Design | Launch screen on every app start: the same logo animation as the first-time onboarding (book draws itself, pixels fly in, wordmark); continues automatically after ~4 s, tap to skip |
 
 ## v0.2 – 3 November 2026
 
