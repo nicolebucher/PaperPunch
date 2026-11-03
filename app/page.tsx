@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { AndroidAppPromo } from "@/components/app/AndroidAppPromo";
 
 export default function Home() {
   const { t, locale } = useLanguage();
@@ -20,6 +21,9 @@ export default function Home() {
       >
         {t.landing.cta}
       </Link>
+      <div className="mt-12 w-full max-w-2xl">
+        <AndroidAppPromo />
+      </div>
       <h2 className="mt-12 text-sm font-semibold uppercase tracking-wide text-brand-400">{t.landing.howItWorks}</h2>
       <p className="mt-2 max-w-xl text-zinc-400">{t.landing.subtitle}</p>
       <Image
