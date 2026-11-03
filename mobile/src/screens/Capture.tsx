@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useT } from "../i18n";
-import { addFiles, formatMb, isNative, MAX_FILES, takeNativePhoto, totalBytes, type FileError } from "../files";
+import { addFiles, formatMb, isNative, MAX_BYTES, MAX_FILES, takeNativePhoto, totalBytes, type FileError } from "../files";
 import { FileChips, FilePick, FORMATS, Icon, ProfileSelects, TopBar } from "../ui";
 import type { MaterialFormat, Profile } from "../types";
 
@@ -104,18 +104,28 @@ export function Capture({
             )}
           </div>
           <div className="shutterbar">
-            <FilePick className="square" label={t.uploadFiles} onFiles={(f) => void add(f)}>
-              <Icon name="gallery" size={24} stroke={2} />
-            </FilePick>
-            {shutter}
-            {n > 0 ? (
-              <button type="button" className="square count" onClick={() => setSheet(true)} aria-label={t.continueWithFiles}>
-                {n}
-              </button>
-            ) : (
-              <span style={{ width: 52 }} />
-            )}
+            <span className="shutter-col">
+              <FilePick className="square" label={t.uploadFiles} onFiles={(f) => void add(f)}>
+                <Icon name="gallery" size={24} stroke={2} />
+              </FilePick>
+              <span className="shutter-label" aria-hidden="true">{t.uploadShort}</span>
+            </span>
+            <span className="shutter-col">
+              {shutter}
+              <span className="shutter-label" aria-hidden="true">{t.photoShort}</span>
+            </span>
+            <span className="shutter-col">
+              {n > 0 ? (
+                <button type="button" className="square count" onClick={() => setSheet(true)} aria-label={t.continueWithFiles}>
+                  {n}
+                </button>
+              ) : (
+                <span style={{ width: 52, height: 52 }} />
+              )}
+              <span className="shutter-label" aria-hidden="true">{n > 0 ? t.next : "\u00a0"}</span>
+            </span>
           </div>
+          <p className="upload-limits">{t.uploadLimits(MAX_FILES, Math.round(MAX_BYTES / 1024 / 1024))}</p>
         </>
       ) : (
         <>

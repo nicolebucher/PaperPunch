@@ -9,12 +9,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.3.1 – 3 November 2026
 
-Fix: logo visible in light mode; the preview shows the real PDF.
+Logo visible in light mode, real PDF preview, clearer upload, new level names.
 
 | Area | Change |
 | --- | --- |
 | App | Light mode: the logo (start screen, welcome, header, building screen, level page) now uses the black book with colourful pixels instead of the white one; “Punch” in the wordmark in a darker turquoise so it stays readable |
 | App | Result screen: “Preview” now shows the actual PDF with all pages (scrollable) instead of an excerpt of the tasks |
+| App | Camera screen: labels under the buttons (“Upload”, “Photo”) and a line with formats and limits (JPG, PNG or PDF · up to 8 files · max. 4 MB in total); page counter now says “of 8” instead of “of 5”; hint readable in light mode |
+| App | New level names in game style: Rookie, Starter, Grinder, Streak Master, Brainiac, Pro, Elite, Mastermind, Legend, Unstoppable |
 
 ## v0.3.0 – 3 November 2026
 

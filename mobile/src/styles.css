@@ -893,3 +893,10 @@ h1 .beta { position: relative; top: -3px; }
 .pdf-error { margin: 40px 8px; text-align: center; color: var(--muted); font-weight: 700; }
 .viewer-actions { padding-top: 12px; }
 .pdf-spinner { border-color: var(--surface-2); border-top-color: var(--teal); }
+
+/* Kamera: Beschriftung unter den Knöpfen und Hinweis zu Formaten/Grenzen */
+.shutterbar { padding-bottom: 10px; align-items: flex-end; }
+.shutter-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 64px; }
+.shutter-label { font-size: 12px; font-weight: 800; color: var(--muted); }
+.upload-limits { margin: 0 0 calc(18px + env(safe-area-inset-bottom, 0px)); text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); }
+.hint { color: #ffffff; }

@@ -37,16 +37,16 @@ export const POINTS = {
 };
 
 export const LEVELS: { at: number; name: Record<Lang, string> }[] = [
-  { at: 0, name: { de: "Papierschnipsel", en: "Paper Scrap" } },
-  { at: 100, name: { de: "Notizzettel", en: "Sticky Note" } },
-  { at: 250, name: { de: "Karteikarte", en: "Flashcard" } },
-  { at: 500, name: { de: "Seitenwender", en: "Page Turner" } },
-  { at: 900, name: { de: "Heft-Held", en: "Notebook Hero" } },
-  { at: 1400, name: { de: "Stoffbezwinger", en: "Topic Tamer" } },
-  { at: 2000, name: { de: "Lernmaschine", en: "Study Machine" } },
-  { at: 2800, name: { de: "Wissenslocher", en: "Knowledge Puncher" } },
-  { at: 3800, name: { de: "Prüfungsprofi", en: "Exam Ace" } },
-  { at: 5000, name: { de: "Paper Champion", en: "Paper Champion" } },
+  { at: 0, name: { de: "Rookie", en: "Rookie" } },
+  { at: 100, name: { de: "Starter", en: "Starter" } },
+  { at: 250, name: { de: "Grinder", en: "Grinder" } },
+  { at: 500, name: { de: "Streak Master", en: "Streak Master" } },
+  { at: 900, name: { de: "Brainiac", en: "Brainiac" } },
+  { at: 1400, name: { de: "Pro", en: "Pro" } },
+  { at: 2000, name: { de: "Elite", en: "Elite" } },
+  { at: 2800, name: { de: "Mastermind", en: "Mastermind" } },
+  { at: 3800, name: { de: "Legend", en: "Legend" } },
+  { at: 5000, name: { de: "Unstoppable", en: "Unstoppable" } },
 ];
 
 function load(): PunchState {
