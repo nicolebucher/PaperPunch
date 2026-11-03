@@ -74,9 +74,11 @@ Also return:
   would help (e.g. more minutes per day). Be encouraging but honest; never promise a grade.
 - "topics": the list of topics the plan covers, in learning order.
 
-Write every text field (title, summary, feasibilityNote, topics, session titles, focus, tip) in
-${LANGUAGE_NAMES[locale]}, unless the subject is a foreign language, in which case the focus text
-may name the target-language items the way a textbook would.`;
+Output language rule (critical): write every text field (title, summary, feasibilityNote, topics,
+session titles, focus, tip) in the language of the student's INPUT - the attached material if there is
+any, otherwise the language the subject and topics were typed in - regardless of the app language.
+Only if the input gives no clear signal, use ${LANGUAGE_NAMES[locale]}. If the subject is a foreign
+language, the focus text may name the target-language items the way a textbook would.`;
 }
 
 export function buildPlanAdjustSystemPrompt(
@@ -107,5 +109,6 @@ Return the revised plan. Rules for the revision:
 - Shift time towards the weak areas shown by the wrong answers; shorten or drop sessions on topics
   the student clearly masters. Keep the daily minutes limit.
 - Re-judge "feasibility" and "feasibilityNote" with this result in mind.
-- Keep "title" and "topics" unless the result shows a topic is missing.`;
+- Keep "title" and "topics" unless the result shows a topic is missing.
+- Keep writing in the same language as the current plan above.`;
 }

@@ -30,14 +30,24 @@ and tested on for this topic. Everything you write in place of "the material" be
 topic. Stay strictly on this topic, and keep every fact correct.`;
 }
 
-/** The paragraph deciding which language the generated content is written in. */
+/**
+ * The paragraph deciding which language the generated content is written in.
+ * Rule (product decision 3 Nov 2026): the output language always follows the INPUT language -
+ * the language of the uploaded material, or of what the student typed - never the app/UI language.
+ * The UI locale is only the fallback when the input gives no clear signal.
+ */
 export function contentLanguage(hasMaterial: boolean, locale: Locale, fields: string): string {
   if (hasMaterial) {
-    return `Detect the language used in the attached material and write all content (${fields}) in that same
-language, even if it differs from the language of these instructions. If the material's language
-cannot be clearly determined (e.g. it's mostly numbers or diagrams), default to ${LANGUAGE_NAMES[locale]}.`;
+    return `Output language rule (critical): detect the language of the attached material and write all content
+(${fields}) in that same language - regardless of the language of these instructions and regardless of
+the app language the student uses. Example: English-language material always gives English output, even
+for a German-speaking student. Only if the material's language cannot be determined at all (e.g. it is
+only numbers, formulas or diagrams) fall back to the language the student typed in, if any, else ${LANGUAGE_NAMES[locale]}.`;
   }
-  return `Write all content (${fields}) in ${LANGUAGE_NAMES[locale]}, since there is no material to detect a
-language from - unless the topic itself is learning a foreign language, in which case use that
-language for the practiced content the way a school textbook would.`;
+  return `Output language rule (critical): no material was uploaded, so write all content (${fields}) in the
+language the student used to type the topic (the subject and/or note above) - regardless of the app
+language. Example: a topic typed as "Photosynthesis" or "causes of WW1" gives English output, "Bruchrechnen"
+gives German output. Only if the typed words give no clear signal (e.g. a single name or formula used in both
+languages) fall back to ${LANGUAGE_NAMES[locale]}. If the topic is learning a foreign language, practise that
+language the way a school textbook would.`;
 }
