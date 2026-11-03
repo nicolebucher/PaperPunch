@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.7.0 – 3 November 2026
+
+Website /app: Punches & levels like in the app, app logo.
+
+| Area | Change |
+| --- | --- |
+| Website | Punches on the web: correct answers in learning games (10/15/20 by difficulty) and when solving worksheets online (10 per correct task, counted once when checking) earn Punches, saved in this browser |
+| Website | Level ring with Punches top right (phone header and desktop), same ten ranks as the app (Rookie … Unstoppable); tap shows the rank and how many Punches until the next one |
+| Website | App logo in /app: the open book with colourful pixels instead of the pixel grid; the book takes the text colour (white on dark, black on light) |
+| Website | Learning game: dashed path between the levels |
+
 ## v0.6.2 – 3 November 2026
 
 Website /app: creating, results and the learning game look and work like the app.

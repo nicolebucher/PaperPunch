@@ -9,6 +9,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 import { ShareButton } from "@/components/ui/ShareButton";
 import { SnapIcon } from "@/components/icons/ActionIcons";
 import { LevelPlayer, type LevelResult } from "./LevelPlayer";
+import { addPunches } from "@/lib/webapp/punches";
 import { ResultScreen } from "./ResultScreen";
 
 export function GameShell({ game }: { game: GameData }) {
@@ -36,6 +37,7 @@ export function GameShell({ game }: { game: GameData }) {
 
   function handleSnap(amount: number) {
     setTotalSnaps((prev) => prev + amount);
+    addPunches(amount);
     setSnapBump((n) => n + 1);
   }
 

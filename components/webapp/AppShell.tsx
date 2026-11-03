@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { AppIcon, Pixels, RecommendButton, useAppText } from "./ui";
+import { AppIcon, BrandMark, RecommendButton, useAppText } from "./ui";
+import { PunchBadge } from "./PunchBadge";
 
 // Die App ist noch im geschlossenen Test – die Karte führt zur Infoseite mit Beta-Anmeldung.
 const ANDROID_INFO = "/about";
@@ -12,7 +13,7 @@ const ANDROID_INFO = "/about";
 function Brand() {
   return (
     <Link href="/app" className="flex items-center gap-2 text-[17px] font-extrabold tracking-tight">
-      <Pixels />
+      <BrandMark className="h-8 w-auto text-zinc-100" />
       <span>
         Paper<span className="text-[#1fd6ea]">Punch</span>
       </span>
@@ -77,17 +78,23 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center justify-between px-4 lg:hidden">
           <Brand />
-          <button type="button" aria-label={menu ? tx.close : tx.menu} onClick={() => setMenu((m) => !m)} className="grid h-11 w-11 place-items-center rounded-full bg-[#15171b] ring-1 ring-white/[0.06]">
-            <AppIcon name={menu ? "close" : "menu"} />
-          </button>
+          <div className="flex items-center gap-2">
+            <PunchBadge />
+            <button type="button" aria-label={menu ? tx.close : tx.menu} onClick={() => setMenu((m) => !m)} className="grid h-11 w-11 place-items-center rounded-full bg-[#15171b] ring-1 ring-white/[0.06]">
+              <AppIcon name={menu ? "close" : "menu"} />
+            </button>
+          </div>
         </header>
+        <div className="hidden justify-end px-11 pt-6 lg:flex">
+          <PunchBadge />
+        </div>
         {menu && (
           <div className="flex flex-col gap-1.5 border-b border-[#1d2026] px-4 pb-4 lg:hidden">
             {links}
             <div className="pt-2">{langSwitch}</div>
           </div>
         )}
-        <main className="mx-auto flex w-full max-w-[1000px] flex-1 flex-col px-4 pb-8 lg:px-11 lg:py-8">{children}</main>
+        <main className="mx-auto flex w-full max-w-[1000px] flex-1 flex-col px-4 pb-8 lg:px-11 lg:pb-8 lg:pt-2">{children}</main>
       </div>
     </div>
   );

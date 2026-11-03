@@ -43,16 +43,32 @@ export function AppIcon({ name, size = 20, stroke = 2 }: { name: keyof typeof PA
 }
 
 /** Die bunten Pixel aus dem Logo, klein. */
-export function Pixels() {
+// Bildmarke wie in der App: aufgeschlagenes Buch, aus dem bunte Pixel gestanzt werden.
+// Das Buch nimmt die Textfarbe an (weiß auf dunklem, schwarz auf hellem Grund), die Pixel bleiben bunt.
+const MARK_PIXELS: [number, number, string][] = [
+  [114, 44, "#1FD6EA"], [118, 72, "#1FD6EA"], [124, 28, "#F23A8E"], [132, 86, "#A8E43A"],
+  [134, 56, "#F23A8E"], [150, 46, "#A8E43A"], [150, 74, "#F23A8E"], [150, 92, "#1FD6EA"],
+  [148, 14, "#A8E43A"], [160, 30, "#F23A8E"], [170, 56, "#1FD6EA"], [172, 82, "#F23A8E"],
+];
+
+export function BrandMark({ className = "h-7 w-auto" }: { className?: string }) {
   return (
-    <span aria-hidden="true" className="grid grid-cols-3 gap-[3px]">
-      <i className="h-[7px] w-[7px] rounded-[2px] bg-[#1fd6ea]" />
-      <i />
-      <i className="h-[7px] w-[7px] rounded-[2px] bg-[#f23a8e]" />
-      <i />
-      <i className="h-[7px] w-[7px] rounded-[2px] bg-[#a8e43a]" />
-      <i className="h-[7px] w-[7px] rounded-[2px] bg-[#1fd6ea]" />
-    </span>
+    <svg className={className} viewBox="14 6 180 112" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M92 30C78 20 58 17 40 19V88C58 86 78 89 92 98Z" />
+        <path d="M32 26V94C52 92 74 94 92 104" />
+        <path d="M24 33V100C48 98 72 100 92 110" />
+        <path d="M92 30C100 24 108 21 114 20" />
+        <path d="M92 98C98 94 104 92 110 91" />
+        <path d="M92 30V98" />
+        <path d="M52 38C64 37 74 39 82 43" />
+        <path d="M52 52C64 51 74 53 82 57" />
+        <path d="M52 66C62 65 70 67 78 70" />
+      </g>
+      {MARK_PIXELS.map(([x, y, c], i) => (
+        <rect key={i} x={x} y={y} width="13" height="13" fill={c} />
+      ))}
+    </svg>
   );
 }
 

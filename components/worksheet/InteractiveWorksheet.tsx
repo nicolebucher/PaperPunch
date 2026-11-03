@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Task, WorksheetData } from "@/types/generation";
 import { useLanguage } from "@/lib/i18n/language-context";
+import { addPunches, SHEET_ANSWER_PUNCHES } from "@/lib/webapp/punches";
 
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items];
@@ -11,6 +12,27 @@ function shuffle<T>(items: T[]): T[] {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
+}
+
+const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+
+/** Automatisch prüfbare Aufgaben, die richtig gelöst sind (offene Aufgaben zählen nicht). */
+function isTaskCorrect(task: Task, value: string): boolean {
+  if (!value) return false;
+  if (task.type === "multiple-choice" || task.type === "unterstreichen") {
+    const option = task.options?.[Number(value)];
+    return option !== undefined && option.trim() === task.answer.trim();
+  }
+  if (task.type === "zuordnen" && task.pairs) {
+    try {
+      const answers = JSON.parse(value) as Record<number, string>;
+      return task.pairs.every((p, i) => answers[i] === p.right);
+    } catch {
+      return false;
+    }
+  }
+  if (task.type === "lueckentext") return norm(value) === norm(task.answer);
+  return false;
 }
 
 function TaskInput({
@@ -107,7 +129,19 @@ export function InteractiveWorksheet({ data }: { data: WorksheetData }) {
   const { t } = useLanguage();
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [revealed, setRevealed] = useState(false);
+  // Punches gibt es einmal pro Blatt, beim ersten Prüfen – Nachbessern nach dem Aufdecken zählt nicht.
+  const [earned, setEarned] = useState<number | null>(null);
   const labels = data.labels;
+
+  function toggleReveal() {
+    if (!revealed && earned === null) {
+      const correct = data.tasks.filter((task) => isTaskCorrect(task, answers[task.number] ?? "")).length;
+      const amount = correct * SHEET_ANSWER_PUNCHES;
+      addPunches(amount);
+      setEarned(amount);
+    }
+    setRevealed((r) => !r);
+  }
 
   return (
     <div className="rounded-lg bg-white p-4 text-left text-zinc-900 sm:p-6">
@@ -141,13 +175,18 @@ export function InteractiveWorksheet({ data }: { data: WorksheetData }) {
         ))}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setRevealed((r) => !r)}
-        className="mt-4 rounded-full bg-brand-500 px-6 py-3 font-medium text-black hover:bg-brand-400"
-      >
-        {revealed ? t.practice.hideAnswers : t.practice.checkAnswers}
-      </button>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={toggleReveal}
+          className="rounded-full bg-brand-500 px-6 py-3 font-medium text-black hover:bg-brand-400"
+        >
+          {revealed ? t.practice.hideAnswers : t.practice.checkAnswers}
+        </button>
+        {revealed && earned !== null && earned > 0 && (
+          <span className="rounded-full bg-zinc-900 px-3 py-1.5 text-sm font-bold text-[#1fd6ea]">+{earned} Punches</span>
+        )}
+      </div>
     </div>
   );
 }
