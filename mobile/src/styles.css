@@ -648,3 +648,9 @@ h1 .beta { position: relative; top: -3px; }
 .game-preview { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
 .game-preview-level { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 18px; border: 1px solid var(--row-line); background: var(--row-bg); }
 .game-preview-num { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--teal); color: #062a2f; font-weight: 900; font-size: 17px; flex: none; }
+.sheet-pdf-badge {
+  position: absolute; top: 2px; right: calc(50% - 150px); z-index: 2; display: inline-flex; align-items: center; gap: 4px;
+  height: 36px; padding: 0 12px 0 10px; border-radius: 18px; border: none; background: #e5484d; color: #ffffff;
+  font: inherit; font-size: 13px; font-weight: 900; letter-spacing: 0.04em; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); cursor: pointer;
+}
+.sheet-pdf-badge:active { transform: scale(0.95); }

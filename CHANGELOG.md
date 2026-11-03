@@ -20,6 +20,7 @@ Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).
 | Website | App promo reworded: headline “PaperPunch is now available as an Android app”, text leads with personalised learning materials and learning plans |
 | App · Design | New result screen (design A): the finished worksheet/test is shown as a swipeable paper preview (tap opens the PDF) instead of a text card; big “Solve online · N tasks” button, tiles for Print, Share and Reshuffle (new version from the same photos); games show their levels |
 | Website & App · AI | Output language always follows the input language: material in English gives English worksheets, tests, games and study plans even when the app is set to German (and vice versa); typed topics follow the language they were typed in; the app language is only the fallback |
+| App · Design | PDF badge on the worksheet/test preview in the result screen; tapping it opens the PDF |
 
 ## v0.2 – 3 November 2026
 
