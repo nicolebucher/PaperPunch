@@ -35,13 +35,14 @@ export function Working({ format, fileCount }: { format: MaterialFormat | "plan"
         <Logo size={22} />
       </div>
 
+      <div className="working-body">
       <div className="working-stage" aria-hidden="true">
         <span className="glow" />
         <BrandMark mode="punch" className="working-mark" />
       </div>
 
       <div className="stack" style={{ alignItems: "center", textAlign: "center", gap: 10 }}>
-        <h1 className="display" style={{ fontSize: 28 }} aria-live="polite">{title}</h1>
+        <h1 className="working-title" aria-live="polite">{title}</h1>
         <span className="step-now" key={step}>{steps[step]} …</span>
       </div>
 
@@ -49,6 +50,7 @@ export function Working({ format, fileCount }: { format: MaterialFormat | "plan"
         {Array.from({ length: CELLS }, (_, i) => (
           <span key={i} className={i < filled ? "on" : i === filled ? "next" : ""} style={{ background: i < filled ? PIXEL_COLORS[i % 3] : undefined }} />
         ))}
+      </div>
       </div>
 
       <div className="tip" key={tip}>

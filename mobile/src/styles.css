@@ -283,14 +283,16 @@ h1 .beta { position: relative; top: -3px; }
 .working { align-items: stretch; gap: 22px; padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
 .working-stage { position: relative; display: flex; justify-content: center; padding: 18px 0 4px; }
 .working-mark { width: min(78%, 300px); position: relative; }
+.working-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+.working-title { font-family: var(--brand); font-size: 24px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; }
 .glow { position: absolute; left: 50%; top: 50%; width: 240px; height: 240px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(31, 214, 234, 0.22), rgba(31, 214, 234, 0) 70%); }
-.step-now { font-size: 17px; font-weight: 800; color: var(--teal); animation: fadein 0.4s ease-out; }
+.step-now { font-size: 16px; font-weight: 500; color: var(--teal); animation: fadein 0.4s ease-out; }
 .pixelbar { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
 .pixelbar span { aspect-ratio: 1; border-radius: 4px; background: var(--surface-2); transition: background 0.4s ease; }
 .pixelbar span.next { animation: blink 1s ease-in-out infinite; }
 @keyframes blink { 50% { background: var(--line); } }
-.tip { margin-top: auto; background: var(--surface); border: 1px solid var(--surface-2); border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; animation: fadein 0.5s ease-out; }
-.tip p { font-size: 16px; font-weight: 700; line-height: 1.4; }
+.tip { background: var(--surface); border: 1px solid var(--surface-2); border-radius: 20px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; animation: fadein 0.5s ease-out; }
+.tip p { font-size: 16px; font-weight: 500; line-height: 1.4; }
 @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {

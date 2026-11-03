@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.2.4 – 3 November 2026
+
+Design tweak.
+
+| Area | Change |
+| --- | --- |
+| App | Building screen (“Building your learning game …”): content sits in the vertical centre, title and status text no longer bold |
+
 ## v0.2.3 – 3 November 2026
 
 Fix: material creation no longer breaks when the phone locks.
