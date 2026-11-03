@@ -1,104 +1,24 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
 import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, type IconName } from "../ui";
-import type { GameResult, GenerateResult, MaterialFormat, Task } from "../types";
+import type { GameResult, GenerateResult, MaterialFormat } from "../types";
 import type { SessionRef } from "../App";
 import { RatingCard } from "./RatingCard";
+import { POINTS } from "../punches";
 
 function slug(s: string) {
   return s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 50) || "paperpunch";
 }
 
-const TASKS_PER_PAGE = 4;
+/** Konfetti hinter dem Haken: feste Positionen, damit nichts über dem Text liegt. */
+const CONFETTI: [number, number, number, string, number][] = [
+  [6, 8, 12, "var(--teal)", 12], [88, 4, 10, "var(--pink)", -20], [82, 42, 14, "var(--green)", 30], [12, 52, 9, "var(--pink)", 45],
+  [72, 16, 8, "var(--teal)", -10], [24, 26, 7, "var(--green)", 20], [92, 70, 8, "var(--teal)", 15], [3, 80, 10, "var(--green)", -25],
+];
 
-/** Kleine Papier-Vorschau des Arbeitsblatts / Tests, seitenweise wischbar. Tippen öffnet das PDF. */
-function SheetPreview({ title, intro, tasks, onOpen }: { title: string; intro: string; tasks: Task[]; onOpen: () => void }) {
-  const { t } = useT();
-  const [page, setPage] = useState(0);
-  const scroller = useRef<HTMLDivElement>(null);
-  const pages: Task[][] = [];
-  for (let i = 0; i < tasks.length; i += TASKS_PER_PAGE) pages.push(tasks.slice(i, i + TASKS_PER_PAGE));
-  if (pages.length === 0) pages.push([]);
-
-  return (
-    <div className="sheet-preview">
-      <div
-        className="sheet-pages"
-        ref={scroller}
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          setPage(Math.round(el.scrollLeft / el.clientWidth));
-        }}
-      >
-        {pages.map((list, p) => (
-          <div className="sheet-slot" key={p}>
-            {p === 0 && <div className="sheet-behind" aria-hidden="true" />}
-            <button type="button" className="sheet-paper" onClick={onOpen} aria-label={`${t.openPdf}: ${title}, ${t.pageOf(p + 1, pages.length)}`}>
-              <span className="sheet-head">
-                <span className="sheet-brand">Paper<b>Punch</b></span>
-                <span>{t.sheetNameLine}</span>
-              </span>
-              {p === 0 && (
-                <>
-                  <span className="sheet-title">{title}</span>
-                  {intro && <span className="sheet-intro">{intro}</span>}
-                </>
-              )}
-              {list.map((task) => (
-                <span className="sheet-task" key={task.number}>
-                  <b>{t.taskLabel(task.number)} · {task.points} P.</b>
-                  <span>{task.question.replace("___", "________")}</span>
-                  {task.options ? (
-                    <span className="sheet-options">{task.options.map((o) => `○ ${o}`).join("   ")}</span>
-                  ) : task.type === "zuordnen" && task.pairs ? (
-                    <span className="sheet-options">{task.pairs.map((x) => x.left).join(" · ")}</span>
-                  ) : task.type !== "lueckentext" ? (
-                    <span className="sheet-line" />
-                  ) : null}
-                </span>
-              ))}
-              <span className="sheet-foot">{t.pageOf(p + 1, pages.length)}</span>
-            </button>
-            <button type="button" className="sheet-pdf-badge" onClick={onOpen} aria-label={t.openPdf}>
-              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
-                <path d="M14 3v5h5" />
-              </svg>
-              <span>PDF</span>
-            </button>
-          </div>
-        ))}
-      </div>
-      {pages.length > 1 && (
-        <div className="sheet-dots" aria-hidden="true">
-          {pages.map((_, i) => <span key={i} className={i === page ? "on" : ""} />)}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** Vorschau eines Lernspiels: die Level als gestapelte Karten. */
-function GamePreview({ game }: { game: GameResult["game"] }) {
-  const { t } = useT();
-  return (
-    <div className="game-preview">
-      {game.levels.map((level, i) => (
-        <div className="game-preview-level" key={level.id}>
-          <span className="game-preview-num">{i + 1}</span>
-          <span className="stack" style={{ gap: 2, minWidth: 0 }}>
-            <span className="material-title">{level.title}</span>
-            <span className="material-sub">{t.questionsCount(level.questions.length)}</span>
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Ergebnis (Design A): das fertige Material groß als Vorschau, darunter Lösen und die wichtigsten Aktionen. */
+/** Ergebnis (Design E3 "Erfolgsmoment"): Haken, Titel, darunter "Wie willst du üben?" mit großen Optionen. */
 export function Result({
   result,
   from,
@@ -106,13 +26,10 @@ export function Result({
   onPlay,
   onPractice,
   onDone,
-  onNew,
   onHome,
+  onNew,
   rated = true,
   onRate,
-  sourcesCount = 0,
-  onRegenerate,
-  onShareSources,
 }: {
   result: GenerateResult;
   from?: SessionRef;
@@ -124,7 +41,9 @@ export function Result({
   onHome: () => void;
   rated?: boolean;
   onRate?: (stars: number, text: string) => void;
+  /** Werden auf dem Ergebnis-Screen nicht mehr angezeigt; bleiben optional für Aufrufer. */
   sourcesCount?: number;
+  /** Früher "Neu mischen" – bewusst entfernt (spart KI-Aufrufe); bleibt optional für Aufrufer. */
   onRegenerate?: (format: MaterialFormat) => void;
   onShareSources?: () => void;
 }) {
@@ -134,6 +53,20 @@ export function Result({
   const isSheet = result.format === "worksheet" || result.format === "test";
   const title = result.format === "game" ? result.game.gameTitle : result.format === "podcast" ? result.title : result.data.title;
   const subject = result.format === "game" ? result.game.subject : "";
+  const questionTotal = result.format === "game" ? result.game.levels.reduce((s, l) => s + l.questions.length, 0) : 0;
+  const count = isSheet ? t.tasksCount(result.data.tasks.length) : result.format === "game" ? t.questionsCount(questionTotal) : "";
+  // Ungefähre Arbeitszeit und maximal erreichbare Punches (wie in Practice/Game vergeben)
+  const minutes = isSheet
+    ? Math.max(5, Math.round((result.data.tasks.length * 1.5) / 5) * 5)
+    : result.format === "game"
+      ? Math.max(3, Math.round(questionTotal / 3))
+      : 0;
+  const maxPunches = isSheet
+    ? result.data.tasks.length * POINTS.sheetAnswer
+    : result.format === "game"
+      ? result.game.levels.reduce((s, l) => s + l.questions.length * (POINTS.answer[l.difficulty] ?? 10), 0)
+      : 0;
+  const meta = [count, minutes ? t.approxMinutes(minutes) : "", subject].filter(Boolean).join(" · ");
 
   async function share() {
     try {
@@ -164,39 +97,43 @@ export function Result({
     }
   }
 
-  const tiles: { icon: IconName; label: string; onClick: () => void }[] = [];
-  if (isSheet) tiles.push({ icon: "print", label: t.print, onClick: () => void view() });
-  tiles.push({ icon: "share", label: t.share, onClick: () => void share() });
-  if (onRegenerate && sourcesCount > 0 && result.format !== "podcast") {
-    tiles.push({ icon: "review", label: t.reshuffle, onClick: () => onRegenerate(result.format) });
+  type Opt = { icon: IconName; title: string; sub: string; onClick: () => void; main?: boolean };
+  const options: Opt[] = [];
+  if (isSheet) options.push({ icon: "play", title: t.optSolve, sub: t.optSolveSub, onClick: onPractice, main: true });
+  if (result.format === "game") options.push({ icon: "play", title: t.optPlay, sub: t.optSolveSub, onClick: () => onPlay(result.game), main: true });
+  if (isSheet) options.push({ icon: "print", title: t.optPrint, sub: t.optPrintSub, onClick: () => void view() });
+  if (result.format !== "podcast") {
+    options.push({ icon: "share", title: t.share, sub: result.format === "game" ? t.optShareGameSub : t.optShareSub, onClick: () => void share() });
   }
 
-  const questionTotal = result.format === "game" ? result.game.levels.reduce((s, l) => s + l.questions.length, 0) : 0;
-
   return (
-    <div className="screen result-a">
-      <div className="result-a-top">
-        <button type="button" className="iconbtn plain" onClick={from ? onNew : onHome} aria-label={from ? t.backToPlan : t.back}>
-          <Icon name="back" size={22} stroke={2.4} />
+    <div className="screen result-e">
+      <div className="result-e-top">
+        <button type="button" className="home-b-profile" onClick={from ? onNew : onHome} aria-label={from ? t.backToPlan : t.back}>
+          <Icon name="back" size={20} stroke={2.4} />
         </button>
-        <span className="result-a-done">{t.done}</span>
-        <button type="button" className="iconbtn plain" onClick={onHome} aria-label={t.home}>
-          <Icon name="home" size={22} stroke={2} />
+        <button type="button" className="home-b-profile" onClick={onHome} aria-label={t.home}>
+          <Icon name="home" size={20} stroke={2} />
         </button>
       </div>
 
-      <div className="stack" style={{ gap: 4, marginTop: 10 }}>
-        <span className="home-a-label">
-          {t.formats[result.format]}
-          {subject ? ` · ${subject}` : ""}
-        </span>
-        <h1 className="result-a-title">{title}</h1>
+      <div className="result-e-hero">
+        <div className="result-e-confetti" aria-hidden="true">
+          {CONFETTI.map(([x, y, size, color, rot], i) => (
+            <i key={i} style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, background: color, transform: `rotate(${rot}deg)` }} />
+          ))}
+        </div>
+        <div className="result-e-head">
+          <span className="result-e-check"><Icon name="check" size={36} stroke={2.6} /></span>
+          <span className="result-e-ready">{t.resultReady(result.format)}</span>
+          <h1 className="result-e-title">{title}</h1>
+          {meta && <span className="result-e-meta">{meta}</span>}
+          {maxPunches > 0 && <span className="result-e-punches">{t.upToPunches(maxPunches)}</span>}
+        </div>
       </div>
 
-      {isSheet && <SheetPreview title={result.data.title} intro={result.data.introduction} tasks={result.data.tasks} onOpen={() => void view()} />}
-      {result.format === "game" && <GamePreview game={result.game} />}
       {result.format === "podcast" && (
-        <div className="card" style={{ marginTop: 18 }}>
+        <div className="card" style={{ marginBottom: 14 }}>
           <audio controls src={`data:audio/mpeg;base64,${result.audioBase64}`} style={{ width: "100%" }}>
             {t.listen}
           </audio>
@@ -204,57 +141,37 @@ export function Result({
             {t.transcript}
           </button>
           {showScript && <p style={{ whiteSpace: "pre-line", fontSize: 15 }}>{result.script}</p>}
+          <button type="button" className="btn ghost small" onClick={() => void share()}>
+            <Icon name="share" size={18} /> {t.share}
+          </button>
         </div>
       )}
 
-      <div className="stack result-a-actions">
-        {isSheet && (
-          <button type="button" className="home-a-cta result-a-cta" onClick={onPractice}>
-            <Icon name="play" size={22} filled />
-            <span>{t.solveCount(result.data.tasks.length)}</span>
-          </button>
-        )}
-        {result.format === "game" && (
-          <button type="button" className="home-a-cta result-a-cta" onClick={() => onPlay(result.game)}>
-            <Icon name="play" size={22} filled />
-            <span>{t.playCount(questionTotal)}</span>
-          </button>
-        )}
-
-        <div className="result-a-tiles" style={{ gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))` }}>
-          {tiles.map((tile) => (
-            <button key={tile.label} type="button" className="result-a-tile" onClick={tile.onClick}>
-              <Icon name={tile.icon} size={20} stroke={2} />
-              {tile.label}
+      {options.length > 0 && (
+        <div className="result-e-options">
+          <span className="result-e-label">{t.howPractice}</span>
+          {options.map((o) => (
+            <button key={o.title} type="button" className={o.main ? "result-e-opt main" : "result-e-opt"} onClick={o.onClick}>
+              <span className="result-e-opt-icon"><Icon name={o.icon} size={22} stroke={2} filled={o.icon === "play"} /></span>
+              <span className="result-e-opt-text">
+                <span className="result-e-opt-title">{o.title}</span>
+                <span className="result-e-opt-sub">{o.sub}</span>
+              </span>
+              <Icon name="chevron" size={18} stroke={2.6} />
             </button>
           ))}
         </div>
-        {result.format === "game" && <p className="muted" style={{ fontSize: 13, textAlign: "center", margin: 0 }}>{t.shareHint}</p>}
+      )}
 
-        <span className="result-a-meta">
-          {sourcesCount > 0 ? (
-            <>
-              {t.fromPhotos(sourcesCount)}
-              {onShareSources && (
-                <>
-                  {" · "}
-                  <button type="button" className="link-btn inline" onClick={onShareSources}>{t.sharePhotos}</button>
-                </>
-              )}
-            </>
-          ) : (
-            t.savedInMaterials
-          )}
-        </span>
-
-        <p className="result-a-ainote">{t.aiNote}</p>
-
-        {!rated && onRate && <RatingCard onSend={onRate} />}
-
-        <button type="button" className="btn ghost block" onClick={onDone}>
-          <Icon name={from ? "check" : "plus"} /> {from ? t.markDone : t.newMaterial}
+      {from && (
+        <button type="button" className="btn ghost block" style={{ marginTop: 12 }} onClick={onDone}>
+          <Icon name="check" /> {t.markDone}
         </button>
-      </div>
+      )}
+
+      {!rated && onRate && <RatingCard onSend={onRate} />}
+
+      <p className="result-e-foot">{t.aiShort}</p>
     </div>
   );
 }
