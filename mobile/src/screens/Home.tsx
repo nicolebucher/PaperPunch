@@ -1,18 +1,18 @@
 import { useState, type CSSProperties } from "react";
 import { useT } from "../i18n";
-import { Beta, Icon } from "../ui";
+import { Beta, Icon, type IconName } from "../ui";
 import { levelFor, POINTS, totalPunches } from "../punches";
 import { inviteShares } from "../invite";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
 import type { StoredMaterial } from "../storage";
-import { isResumable, materialDate, materialStatus, materialTitle } from "./materialInfo";
+import { isResumable, materialDate, materialTitle } from "./materialInfo";
 import { challengePctOf, savedNickname, sendChallenge } from "../challenge";
 
 /**
- * Startseite Design 3b "Bento": Begrüßung nach Tageszeit, große Foto-Kachel, darunter Lernplan- und
- * Level-Kachel, dann "Weitermachen". Beim ersten Start stehen statt Inhalten Einladungen da
- * (Lernplan erstellen, Level 1, Themen zum Antippen). Hell/dunkel über die Theme-Variablen.
+ * Startseite S1: oben Datum/Begrüßung, rechts Level + Punches und Profil. Darunter drei große Wege
+ * (Lernmaterial fotografieren, Thema eintippen, Lernplan) – läuft ein Lernplan, zeigt der dritte Weg ihn an.
+ * Darunter klein "Weitermachen" (Lernpläne zuerst, dann Materialien), ganz unten Einladen und Herausfordern.
  */
 export function Home({
   plans,
@@ -52,10 +52,12 @@ export function Home({
     .sort((a, b) => daysBetween(today, a.goal.testDate) - daysBetween(today, b.goal.testDate));
   const plan = running[0];
 
-  // "Weitermachen": zuerst angefangenes Material, danach die zuletzt genutzten – höchstens drei.
+  // "Weitermachen": alle laufenden Lernpläne, dann angefangenes und zuletzt genutztes Material – zusammen höchstens vier.
   const resumable = materials.filter(isResumable).sort((a, b) => b.updatedAt - a.updatedAt);
   const rest = materials.filter((m) => !isResumable(m)).sort((a, b) => b.updatedAt - a.updatedAt);
-  const items = [...resumable, ...rest].slice(0, 3);
+  // Der nächste Plan steht schon im dritten Button – in der Liste nur weitere Pläne.
+  const morePlans = running.slice(1);
+  const items = [...resumable, ...rest].slice(0, Math.max(0, 4 - morePlans.length));
 
   const firstStart = materials.length === 0 && plans.length === 0;
   const hour = new Date().getHours();
@@ -67,101 +69,90 @@ export function Home({
   const inviteBonus = inviteShares() === 0;
   const [challengeOpen, setChallengeOpen] = useState(false);
 
+  const planToday = plan ? todaySession(plan, today) : undefined;
+  const planDays = plan ? daysBetween(today, plan.goal.testDate) : 0;
+
   return (
-    <div className="screen home home-b">
+    <div className="screen home home-c">
       <header className="home-b-head">
         <div className="home-b-greet">
           <span className="home-b-date">{dateLabel}</span>
-          <h1 className="home-b-hello">{greeting}</h1>
+          <span className="home-b-hello">{greeting}</span>
         </div>
-        <button type="button" className="home-b-profile" onClick={onSettings} aria-label={t.settings}>
-          <Icon name="user" size={18} stroke={2} />
-        </button>
+        <div className="home-c-top">
+          <button type="button" className="home-c-punch" onClick={onLevels} aria-label={t.levelAria(lvl.number, total)}>
+            <span className="home-c-ring" style={{ "--p": `${Math.round(lvl.progress * 100)}%` } as CSSProperties}>
+              <span>{lvl.number}</span>
+            </span>
+            {total.toLocaleString(lang)}
+          </button>
+          <button type="button" className="home-b-profile" onClick={onSettings} aria-label={t.settings}>
+            <Icon name="user" size={18} stroke={2} />
+          </button>
+        </div>
       </header>
 
-      <div className="home-b-grid">
-        <button type="button" className="home-b-photo" onClick={onQuick}>
-          <span className="home-b-photo-top">
-            <span className="home-b-photo-icon"><Icon name="camera" size={22} stroke={2.2} /></span>
-            <span className="home-b-photo-time">{t.homeCtaTime}</span>
-          </span>
-          <span className="home-b-photo-text">
-            <span className="home-b-photo-title">{t.homeCta}</span>
-            <span className="home-b-photo-sub">{firstStart ? t.homeCtaSubFirst : t.homeCtaSub}</span>
-          </span>
-          <span className="home-b-pixels" aria-hidden="true">
-            <i className="c1" /><i /><i className="c2" /><i /><i className="c3" /><i className="c4" />
-          </span>
-        </button>
+      <h1 className="home-c-title">{t.homeQuestion}</h1>
 
+      <div className="home-c-ways">
+        <WayButton icon="camera" color="c1" title={t.homeCta} sub={t.wayPhotoSub} main onClick={onQuick} />
+        <WayButton icon="edit" color="c2" title={t.wayTopic} sub={t.wayTopicSub} onClick={() => onTopic?.("")} />
         {plan ? (
-          <PlanTile plan={plan} today={today} onClick={() => onOpenPlan(plan.id)} />
+          <WayButton
+            icon="calendar"
+            color="c3"
+            title={plan.plan.title}
+            sub={planToday ? t.wayPlanToday(planDays, planToday) : t.homePlanActive(planDays)}
+            onClick={() => onOpenPlan(plan.id)}
+          />
         ) : (
-          <button type="button" className="home-b-tile home-b-tile-new" onClick={onNewPlan}>
-            <span className="home-b-tile-top">
-              <span className="home-b-plus"><Icon name="plus" size={18} stroke={2.4} /></span>
-              <Beta />
-            </span>
-            <span className="home-b-tile-title">{t.createPlan}</span>
-            <span className="home-b-tile-sub">{t.planNewSub}</span>
-          </button>
-        )}
-
-        <button type="button" className="home-b-tile" onClick={onLevels} aria-label={t.levelAria(lvl.number, total)}>
-          <span className="home-b-tile-label">{t.levelNumber(lvl.number)}</span>
-          <span
-            className="home-b-ring"
-            style={{ "--p": `${total === 0 ? 0 : Math.round(lvl.progress * 100)}%` } as CSSProperties}
-          >
-            <span>{total === 0 ? 0 : `${Math.round(lvl.progress * 100)}%`}</span>
-          </span>
-          {total === 0 ? (
-            <span className="home-b-tile-foot">{t.collectPunches}<br /><span className="muted">{t.collectPunchesSub}</span></span>
-          ) : (
-            <span className="home-b-tile-foot">
-              {t.punchesCount(total)}
-              <br />
-              <span className="muted">{lvl.next ? t.toLevelN(lvl.toNext, lvl.number + 1) : lvl.current.name[lang]}</span>
-            </span>
-          )}
-        </button>
-
-        {items.length > 0 ? (
-          <section className="home-b-card">
-            <div className="home-b-card-head">
-              <h2>{t.continueLabel}</h2>
-              {onAllMaterials && (
-                <button type="button" className="link-btn" onClick={onAllMaterials}>{t.allCount(materials.length)}</button>
-              )}
-            </div>
-            {items.map((m, i) => (
-              <div key={m.id} className="stack" style={{ gap: 0 }}>
-                {i > 0 && <span className="home-b-sep" />}
-                <MaterialRow m={m} onClick={() => onOpenMaterial?.(m)} />
-              </div>
-            ))}
-          </section>
-        ) : (
-          <section className="home-b-card">
-            <h2>{t.tryTopic}</h2>
-            <div className="home-b-chips">
-              {t.ideas.slice(0, 4).map((idea) => (
-                <button key={idea} type="button" className="home-b-chip" onClick={() => onTopic?.(idea)}>{idea}</button>
-              ))}
-            </div>
-            <span className="home-b-note">{t.tryTopicSub}</span>
-          </section>
+          <WayButton icon="calendar" color="c3" title={t.createPlan} sub={t.wayPlanSub} beta onClick={onNewPlan} />
         )}
       </div>
 
-      <div className="home-b-bottom">
+      {(morePlans.length > 0 || items.length > 0) && (
+        <section className="home-c-list">
+          <div className="home-c-list-head">
+            <span>{t.continueLabel}</span>
+            {materials.length > 0 && onAllMaterials && (
+              <button type="button" className="link-btn" onClick={onAllMaterials}>{t.allCount(materials.length)}</button>
+            )}
+          </div>
+          {morePlans.map((p) => {
+            const days = daysBetween(today, p.goal.testDate);
+            const session = todaySession(p, today);
+            return (
+              <button key={p.id} type="button" className="home-c-row" onClick={() => onOpenPlan(p.id)}>
+                <span className="home-c-days"><b>{days}</b><small>{t.daysShort}</small></span>
+                <span className="home-c-row-text">
+                  <b>{p.plan.title}</b>
+                  <span className={session ? "accent" : ""}>{session ? `${t.today}: ${session}` : t.homePlanActive(days)}</span>
+                </span>
+                <Icon name="chevron" size={16} stroke={2.6} />
+              </button>
+            );
+          })}
+          {items.map((m) => (
+            <button key={m.id} type="button" className="home-c-row" onClick={() => onOpenMaterial?.(m)}>
+              <span className="home-c-bar" aria-hidden="true" />
+              <span className="home-c-row-text">
+                <b>{materialTitle(m)}</b>
+                <span>{t.formats[m.result.format]} · {materialDate(m, t, lang)}</span>
+              </span>
+              <span className="home-c-row-status">{rowStatus(m)}</span>
+            </button>
+          ))}
+        </section>
+      )}
+
+      <div className="home-c-foot">
         {onInvite && (
-          <button type="button" className="home-b-invite" onClick={onInvite}>
-            {inviteBonus ? `${t.inviteShort} · +${POINTS.invite}` : t.inviteFriends}
+          <button type="button" onClick={onInvite}>
+            {inviteBonus ? `${t.inviteFriends} · +${POINTS.invite}` : t.inviteFriends}
           </button>
         )}
-        <button type="button" className="home-b-challenge" onClick={() => setChallengeOpen(true)}>
-          <Icon name="punch" size={20} stroke={2} /> {t.challengeShort}
+        <button type="button" onClick={() => setChallengeOpen(true)}>
+          <Icon name="punch" size={16} stroke={2} /> {t.challengeShort}
         </button>
       </div>
 
@@ -177,59 +168,36 @@ export function Home({
   );
 }
 
-function PlanTile({ plan, today, onClick }: { plan: ActivePlan; today: string; onClick: () => void }) {
-  const { t } = useT();
-  const daysLeft = daysBetween(today, plan.goal.testDate);
-  const todayIndex = daysBetween(plan.startDate, today);
-  const open = plan.sessions.filter((s) => s.dayIndex === todayIndex && !plan.done.includes(s.id));
+function WayButton({ icon, color, title, sub, main, beta, onClick }: { icon: IconName; color: string; title: string; sub: string; main?: boolean; beta?: boolean; onClick: () => void }) {
   return (
-    <button type="button" className="home-b-tile" onClick={onClick} aria-label={`${plan.plan.title}, ${t.homePlanActive(daysLeft)}`}>
-      <span className="home-b-tile-top">
-        <span className="home-b-tile-label">{t.planLabel}</span>
-        <Beta />
+    <button type="button" className={main ? "home-c-way main" : "home-c-way"} onClick={onClick}>
+      <span className={`home-c-way-icon ${color}`}><Icon name={icon} size={24} stroke={2.2} /></span>
+      <span className="home-c-way-text">
+        <b>{title}{beta && <> <Beta /></>}</b>
+        <span>{sub}</span>
       </span>
-      <span className="home-b-days"><b>{daysLeft}</b><span>{daysLeft === 1 ? t.dayOne : t.daysShort}</span></span>
-      <span className="home-b-tile-foot">
-        <span className="home-b-clip">{plan.plan.title}</span>
-        <span className={open.length ? "home-b-clip home-b-accent" : "home-b-clip muted"}>
-          {open.length ? `${t.today}: ${open[0].title}` : t.planDoneToday}
-        </span>
-      </span>
+      <Icon name="chevron" size={18} stroke={2.6} />
     </button>
   );
 }
 
-function MaterialRow({ m, onClick }: { m: StoredMaterial; onClick: () => void }) {
-  const { t, lang } = useT();
+/** Titel der heutigen, noch offenen Einheit eines Lernplans. */
+function todaySession(plan: ActivePlan, today: string): string | undefined {
+  const todayIndex = daysBetween(plan.startDate, today);
+  return plan.sessions.find((s) => s.dayIndex === todayIndex && !plan.done.includes(s.id))?.title;
+}
+
+/** Kurzer Stand rechts in der Zeile: 4/10, 87 %, ✓ oder leer. */
+function rowStatus(m: StoredMaterial): string {
+  if (m.finished) {
+    const pct = challengePctOf(m);
+    return pct !== undefined ? `${pct} %` : "✓";
+  }
   const p = m.progress;
   const r = m.result;
-  let done = 0;
-  let total = 0;
-  if (r.format === "worksheet" || r.format === "test") {
-    total = r.data.tasks.length;
-    done = p?.kind === "practice" ? Math.min(p.index, total) : 0;
-  } else if (r.format === "game") {
-    total = r.game.levels.length + 1; // + Boss-Level
-    done = p?.kind === "game" ? p.stars.filter((x) => x > 0).length + (p.bossDone ? 1 : 0) : 0;
-  }
-  if (m.finished) done = total;
-  const ratio = total ? done / total : 0;
-  return (
-    <button type="button" className="home-b-row" onClick={onClick} aria-label={`${materialTitle(m)}, ${materialStatus(m, t)}`}>
-      <span className="home-b-row-top">
-        <span className="material-title">{materialTitle(m)}</span>
-        {m.finished ? (
-          <span className="home-b-done"><Icon name="check" size={16} stroke={2.8} /></span>
-        ) : (
-          total > 0 && <span className="home-b-count">{done}/{total}</span>
-        )}
-      </span>
-      {total > 0 && (
-        <span className="home-b-bar"><span style={{ width: `${Math.round(ratio * 100)}%` }} /></span>
-      )}
-      <span className="material-sub">{t.formats[m.result.format]} · {materialDate(m, t, lang)}</span>
-    </button>
-  );
+  if ((r.format === "worksheet" || r.format === "test") && p?.kind === "practice") return `${Math.min(p.index, r.data.tasks.length)}/${r.data.tasks.length}`;
+  if (r.format === "game" && p?.kind === "game") return `${p.stars.filter((x) => x > 0).length}/${r.game.levels.length}`;
+  return "";
 }
 
 /** Auswahl fürs Herausfordern: neues Lernspiel oder eines der eigenen, Spitzname, Link teilen. */

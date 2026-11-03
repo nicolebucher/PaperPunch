@@ -9,7 +9,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.5.1 – 3 November 2026
 
-Fractions like in school, real logo on the PDF, consistent “show answer”.
+Fractions like in school, real logo on the PDF, consistent “show answer”, new home screen with three ways.
 
 | Area | Change |
 | --- | --- |
@@ -17,6 +17,7 @@ Fractions like in school, real logo on the PDF, consistent “show answer”.
 | Website · AI | Prompts ask for one fraction notation (3/4, 2 1/2; no ½, no LaTeX) and school symbols (× and : or ÷) so the display works reliably |
 | Website | Worksheet and test PDFs show the real logo (book with colourful pixels) plus the PaperPunch wordmark at the top instead of text only |
 | App | “Show answer” works the same everywhere: a clear button “I don't know – show answer” under every question, from the start; before, it was sometimes only a small link after the first mistake and sometimes a disabled button |
+| App | New home screen: “What do you want to practise?” with three large ways – snap study material, type a topic, study plan (shows the running plan with today's session); level and punches top right; “Continue” list below; invite and challenge as small links at the bottom |
 
 ## v0.5.0 – 3 November 2026
 
