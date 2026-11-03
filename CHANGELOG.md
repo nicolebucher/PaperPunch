@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.4.1 – 3 November 2026
+
+Fix: fair stars in the learning game, no more lives.
+
+| Area | Change |
+| --- | --- |
+| App | Learning game: lives removed – every level is played to the end |
+| App · Website | Stars by hit rate instead of number of mistakes: right on the first try = 1 point, on the second try = ½; from 85 % three stars, from 60 % two, otherwise one for finishing (e.g. 6 of 8 = two stars, before it was one) |
+| Website | Home page text for the learning game no longer mentions lives |
+
 ## v0.4.0 – 3 November 2026
 
 Challenges: play a learning game against friends via a link, without an account.

@@ -90,7 +90,8 @@ export function LevelPlayer({
     setSnapBurst(null);
     if (isLast) {
       const ratio = correctCount / level.questions.length;
-      const stars = ratio === 1 ? 3 : ratio >= 0.7 ? 2 : ratio >= 0.4 ? 1 : 0;
+      // wie in der App: ab 85 % drei Sterne, ab 60 % zwei, sonst einer fürs Durchspielen
+      const stars = ratio >= 0.85 ? 3 : ratio >= 0.6 ? 2 : 1;
       onComplete({ stars, score: correctCount });
     } else {
       setSelected(null);

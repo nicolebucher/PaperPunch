@@ -12,14 +12,20 @@ import type { GameProgress } from "../storage";
 type Game = GameResult["game"];
 type Q = Question & { difficulty: string };
 
-const LIVES = 3;
 const BOSS_SIZE = 8;
 
 function answerOf(q: Question): string {
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
 }
 const comboFactor = (streak: number) => (streak >= 9 ? 4 : streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
-const starsFor = (mistakes: number) => (mistakes === 0 ? 3 : mistakes === 1 ? 2 : 1);
+/**
+ * Sterne nach Trefferquote: im ersten Versuch richtig = 1 Punkt, im zweiten = ½, aufgelöst = 0.
+ * ab 85 % drei Sterne, ab 60 % zwei, sonst einer – wer ein Level zu Ende spielt, bekommt immer mindestens einen.
+ */
+const starsFor = (firstTry: number, secondTry: number, total: number) => {
+  const ratio = total ? (firstTry + secondTry * 0.5) / total : 0;
+  return ratio >= 0.85 ? 3 : ratio >= 0.6 ? 2 : 1;
+};
 
 export interface GameOutcome {
   lines: RewardLine[];
@@ -27,7 +33,7 @@ export interface GameOutcome {
 }
 
 /**
- * Das Lernspiel: Level-Karte mit Sternen, 3 Leben pro Level, Combo-Multiplikator, Boss-Level am Ende,
+ * Das Lernspiel: Level-Karte mit Sternen (nach Trefferquote, ohne Leben – jedes Level wird zu Ende gespielt), Combo-Multiplikator, Boss-Level am Ende,
  * Joker 50:50 gegen Punches. Beim Verlassen werden die verdienten Punches gemeldet.
  */
 export function GameScreen({
@@ -86,8 +92,8 @@ export function GameScreen({
           e.correct += r.correct;
           e.total += r.total;
           e.missed.push(...r.missed);
-          const nextStars = r.won && !isBoss ? stars.map((v, i) => (i === playing ? Math.max(v, starsFor(r.mistakes)) : v)) : stars;
-          const nextBoss = bossDone || (r.won && isBoss);
+          const nextStars = !isBoss ? stars.map((v, i) => (i === playing ? Math.max(v, r.stars) : v)) : stars;
+          const nextBoss = bossDone || isBoss;
           setStars(nextStars);
           setBossDone(nextBoss);
           onProgress?.({ kind: "game", stars: nextStars, bossDone: nextBoss, earned: { ...e, missed: [...e.missed] } });
@@ -165,11 +171,10 @@ function LevelPlay({
   questions: Q[];
   gameKey: string;
   onQuit: () => void;
-  onDone: (r: { won: boolean; mistakes: number; points: number; correct: number; total: number; missed: string[] }) => void;
+  onDone: (r: { stars: number; mistakes: number; points: number; correct: number; total: number; missed: string[] }) => void;
 }) {
   const { t, lang } = useT();
   const [index, setIndex] = useState(0);
-  const [lives, setLives] = useState(LIVES);
   const [streak, setStreak] = useState(0);
   const [points, setPoints] = useState(0);
   const [typed, setTyped] = useState("");
@@ -179,8 +184,8 @@ function LevelPlay({
   const [wrongPicks, setWrongPicks] = useState<string[]>([]);
   const [hint, setHint] = useState("");
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
-  const [stats, setStats] = useState({ correct: 0, mistakes: 0, missed: [] as string[] });
-  const [end, setEnd] = useState<"won" | "lost" | null>(null);
+  const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
+  const [end, setEnd] = useState(false);
 
   const q = questions[index];
   const answer = answerOf(q);
@@ -200,7 +205,7 @@ function LevelPlay({
       const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5));
       setStreak(newStreak);
       setPoints((p) => p + gain);
-      setStats((s) => ({ ...s, correct: s.correct + 1, mistakes: s.mistakes + (firstTry ? 0 : 1) }));
+      setStats((s) => ({ ...s, correct: s.correct + 1, firstTry: s.firstTry + (firstTry ? 1 : 0), mistakes: s.mistakes + (firstTry ? 0 : 1) }));
       setFx({ id: Date.now(), kind: "right", gain, factor: f });
       setStatus("right");
       hapticRight();
@@ -212,13 +217,12 @@ function LevelPlay({
     if (status === "retry") {
       reveal();
     } else {
-      setStatus("retry"); // erster Fehler: nochmal versuchen, kostet noch kein Leben
+      setStatus("retry"); // erster Fehler: nochmal versuchen
     }
   }
 
-  /** Lösung zeigen (zweiter Fehler oder aufgegeben): kostet ein Leben. */
+  /** Lösung zeigen (zweiter Fehler oder aufgegeben). */
   function reveal() {
-    setLives((l) => l - 1);
     setStats((s) => ({ ...s, mistakes: s.mistakes + 1, missed: [...s.missed, q.prompt] }));
     setStatus("revealed");
   }
@@ -256,7 +260,7 @@ function LevelPlay({
       setHint(feedback);
       setStreak(newStreak);
       setPoints((p) => p + gain);
-      setStats((s) => ({ ...s, correct: s.correct + 1, mistakes: s.mistakes + (firstTry ? 0 : 1) }));
+      setStats((s) => ({ ...s, correct: s.correct + 1, firstTry: s.firstTry + (firstTry ? 1 : 0), mistakes: s.mistakes + (firstTry ? 0 : 1) }));
       setFx({ id: Date.now(), kind: "right", gain, factor: f });
       setStatus("right");
       hapticRight();
@@ -271,12 +275,8 @@ function LevelPlay({
   }
 
   function next() {
-    if (lives <= 0) {
-      setEnd("lost");
-      return;
-    }
     if (index === questions.length - 1) {
-      setEnd("won");
+      setEnd(true);
       hapticWin();
       return;
     }
@@ -297,8 +297,7 @@ function LevelPlay({
   }
 
   if (end) {
-    const won = end === "won";
-    const s = won ? starsFor(stats.mistakes) : 0;
+    const s = starsFor(stats.firstTry, stats.correct - stats.firstTry, questions.length);
     return (
       <div className="screen level-end">
         <div className="stack" style={{ alignItems: "center", textAlign: "center", gap: 14, marginTop: 40 }}>
@@ -309,29 +308,18 @@ function LevelPlay({
               </span>
             ))}
           </div>
-          <h1 className="display">{won ? (isBoss ? t.bossBeaten : t.levelWon) : t.levelLost}</h1>
-          <p className="muted">{won ? t.levelWonSub(stats.correct, questions.length) : t.levelLostSub}</p>
+          <h1 className="display">{isBoss ? t.bossBeaten : t.levelWon}</h1>
+          <p className="muted">{t.levelWonSub(stats.correct, questions.length)}</p>
           <div className="end-points"><PunchIcon size={20} /> +{points}</div>
         </div>
         <div className="stack" style={{ marginTop: "auto", gap: 10, paddingBottom: 28 }}>
-          {!won && (
-            <button
-              type="button"
-              className="btn primary block"
-              onClick={() => onDone({ won: false, mistakes: stats.mistakes, points, correct: stats.correct, total: index + 1, missed: stats.missed })}
-            >
-              {t.backToMap}
-            </button>
-          )}
-          {won && (
-            <button
-              type="button"
-              className="btn primary block"
-              onClick={() => onDone({ won: true, mistakes: stats.mistakes, points, correct: stats.correct, total: questions.length, missed: stats.missed })}
-            >
-              {t.backToMap}
-            </button>
-          )}
+          <button
+            type="button"
+            className="btn primary block"
+            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: stats.correct, total: questions.length, missed: stats.missed })}
+          >
+            {t.backToMap}
+          </button>
         </div>
       </div>
     );
@@ -346,9 +334,6 @@ function LevelPlay({
           <div className="progress" aria-hidden="true">
             <div style={{ width: `${Math.round(((index + (answered ? 1 : 0)) / questions.length) * 100)}%` }} />
           </div>
-          <span className="lives" aria-label={t.livesAria(lives)}>
-            {Array.from({ length: LIVES }, (_, i) => <i key={i} className={i < lives ? "on" : ""} style={{ background: i < lives ? PIXEL_COLORS[i] : undefined }} />)}
-          </span>
         </div>
 
         <div className="row" style={{ justifyContent: "space-between" }}>
@@ -423,7 +408,7 @@ function LevelPlay({
 
         {answered && (
           <button type="button" className="btn dark block" style={{ marginTop: "auto" }} onClick={next}>
-            {lives <= 0 ? t.seeResult : index === questions.length - 1 ? t.finish : t.next}
+            {index === questions.length - 1 ? t.finish : t.next}
           </button>
         )}
       </div>
