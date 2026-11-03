@@ -4,7 +4,7 @@ import type { Lang } from "./i18n";
 // Punches: die App-Währung. Es gibt sie für richtige Antworten und erledigte Einheiten, nie fürs bloße
 // Erstellen von Material. Alles liegt nur auf dem Gerät als kleines Protokoll (Datum, Quelle, Menge).
 
-export type PunchSource = "answer" | "selfcheck" | "session" | "checkpoint" | "checkpointBonus" | "daily" | "boss" | "joker";
+export type PunchSource = "answer" | "selfcheck" | "session" | "checkpoint" | "checkpointBonus" | "daily" | "boss" | "joker" | "invite";
 
 export interface PunchEntry {
   date: string; // YYYY-MM-DD
@@ -33,6 +33,7 @@ export const POINTS = {
   boss: 2, // Faktor für Boss-Fragen
   joker5050: 30,
   jokerSkip: 40,
+  invite: 50, // einmalig fürs erste Einladen
 };
 
 export const LEVELS: { at: number; name: Record<Lang, string> }[] = [

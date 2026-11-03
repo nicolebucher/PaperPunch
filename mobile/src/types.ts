@@ -10,6 +10,7 @@ export interface Profile {
   country: CountryCode;
   schoolType: string;
   grade: number;
+  theme?: "dark" | "light";
 }
 
 export interface Task {

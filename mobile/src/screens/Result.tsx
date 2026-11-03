@@ -3,7 +3,8 @@ import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
 import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, TopBar } from "../ui";
-import type { GameResult, GenerateResult } from "../types";
+import type { GameResult, GenerateResult, MaterialFormat } from "../types";
+import { RatingCard } from "./RatingCard";
 import type { SessionRef } from "../App";
 
 function slug(s: string) {
@@ -20,6 +21,11 @@ export function Result({
   onDone,
   onNew,
   onHome,
+  rated = true,
+  onRate,
+  sourcesCount = 0,
+  onRegenerate,
+  onShareSources,
 }: {
   result: GenerateResult;
   from?: SessionRef;
@@ -29,9 +35,15 @@ export function Result({
   onDone: () => void;
   onNew: () => void;
   onHome: () => void;
+  rated?: boolean;
+  onRate?: (stars: number, text: string) => void;
+  sourcesCount?: number;
+  onRegenerate?: (format: MaterialFormat) => void;
+  onShareSources?: () => void;
 }) {
   const { t, lang } = useT();
   const [showScript, setShowScript] = useState(false);
+  const [choosing, setChoosing] = useState(false);
 
   const isSheet = result.format === "worksheet" || result.format === "test";
   const title = result.format === "game" ? result.game.gameTitle : result.format === "podcast" ? result.title : result.data.title;
@@ -120,6 +132,38 @@ export function Result({
           </>
         )}
       </div>
+
+      {sourcesCount > 0 && (onRegenerate || onShareSources) && (
+        <div className="sources-card">
+          <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+            <span className="stack" style={{ gap: 2 }}>
+              <span style={{ fontWeight: 800 }}>{t.yourMaterial}</span>
+              <span className="muted" style={{ fontSize: 14 }}>{t.photosCount(sourcesCount)} · {t.savedOnPhone}</span>
+            </span>
+            {onShareSources && (
+              <button type="button" className="iconbtn" onClick={onShareSources} aria-label={t.sharePhotos}>
+                <Icon name="share" size={18} />
+              </button>
+            )}
+          </div>
+          {onRegenerate && !choosing && (
+            <button type="button" className="btn ghost small block" onClick={() => setChoosing(true)}>
+              <Icon name="review" size={18} /> {t.newFromPhotos}
+            </button>
+          )}
+          {onRegenerate && choosing && (
+            <div className="row" style={{ gap: 8 }}>
+              {(["worksheet", "test", "game"] as const).map((f) => (
+                <button key={f} type="button" className="pill" onClick={() => onRegenerate(f)}>
+                  <Icon name={f} size={16} stroke={2.4} /> {t.formats[f]}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!rated && onRate && <RatingCard onSend={onRate} />}
 
       <div className="stack" style={{ marginTop: "auto", padding: "20px 0 28px" }}>
         <div className="grid2">

@@ -124,7 +124,22 @@ export interface StoredMaterial {
   from?: { planId: string; session: StoredSession };
   progress?: GameProgress | PracticeProgress;
   finished?: boolean;
+  /** Hochgeladenes Schulmaterial (Fotos/PDFs), um später neu zu üben, herunterzuladen oder zu teilen */
+  sources?: StoredFile[];
+  subject?: string;
+  notes?: string;
+  /** Eigene Bewertung (1–5), damit nur einmal gefragt wird */
+  rating?: number;
 }
+
+export interface StoredFile {
+  name: string;
+  type: string;
+  data: Blob;
+}
+
+export const toStoredFiles = (files: File[]): StoredFile[] => files.map((f) => ({ name: f.name, type: f.type, data: f }));
+export const fromStoredFiles = (files: StoredFile[] = []): File[] => files.map((s) => new File([s.data], s.name, { type: s.type }));
 
 const MAX_MATERIALS = 20;
 

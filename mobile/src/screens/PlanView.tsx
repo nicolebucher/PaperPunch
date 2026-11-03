@@ -3,6 +3,7 @@ import { useT } from "../i18n";
 import { addDays, daysBetween, formatDay, todayISO } from "../dates";
 import { Beta, Icon, TopBar, type IconName } from "../ui";
 import type { ActivePlan, StoredSession } from "../types";
+import { loadReminderSettings, remindersSupported, requestReminderPermission, saveReminderSettings } from "../reminders";
 
 const KIND_ICON: Record<StoredSession["kind"], IconName> = {
   learn: "bolt",
@@ -21,6 +22,7 @@ export function PlanView({
   onToggleDone,
   onDelete,
   onNew,
+  onRemindersChange,
 }: {
   active: ActivePlan;
   onBack: () => void;
@@ -28,6 +30,7 @@ export function PlanView({
   onToggleDone: (id: string) => void;
   onDelete: () => void;
   onNew: () => void;
+  onRemindersChange?: () => void;
 }) {
   const { t, lang } = useT();
   const [confirming, setConfirming] = useState(false);
@@ -123,6 +126,8 @@ export function PlanView({
           </section>
         )}
 
+        {!over && remindersSupported() && <ReminderRow onChange={onRemindersChange} />}
+
         {confirming ? (
           <div className="card">
             <p>{t.deleteConfirm}</p>
@@ -137,6 +142,59 @@ export function PlanView({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Erinnerungen an/aus und Uhrzeit – gilt für alle Lernpläne. */
+function ReminderRow({ onChange }: { onChange?: () => void }) {
+  const { t } = useT();
+  const [settings, setSettings] = useState(loadReminderSettings);
+  const [denied, setDenied] = useState(false);
+
+  async function update(next: typeof settings) {
+    if (next.on && !settings.on) {
+      const granted = await requestReminderPermission();
+      setDenied(!granted);
+      if (!granted) next = { ...next, on: false };
+    }
+    next = { ...next, asked: true };
+    setSettings(next);
+    saveReminderSettings(next);
+    onChange?.();
+  }
+
+  return (
+    <div className="card reminder-row">
+      <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
+        <span className="stack" style={{ gap: 2 }}>
+          <span style={{ fontWeight: 800 }}>{t.remindersTitle}</span>
+          <span className="muted" style={{ fontSize: 14 }}>{t.remindersText}</span>
+        </span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={settings.on}
+          aria-label={t.remindersTitle}
+          className={settings.on ? "switch on" : "switch"}
+          onClick={() => void update({ ...settings, on: !settings.on })}
+        >
+          <span />
+        </button>
+      </div>
+      {settings.on && (
+        <label className="row" style={{ flexWrap: "nowrap", justifyContent: "space-between", fontWeight: 700 }}>
+          {t.remindersTime}
+          <input
+            type="time"
+            className="input"
+            style={{ width: 130 }}
+            value={settings.time}
+            onChange={(e) => e.target.value && void update({ ...settings, time: e.target.value })}
+          />
+        </label>
+      )}
+      {denied && <span className="muted" style={{ fontSize: 14 }}>{t.remindersDenied}</span>}
     </div>
   );
 }

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
-import { clearPlanFiles, listMaterials, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
-import { adjustPlan, ApiError, generateMaterial } from "./api";
+import { clearPlanFiles, deleteMaterial, fromStoredFiles, listMaterials, toStoredFiles, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
+import { adjustPlan, ApiError, generateMaterial, sendRating } from "./api";
+import { shareFiles } from "./platform";
+import { inviteShares, shareInvite } from "./invite";
+import { loadReminderSettings, requestReminderPermission, rescheduleReminders, saveReminderSettings } from "./reminders";
+import { Materials } from "./screens/Materials";
+import { materialTitle } from "./screens/materialInfo";
 import { daysBetween, todayISO } from "./dates";
 import type { ActivePlan, GameResult, GenerateResult, MaterialFormat, Profile, QuizOutcome, StoredSession } from "./types";
 import { Onboarding } from "./screens/Onboarding";
@@ -34,6 +39,7 @@ type View =
   | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult; materialId?: string }
   | { name: "practice"; result: GenerateResult & { format: "worksheet" | "test" }; from?: SessionRef; materialId?: string }
   | { name: "levels" }
+  | { name: "materials" }
   | { name: "planSetup" }
   | { name: "plan"; planId: string };
 
@@ -89,9 +95,65 @@ function AppInner() {
 
   const goHome = useCallback(() => setView({ name: "home" }), []);
 
+  // Hell/Dunkel aus dem Profil (Einstellungen zeigen beim Wählen eine Vorschau, Zurück setzt sie zurück)
+  useEffect(() => {
+    if (view.name !== "onboarding" && view.name !== "settings") document.documentElement.dataset.theme = profile?.theme ?? "dark";
+  }, [profile?.theme, view.name]);
+
+  // Lernplan-Erinnerungen nach jeder Planänderung neu planen
+  useEffect(() => {
+    void rescheduleReminders(plans, { title: t.reminderTitle, today: t.reminderToday, testTomorrow: t.reminderTestTomorrow });
+  }, [plans, t]);
+
+  /** Nach dem ersten Lernplan einmal fragen, ob die App erinnern darf. */
+  async function askForReminders() {
+    const settings = loadReminderSettings();
+    if (settings.asked) return;
+    const granted = await requestReminderPermission();
+    saveReminderSettings({ ...settings, asked: true, on: granted });
+    if (granted) {
+      say(t.remindersOn(settings.time));
+      void rescheduleReminders(plans, { title: t.reminderTitle, today: t.reminderToday, testTomorrow: t.reminderTestTomorrow });
+    }
+  }
+
+  async function invite() {
+    const first = inviteShares() === 0;
+    const outcome = await shareInvite(t.inviteTitle, t.inviteText);
+    if (outcome === "cancelled") return;
+    if (first) reward("invite", [{ source: "invite", amount: POINTS.invite }], undefined, () => undefined);
+    else say(outcome === "copied" ? t.inviteCopied : t.inviteThanks);
+  }
+
+  async function shareSources(id?: string) {
+    const m = materialById(id);
+    if (!m?.sources?.length) return;
+    try {
+      const outcome = await shareFiles(fromStoredFiles(m.sources), materialTitle(m));
+      if (outcome === "downloaded") say(t.downloaded);
+    } catch {
+      say(t.errGeneric);
+    }
+  }
+
+  function rate(id: string | undefined, result: GenerateResult, stars: number, text: string) {
+    if (!profile) return;
+    const m = materialById(id);
+    const score = m?.progress?.kind === "practice"
+      ? { correct: m.progress.results.filter(Boolean).length, total: m.progress.results.length }
+      : m?.progress?.kind === "game"
+        ? { correct: m.progress.earned.correct, total: m.progress.earned.total }
+        : undefined;
+    void sendRating({ stars, text, format: result.format, title: m ? materialTitle(m) : "", subject: m?.subject, profile, score });
+    if (id) {
+      void updateMaterial(id, { rating: stars });
+      setMaterials((list) => list.map((x) => (x.id === id ? { ...x, rating: stars } : x)));
+    }
+  }
+
   // "Meine Materialien" neu laden, sobald man zur Startseite oder zu einem Ergebnis kommt
   useEffect(() => {
-    if (view.name === "home" || view.name === "result") void listMaterials().then(setMaterials);
+    if (view.name === "home" || view.name === "result" || view.name === "materials") void listMaterials().then(setMaterials);
   }, [view.name]);
   const materialById = (id?: string) => (id ? materials.find((m) => m.id === id) : undefined);
 
@@ -120,7 +182,16 @@ function AppInner() {
       } else {
         const materialId = newPlanId();
         const now = Date.now();
-        await saveMaterial({ id: materialId, createdAt: now, updatedAt: now, result, from: opts.from });
+        await saveMaterial({
+          id: materialId,
+          createdAt: now,
+          updatedAt: now,
+          result,
+          from: opts.from,
+          sources: opts.files.length ? toStoredFiles(opts.files) : undefined,
+          subject: opts.subject,
+          notes: opts.notes,
+        });
         setView({ name: "result", result, from: opts.from, materialId });
       }
     } catch (error) {
@@ -215,6 +286,8 @@ function AppInner() {
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
           onLevels={() => setView({ name: "levels" })}
+          onAllMaterials={() => setView({ name: "materials" })}
+          onInvite={() => void invite()}
         />
       );
       break;
@@ -258,6 +331,28 @@ function AppInner() {
           }}
           onNew={() => setView(view.from ? { name: "plan", planId: view.from.planId } : { name: "capture", mode: "photo" })}
           onHome={() => setView({ name: "home" })}
+          rated={!view.materialId || !!materialById(view.materialId)?.rating || !materialById(view.materialId)}
+          onRate={(stars, text) => rate(view.materialId, view.result, stars, text)}
+          sourcesCount={materialById(view.materialId)?.sources?.length ?? 0}
+          onShareSources={() => void shareSources(view.materialId)}
+          onRegenerate={(format) => {
+            const m = materialById(view.materialId);
+            if (!m?.sources?.length) return;
+            void runGenerate({ format, files: fromStoredFiles(m.sources), subject: m.subject, notes: m.notes, back: view });
+          }}
+        />
+      );
+      break;
+    case "materials":
+      screen = (
+        <Materials
+          materials={materials}
+          onBack={() => setView({ name: "home" })}
+          onOpen={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
+          onDelete={(m) => {
+            void deleteMaterial(m.id);
+            setMaterials((list) => list.filter((x) => x.id !== m.id));
+          }}
         />
       );
       break;
@@ -347,6 +442,7 @@ function AppInner() {
           onCreated={(p) => {
             setPlans([p, ...plans]);
             setView({ name: "plan", planId: p.id });
+            void askForReminders();
           }}
         />
       );
@@ -367,6 +463,7 @@ function AppInner() {
             setView({ name: "home" });
           }}
           onNew={() => setView({ name: "planSetup" })}
+          onRemindersChange={() => void rescheduleReminders(plans, { title: t.reminderTitle, today: t.reminderToday, testTomorrow: t.reminderTestTomorrow })}
         />
       ) : (
         <Home
@@ -378,6 +475,8 @@ function AppInner() {
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
           onLevels={() => setView({ name: "levels" })}
+          onAllMaterials={() => setView({ name: "materials" })}
+          onInvite={() => void invite()}
         />
       );
       break;

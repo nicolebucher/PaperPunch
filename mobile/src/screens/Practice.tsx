@@ -139,7 +139,7 @@ export function Practice({
       <div className="screen" style={{ alignItems: "center", gap: 20, paddingTop: 28 }}>
         <div className="ring">
           <svg aria-hidden="true" width="180" height="180" viewBox="0 0 190 190">
-            <circle cx="95" cy="95" r="80" fill="none" stroke="#27272a" strokeWidth="18" />
+            <circle cx="95" cy="95" r="80" fill="none" stroke="var(--surface-2)" strokeWidth="18" />
             <circle cx="95" cy="95" r="80" fill="none" stroke="#1fd6ea" strokeWidth="18" strokeLinecap="round" strokeDasharray={`${Math.round(502 * ratio)} 503`} transform="rotate(-90 95 95)" />
           </svg>
           <div className="center">

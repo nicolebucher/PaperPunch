@@ -138,3 +138,36 @@ export async function checkTypedAnswer(opts: { question: string; expected: strin
     return { correct: false, feedback: "" };
   }
 }
+
+/** Bewertung eines Lernmaterials an die Website schicken (dort landet sie im Google Sheet). Fehler werden ignoriert. */
+export async function sendRating(r: {
+  stars: number;
+  text: string;
+  format: MaterialFormat;
+  title: string;
+  subject?: string;
+  profile: Profile;
+  score?: { correct: number; total: number };
+}): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/api/rating`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        stars: r.stars,
+        text: r.text,
+        format: r.format,
+        title: r.title,
+        subject: r.subject,
+        lang: r.profile.lang,
+        country: r.profile.country,
+        schoolType: r.profile.schoolType,
+        grade: r.profile.grade,
+        score: r.score,
+        source: "app",
+      }),
+    });
+  } catch {
+    // offline: Bewertung geht verloren, das ist okay
+  }
+}

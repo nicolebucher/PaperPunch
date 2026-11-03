@@ -61,3 +61,47 @@ export async function openPdf(base64: string, filename: string, title: string): 
   window.open(url, "_blank");
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+
+async function blobToBase64(blob: Blob): Promise<string> {
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+/** Mehrere Dateien (z. B. die Fotos vom Schulmaterial) teilen oder herunterladen. */
+export async function shareFiles(files: File[], title: string): Promise<ShareOutcome> {
+  if (!files.length) return "cancelled";
+  if (Capacitor.isNativePlatform()) {
+    const uris: string[] = [];
+    for (const [i, f] of files.entries()) {
+      const name = `${i + 1}-${f.name.replace(/[^\w.-]/g, "_")}`;
+      const written = await Filesystem.writeFile({ path: name, data: await blobToBase64(f), directory: Directory.Cache });
+      uris.push(written.uri);
+    }
+    try {
+      await Share.share({ title, files: uris, dialogTitle: title });
+      return "shared";
+    } catch {
+      return "cancelled";
+    }
+  }
+  const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
+  if (nav.canShare && nav.share && nav.canShare({ files })) {
+    try {
+      await nav.share({ files, title });
+      return "shared";
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return "cancelled";
+    }
+  }
+  for (const f of files) {
+    const url = URL.createObjectURL(f);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = f.name;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  }
+  return "downloaded";
+}

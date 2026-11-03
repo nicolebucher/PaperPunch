@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { COUNTRIES, getCountry, guessCountry, type CountryCode } from "../countries";
 import { DICTS, deviceLang, LangProvider, type Lang } from "../i18n";
 import { BrandMark } from "../brand";
@@ -41,6 +41,24 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     </div>
   );
 
+  // Hell/Dunkel sofort sichtbar machen, während man wählt
+  useEffect(() => {
+    document.documentElement.dataset.theme = profile.theme ?? "dark";
+  }, [profile.theme]);
+
+  const themePicker = (
+    <div className="stack" style={{ gap: 8 }}>
+      <span className="field-label">{t.theme}</span>
+      <div className="row">
+        {(["dark", "light"] as const).map((m) => (
+          <button key={m} type="button" className={(profile.theme ?? "dark") === m ? "pill on" : "pill"} aria-pressed={(profile.theme ?? "dark") === m} onClick={() => setProfile({ ...profile, theme: m })}>
+            {m === "dark" ? t.themeDark : t.themeLight}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const countryPicker = (
     <label className="field">
       {t.country}
@@ -63,6 +81,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
           <div className="stack" style={{ gap: 20, paddingBottom: 28, flex: 1 }}>
             <h1 className="display">{t.settings}</h1>
             {langPicker}
+            {themePicker}
             {countryPicker}
             <ProfileSelects profile={profile} onChange={setProfile} />
             <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
@@ -117,6 +136,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
                 <h1 className="display">{t.obWhere}</h1>
               </div>
               {langPicker}
+              {themePicker}
               {countryPicker}
               <button type="button" className="btn primary block" style={{ marginTop: "auto" }} onClick={() => setStep(2)}>
                 {t.next}

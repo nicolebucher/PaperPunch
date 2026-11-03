@@ -525,3 +525,78 @@ h1 .beta { position: relative; top: -3px; }
 .material-title { font-weight: 800; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .material-sub { font-size: 14px; color: var(--muted, #a1a1aa); font-weight: 600; }
 .material-sub.active { color: #1fd6ea; }
+
+/* ---------- Startseite Design A "Fokus" ---------- */
+.home-a .home-a-body { gap: 0; flex: 1; padding-bottom: 28px; }
+.home-a .home-a-body > * + * { margin-top: 32px; }
+.home-a .home-a-body > :first-child { margin-top: 36px; }
+.home-a-greet { font-size: 15px; font-weight: 700; color: var(--muted); }
+.home-a-title { margin: 0; font-size: 34px; line-height: 1.12; font-weight: 900; letter-spacing: -0.02em; }
+.home-a-cta {
+  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 72px; padding: 0 20px;
+  border: none; border-radius: 22px; background: var(--teal); color: #062a2f; font: inherit; font-size: 19px; font-weight: 900; text-align: left; cursor: pointer;
+}
+.home-a-cta:active { transform: scale(0.98); }
+.home-a-formats { font-size: 14px; font-weight: 600; color: var(--muted); text-align: center; }
+.home-a-label { font-size: 13px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.home-a-row {
+  display: flex; align-items: center; gap: 14px; width: 100%; padding: 16px; border-radius: 18px;
+  border: 1px solid var(--row-line); background: var(--row-bg); color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.home-a-row:active { transform: scale(0.99); }
+.home-a-rowicon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; border: 1px solid var(--row-line); color: var(--teal-text); flex: none; }
+.home-a-ring { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex: none; background: conic-gradient(var(--teal) 0 var(--p), var(--row-line) var(--p) 100%); }
+.home-a-ring > span { width: 34px; height: 34px; border-radius: 50%; background: var(--row-bg); display: grid; place-items: center; font-size: 11px; font-weight: 900; }
+.home-a-links { margin-top: auto !important; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.home-a .link-btn, .home-a-links .link-btn { color: var(--teal-text); text-decoration: none; padding: 12px 0; align-self: auto; }
+.home-a-links .muted-link { color: var(--muted); }
+.home-a .material-sub.active { color: var(--teal-text); }
+.iconbtn.plain { border: none; color: var(--muted); }
+
+:root { --row-bg: #151518; --row-line: #26262b; --teal-text: #1fd6ea; }
+
+/* Bewertung */
+.rating-card { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 16px; padding: 18px; border-radius: 20px; background: var(--row-bg); border: 1px solid var(--row-line); text-align: center; }
+.rating-q { font-weight: 800; font-size: 17px; }
+.rating-stars { display: flex; gap: 4px; }
+.rating-stars button { width: 48px; height: 48px; border: none; background: none; color: var(--line); display: grid; place-items: center; cursor: pointer; }
+.rating-stars button.on { color: #fbbf24; }
+.rating-thanks { font-weight: 800; color: var(--teal-text); }
+.rating-card .link-btn { align-self: center; color: var(--muted); text-decoration: none; }
+.rating-card .field { text-align: left; }
+
+/* Schulmaterial-Fotos am Ergebnis */
+.sources-card { margin-top: 16px; padding: 16px; border-radius: 20px; background: var(--row-bg); border: 1px solid var(--row-line); display: flex; flex-direction: column; gap: 12px; }
+
+/* Schalter */
+.switch { width: 52px; height: 32px; border-radius: 16px; border: none; background: var(--line); position: relative; flex: none; cursor: pointer; transition: background 0.2s; }
+.switch span { position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.switch.on { background: var(--teal); }
+.switch.on span { transform: translateX(20px); }
+
+/* ---------- Heller Modus ---------- */
+:root[data-theme="light"] {
+  --bg: #f7f6f2;
+  --surface: #ffffff;
+  --surface-2: #ecebe5;
+  --line: #d6d4cc;
+  --fg: #141416;
+  --muted: #5f5e66;
+  --teal: #1fd6ea;
+  --teal-text: #0e6f7b;
+  --row-bg: #ffffff;
+  --row-line: #e3e1da;
+  color-scheme: light;
+}
+:root[data-theme="light"] .eyebrow { color: var(--teal-text); }
+:root[data-theme="light"] .home .eyebrow { color: var(--muted); }
+:root[data-theme="light"] .square { color: var(--fg); }
+:root[data-theme="light"] .pixelstrip .px-test { background: var(--fg); border-color: var(--fg); }
+:root[data-theme="light"] .pill.on { background: rgba(31, 214, 234, 0.2); border-color: var(--teal-text); }
+:root[data-theme="light"] .btn.dark { background: var(--fg); }
+:root[data-theme="light"] .material-row { background: var(--row-bg); border-color: var(--row-line); }
+:root[data-theme="light"] .material-icon { color: var(--teal-text); background: rgba(31, 214, 234, 0.16); }
+:root[data-theme="light"] .material-sub.active { color: var(--teal-text); }
+:root[data-theme="light"] .end-stars { color: var(--line); }
+:root[data-theme="light"] .logo-paper { color: var(--fg); }
+:root[data-theme="light"] .card { box-shadow: 0 1px 2px rgba(20, 20, 22, 0.04); }
