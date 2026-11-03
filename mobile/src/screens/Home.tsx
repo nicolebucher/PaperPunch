@@ -60,11 +60,16 @@ export function Home({
     .slice(0, 4);
   const resumable = shownMaterials.some((m) => m.progress && !m.finished);
 
+  function materialTitle(m: StoredMaterial) {
+    const r = m.result;
+    return r.format === "game" ? r.game.gameTitle : r.format === "podcast" ? r.title : r.data.title;
+  }
+
   function materialStatus(m: StoredMaterial) {
     if (m.finished) return t.matDone;
     const p = m.progress;
     if (p?.kind === "practice") {
-      const total = "tasks" in m.result ? m.result.tasks.length : p.results.length;
+      const total = m.result.format === "worksheet" || m.result.format === "test" ? m.result.data.tasks.length : p.results.length;
       return t.matProgressTasks(Math.min(p.index + 1, total), total);
     }
     if (p?.kind === "game") return t.matProgressLevels(p.stars.filter((x) => x > 0).length + (p.bossDone ? 1 : 0), p.stars.length + 1);
@@ -114,7 +119,7 @@ export function Home({
               <button key={m.id} type="button" className="material-row" onClick={() => onOpenMaterial?.(m)}>
                 <span className="material-icon"><Icon name={m.result.format} size={20} stroke={2.2} /></span>
                 <span className="stack" style={{ gap: 2, minWidth: 0, flex: 1 }}>
-                  <span className="material-title">{m.result.title}</span>
+                  <span className="material-title">{materialTitle(m)}</span>
                   <span className={m.progress && !m.finished ? "material-sub active" : "material-sub"}>
                     {t.formats[m.result.format]} · {materialStatus(m)}
                   </span>
