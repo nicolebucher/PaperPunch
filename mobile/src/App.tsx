@@ -298,12 +298,12 @@ function AppInner() {
           initialMode={view.mode}
           say={say}
           onBack={() => setView({ name: "home" })}
-          onCreate={(format, files, topic, p) => {
+          onCreate={(format, files, topic, p, notes) => {
             if (p.grade !== profile!.grade || p.schoolType !== profile!.schoolType) {
               setProfile(p);
               saveProfile(p);
             }
-            void runGenerate({ format, files, subject: topic || undefined, back: { name: "capture", mode: view.mode } });
+            void runGenerate({ format, files, subject: topic || undefined, notes: notes || undefined, back: { name: "capture", mode: view.mode } });
           }}
         />
       );

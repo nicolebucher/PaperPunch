@@ -16,13 +16,14 @@ export function Capture({
   initialMode: "photo" | "topic";
   say: (msg: string) => void;
   onBack: () => void;
-  onCreate: (format: MaterialFormat, files: File[], topic: string, profile: Profile) => void;
+  onCreate: (format: MaterialFormat, files: File[], topic: string, profile: Profile, notes: string) => void;
 }) {
   const { t, lang } = useT();
   const [mode, setMode] = useState(initialMode);
   const [files, setFiles] = useState<File[]>([]);
   const [sheet, setSheet] = useState(initialMode === "topic");
   const [topic, setTopic] = useState("");
+  const [notes, setNotes] = useState("");
   const [format, setFormat] = useState<MaterialFormat | null>(null);
   const [profile, setProfile] = useState(initialProfile);
   const [flash, setFlash] = useState(false);
@@ -182,13 +183,26 @@ export function Capture({
                 ))}
               </div>
 
+              <label className="field">
+                {t.focusLabel}
+                <textarea
+                  id="capture-notes"
+                  className="input"
+                  style={{ minHeight: 76 }}
+                  value={notes}
+                  maxLength={300}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder={t.focusPlaceholder}
+                />
+              </label>
+
               <ProfileSelects profile={profile} onChange={setProfile} />
 
               <button
                 type="button"
                 className="btn dark block"
                 disabled={!!blocker}
-                onClick={() => format && onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile)}
+                onClick={() => format && onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim())}
               >
                 {blocker || t.create}
               </button>
