@@ -99,7 +99,7 @@ const en = {
   },
   appPromo: {
     badge: "New",
-    title: "PaperPunch is now an Android app",
+    title: "PaperPunch is now available as an Android app",
     text: "Everything from the website – plus study plans for your next test, reminders on study days, a learning game with levels and punches, and all your materials saved on your phone.",
     playCta: "Get it on Google Play",
     soon: "Coming soon to Google Play",
