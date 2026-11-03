@@ -105,6 +105,17 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
+          <h2 className="mb-1 font-semibold text-white">Challenges</h2>
+          <p>
+            If you send a challenge for a learning game, we store the game (questions and answers), the nickname
+            you enter and your share of correct answers under a random six-character code in our hosting
+            provider&apos;s storage (Vercel, Frankfurt). Anyone with the link can open the game and sees the
+            nickname and result. Please use a nickname, not your full name. The entry is deleted after 30 days.
+            Whoever plays a challenge enters a nickname that is only kept in their own browser; their result is
+            not stored on our server unless they send a new challenge themselves.
+          </p>
+        </section>
+        <section>
           <h2 className="mb-1 font-semibold text-white">9. Legal bases</h2>
           <p>
             Creating the material you ask for and running the website and app: Art. 6(1)(b) GDPR (providing the
@@ -241,6 +252,18 @@ function PrivacyDe() {
             Wenn du ein Material bewertest, erhalten wir die Sterne, deinen optionalen Kommentar, Format, Fach,
             Klasse, Land, Sprache und Punktzahl – keinen Namen, keine Fotos. Die App enthält keine Werbung und
             keine Analyse- oder Tracking-Tools.
+          </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">Challenges</h2>
+          <p>
+            Wenn du eine Challenge zu einem Lernspiel verschickst, speichern wir das Spiel (Fragen und Antworten),
+            den Spitznamen, den du eingibst, und deinen Anteil richtiger Antworten unter einem zufälligen
+            sechsstelligen Code im Speicher unseres Hosting-Anbieters (Vercel, Frankfurt). Wer den Link hat, kann
+            das Spiel öffnen und sieht Spitzname und Ergebnis. Bitte nutze einen Spitznamen, nicht deinen vollen
+            Namen. Der Eintrag wird nach 30 Tagen gelöscht. Wer eine Challenge spielt, gibt einen Spitznamen ein,
+            der nur im eigenen Browser bleibt; das Ergebnis wird nicht auf unserem Server gespeichert, außer man
+            verschickt selbst eine neue Challenge.
           </p>
         </section>
         <section>

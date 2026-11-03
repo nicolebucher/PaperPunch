@@ -1,10 +1,12 @@
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
 import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, type IconName } from "../ui";
 import type { GameResult, GenerateResult, MaterialFormat } from "../types";
 import { PdfPages } from "../pdfView";
+import { createChallenge } from "../api";
+import { shareLink } from "../invite";
 import type { SessionRef } from "../App";
 import { RatingCard } from "./RatingCard";
 import { POINTS } from "../punches";
@@ -59,6 +61,7 @@ export function Result({
   onNew,
   rated = true,
   onRate,
+  challengePct,
 }: {
   result: GenerateResult;
   from?: SessionRef;
@@ -72,6 +75,8 @@ export function Result({
   onRate?: (stars: number, text: string) => void;
   /** Werden auf dem Ergebnis-Screen nicht mehr angezeigt; bleiben optional für Aufrufer. */
   sourcesCount?: number;
+  /** Anteil richtiger Antworten (0–100) nach einem fertig gespielten Lernspiel – Ziel für die Challenge. */
+  challengePct?: number;
   /** Früher "Neu mischen" – bewusst entfernt (spart KI-Aufrufe); bleibt optional für Aufrufer. */
   onRegenerate?: (format: MaterialFormat) => void;
   onShareSources?: () => void;
@@ -79,6 +84,15 @@ export function Result({
   const { t, lang } = useT();
   const [showScript, setShowScript] = useState(false);
   const [preview, setPreview] = useState(false);
+  const [challengeOpen, setChallengeOpen] = useState(false);
+  const [nickname, setNickname] = useState(() => {
+    try {
+      return localStorage.getItem("paperpunch-nickname") ?? "";
+    } catch {
+      return "";
+    }
+  });
+  const [challengeBusy, setChallengeBusy] = useState(false);
 
   const isSheet = result.format === "worksheet" || result.format === "test";
   const title = result.format === "game" ? result.game.gameTitle : result.format === "podcast" ? result.title : result.data.title;
@@ -127,11 +141,41 @@ export function Result({
     }
   }
 
+  async function sendChallenge() {
+    if (result.format !== "game" || challengeBusy) return;
+    const name = nickname.trim();
+    try {
+      if (name) localStorage.setItem("paperpunch-nickname", name);
+    } catch {
+      // ignorieren
+    }
+    setChallengeBusy(true);
+    try {
+      const url = await createChallenge(result.game, name, challengePct, lang);
+      const text = challengePct !== undefined ? t.challengeText(challengePct, result.game.gameTitle) : t.challengeTextNoScore(result.game.gameTitle);
+      const outcome = await shareLink(t.challengeTitle, text, url);
+      if (outcome === "copied") say(t.inviteCopied);
+      if (outcome !== "cancelled") setChallengeOpen(false);
+    } catch {
+      say(t.errGeneric);
+    } finally {
+      setChallengeBusy(false);
+    }
+  }
+
   type Opt = { icon: IconName; title: string; sub: string; onClick: () => void; main?: boolean };
   const options: Opt[] = [];
   if (isSheet) options.push({ icon: "play", title: t.optSolve, sub: t.optSolveSub, onClick: onPractice, main: true });
   if (result.format === "game") options.push({ icon: "play", title: t.optPlay, sub: t.optSolveSub, onClick: () => onPlay(result.game), main: true });
   if (isSheet) options.push({ icon: "print", title: t.optPrint, sub: t.optPrintSub, onClick: () => void view() });
+  if (result.format === "game") {
+    options.push({
+      icon: "flag",
+      title: t.challengeOpt,
+      sub: challengePct !== undefined ? t.challengeOptSub(challengePct) : t.challengeOptSubNew,
+      onClick: () => setChallengeOpen((v) => !v),
+    });
+  }
   if (result.format !== "podcast") {
     options.push({ icon: "share", title: t.share, sub: result.format === "game" ? t.optShareGameSub : t.optShareSub, onClick: () => void share() });
   }
@@ -190,7 +234,8 @@ export function Result({
         <div className="result-e-options">
           <span className="result-e-label">{t.howPractice}</span>
           {options.map((o) => (
-            <button key={o.title} type="button" className={o.main ? "result-e-opt main" : "result-e-opt"} onClick={o.onClick}>
+            <Fragment key={o.title}>
+            <button type="button" className={o.main ? "result-e-opt main" : "result-e-opt"} onClick={o.onClick}>
               <span className="result-e-opt-icon"><Icon name={o.icon} size={22} stroke={2} filled={o.icon === "play"} /></span>
               <span className="result-e-opt-text">
                 <span className="result-e-opt-title">{o.title}</span>
@@ -198,6 +243,17 @@ export function Result({
               </span>
               <Icon name="chevron" size={18} stroke={2.6} />
             </button>
+          {o.icon === "flag" && challengeOpen && result.format === "game" && (
+            <div className="result-e-challenge">
+              <span className="result-e-label">{t.nickname}</span>
+              <input className="input set" value={nickname} maxLength={20} placeholder={t.nicknamePh} onChange={(e) => setNickname(e.target.value)} />
+              <button type="button" className="btn primary block" disabled={challengeBusy} onClick={() => void sendChallenge()}>
+                <Icon name="share" size={20} /> {challengeBusy ? t.challengeBusy : t.challengeSend}
+              </button>
+              <span className="result-e-opt-sub">{t.challengeHint}</span>
+            </div>
+          )}
+            </Fragment>
           ))}
         </div>
       )}

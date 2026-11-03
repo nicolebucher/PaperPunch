@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.4.0 – 3 November 2026
+
+Challenges: play a learning game against friends via a link, without an account.
+
+| Area | Change |
+| --- | --- |
+| App | Result screen of a learning game: “Challenge friends” – enter a nickname and share a link (WhatsApp etc.); after finishing the game, your share of correct answers is the score to beat |
+| Website | New challenge page paper-punch.com/c/CODE: friends enter a nickname, play all levels in the browser, then see who won and can challenge back; link preview “Lena challenges you ⚔️” |
+| Website · Tech | New endpoint /api/challenges; challenges (game, nickname, score) are stored in the Vercel Blob store in Frankfurt and deleted after 30 days |
+| Website | Privacy policy: new “Challenges” section |
+
 ## v0.3.1 – 3 November 2026
 
 Logo visible in light mode, real PDF preview, clearer upload, new level names.

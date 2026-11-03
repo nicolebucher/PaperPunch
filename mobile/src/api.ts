@@ -1,4 +1,4 @@
-import type { GenerateResult, MaterialFormat, PlanGoal, Profile, QuizOutcome, StudyPlan } from "./types";
+import type { GameResult, GenerateResult, MaterialFormat, PlanGoal, Profile, QuizOutcome, StudyPlan } from "./types";
 import { daysBetween, todayISO } from "./dates";
 import { answerMatches } from "./answerMatch";
 
@@ -216,4 +216,20 @@ export async function sendRating(r: {
   } catch {
     // offline: Bewertung geht verloren, das ist okay
   }
+}
+
+/** Challenge anlegen: Spiel + Spitzname + Anteil richtiger Antworten → Link paper-punch.com/c/CODE. */
+export async function createChallenge(game: GameResult["game"], name: string, pct: number | undefined, lang: string): Promise<string> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/challenges`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ game, name, pct, lang: lang === "en" ? "en" : "de" }),
+    });
+  } catch {
+    throw new ApiError("network", true);
+  }
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`);
+  return ((await res.json()) as { url: string }).url;
 }

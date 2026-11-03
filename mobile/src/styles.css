@@ -900,3 +900,4 @@ h1 .beta { position: relative; top: -3px; }
 .shutter-label { font-size: 12px; font-weight: 800; color: var(--muted); }
 .upload-limits { margin: 0 0 calc(18px + env(safe-area-inset-bottom, 0px)); text-align: center; font-size: 12px; font-weight: 600; color: var(--muted); }
 .hint { color: #ffffff; }
+.result-e-challenge { display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 22px; background: var(--row-bg); box-shadow: 0 0 0 1px var(--row-line); }

@@ -384,6 +384,11 @@ function AppInner() {
           rated={!view.materialId || !!materialById(view.materialId)?.rating || !materialById(view.materialId)}
           onRate={(stars, text) => rate(view.materialId, view.result, stars, text)}
           sourcesCount={materialById(view.materialId)?.sources?.length ?? 0}
+          challengePct={(() => {
+            const m = materialById(view.materialId);
+            const e = m?.finished && m.progress?.kind === "game" ? m.progress.earned : undefined;
+            return e && e.total > 0 ? Math.round((e.correct / e.total) * 100) : undefined;
+          })()}
           onShareSources={() => void shareSources(view.materialId)}
           onRegenerate={(format) => {
             const m = materialById(view.materialId);

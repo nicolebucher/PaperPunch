@@ -64,3 +64,21 @@ export async function shareInvite(title: string, text: string): Promise<InviteOu
   }
   return outcome;
 }
+
+/** Einen fertigen Link mit Text teilen (z. B. eine Challenge). */
+export async function shareLink(title: string, text: string, url: string): Promise<InviteOutcome> {
+  try {
+    if (Capacitor.isNativePlatform()) {
+      await Share.share({ title, text, url, dialogTitle: title });
+      return "shared";
+    }
+    if (navigator.share) {
+      await navigator.share({ title, text, url });
+      return "shared";
+    }
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    return "copied";
+  } catch {
+    return "cancelled";
+  }
+}
