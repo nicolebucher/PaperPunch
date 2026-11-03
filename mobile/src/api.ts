@@ -40,20 +40,66 @@ function profileFields(body: FormData, profile: Profile) {
   body.set("grade", String(profile.grade));
 }
 
+export interface PendingJob {
+  jobId: string;
+  format: MaterialFormat;
+  startedAt: number;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Wartet auf einen Hintergrund-Job der Website. Läuft weiter, wenn die App pausiert war (Handy gesperrt):
+ * Timer stehen dann still, beim Zurückkommen wird sofort weiter abgefragt.
+ */
+export async function waitForJob(jobId: string, format: MaterialFormat, maxMinutes = 10): Promise<GenerateResult> {
+  const deadline = Date.now() + maxMinutes * 60_000;
+  let failures = 0;
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch(`${API_BASE}/api/jobs/${jobId}`, { cache: "no-store" });
+      const json = (await res.json()) as { status: string; result?: Record<string, unknown>; error?: string };
+      failures = 0;
+      if (json.status === "done" && json.result) {
+        void fetch(`${API_BASE}/api/jobs/${jobId}`, { method: "DELETE" }).catch(() => undefined);
+        return { format, ...json.result } as GenerateResult;
+      }
+      if (json.status === "error") throw new ApiError(json.error || "error");
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      // kurz offline (z. B. direkt nach dem Entsperren) – weiter versuchen
+      if (++failures > 20) throw new ApiError("network", true);
+    }
+    await sleep(3000);
+  }
+  throw new ApiError("timeout");
+}
+
+/**
+ * Erstellt Material als Hintergrund-Job: Die Website antwortet sofort mit einer Job-ID und arbeitet weiter,
+ * auch wenn das Handy gesperrt oder die App geschlossen wird. onJob speichert die ID, damit die App das
+ * Ergebnis nach einem Neustart abholen kann. Antwortet der Server direkt mit dem Ergebnis, wird es übernommen.
+ */
 export async function generateMaterial(opts: {
   profile: Profile;
   format: MaterialFormat;
   files: File[];
   subject?: string;
   notes?: string;
+  onJob?: (job: PendingJob) => void;
 }): Promise<GenerateResult> {
   const body = new FormData();
   profileFields(body, opts.profile);
   body.set("format", opts.format);
+  body.set("async", "1");
   if (opts.subject) body.set("subject", opts.subject.slice(0, 60));
   if (opts.notes) body.set("notes", opts.notes.slice(0, 300));
   opts.files.forEach((f) => body.append("file", f, f.name));
   const json = await post<Record<string, unknown>>("/api/generate", body);
+  if (typeof json.jobId === "string") {
+    opts.onJob?.({ jobId: json.jobId, format: opts.format, startedAt: Date.now() });
+    return waitForJob(json.jobId, opts.format);
+  }
   return { format: opts.format, ...json } as GenerateResult;
 }
 

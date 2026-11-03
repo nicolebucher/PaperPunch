@@ -7,6 +7,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.2.3 – 3 November 2026
+
+Fix: material creation no longer breaks when the phone locks.
+
+| Area | Change |
+| --- | --- |
+| Website & App | Material is created as a background job on the server: the app gets a job number right away and checks every few seconds; locking the phone or closing the app no longer cancels it. When the app is reopened, it picks up the finished material (results are held up to 24 h in a Vercel Blob store in Frankfurt, then deleted) |
+| Website | Privacy policy: new “Android app” section (no account, data stays on the phone, camera, reminders, background jobs, ratings, no ads/analytics in the app) |
+
 ## v0.2.2 – 3 November 2026
 
 Fix: uploading many photos at once.

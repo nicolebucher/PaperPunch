@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
-import { clearPlanFiles, deleteMaterial, fromStoredFiles, listMaterials, toStoredFiles, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
-import { adjustPlan, ApiError, generateMaterial, sendRating } from "./api";
+import { clearPendingJob, clearPlanFiles, deleteMaterial, loadPendingJob, PENDING_FILES_KEY, savePendingJob, savePlanFiles, fromStoredFiles, listMaterials, toStoredFiles, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
+import { adjustPlan, ApiError, generateMaterial, sendRating, waitForJob } from "./api";
 import { shareFiles } from "./platform";
 import { inviteShares, shareInvite } from "./invite";
 import { loadReminderSettings, requestReminderPermission, rescheduleReminders, saveReminderSettings } from "./reminders";
@@ -176,33 +176,77 @@ function AppInner() {
     return t.errGeneric;
   }
 
-  async function runGenerate(opts: { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View }) {
+  type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View };
+
+  /** Fertiges Ergebnis übernehmen: Zwischentest direkt starten, sonst speichern und anzeigen. */
+  async function finishGeneration(result: GenerateResult, opts: GenOpts) {
+    if (result.format === "game" && opts.from?.session.kind === "checkpoint") {
+      setView({ name: "quiz", game: result.game, from: opts.from });
+      return;
+    }
+    const materialId = newPlanId();
+    const now = Date.now();
+    await saveMaterial({
+      id: materialId,
+      createdAt: now,
+      updatedAt: now,
+      result,
+      from: opts.from,
+      sources: opts.files.length ? toStoredFiles(opts.files) : undefined,
+      subject: opts.subject,
+      notes: opts.notes,
+    });
+    setView({ name: "result", result, from: opts.from, materialId });
+  }
+
+  async function runGenerate(opts: GenOpts) {
     if (!profile) return;
     setView({ name: "working", format: opts.format, fileCount: opts.files.length });
     try {
-      const result = await generateMaterial({ profile, ...opts });
-      if (result.format === "game" && opts.from?.session.kind === "checkpoint") {
-        setView({ name: "quiz", game: result.game, from: opts.from });
-      } else {
-        const materialId = newPlanId();
-        const now = Date.now();
-        await saveMaterial({
-          id: materialId,
-          createdAt: now,
-          updatedAt: now,
-          result,
-          from: opts.from,
-          sources: opts.files.length ? toStoredFiles(opts.files) : undefined,
-          subject: opts.subject,
-          notes: opts.notes,
-        });
-        setView({ name: "result", result, from: opts.from, materialId });
-      }
+      const result = await generateMaterial({
+        profile,
+        ...opts,
+        // Job merken (samt Fotos), damit das Ergebnis auch nach Sperren/Schließen der App ankommt
+        onJob: (job) => {
+          savePendingJob({ ...job, subject: opts.subject, notes: opts.notes, from: opts.from, fileCount: opts.files.length });
+          void savePlanFiles(PENDING_FILES_KEY, opts.files);
+        },
+      });
+      clearPendingJob();
+      await finishGeneration(result, opts);
     } catch (error) {
+      clearPendingJob();
       say(errorText(error));
       setView(opts.back);
     }
   }
+
+  // Beim Start: lief noch eine Erstellung (App war gesperrt oder geschlossen)? Dann Ergebnis abholen.
+  const resumed = useRef(false);
+  useEffect(() => {
+    if (resumed.current || !profile) return;
+    resumed.current = true;
+    const pending = loadPendingJob();
+    if (!pending) return;
+    if (Date.now() - pending.startedAt > 30 * 60_000) {
+      clearPendingJob();
+      return;
+    }
+    setView({ name: "working", format: pending.format, fileCount: pending.fileCount });
+    void (async () => {
+      const files = await loadPlanFiles(PENDING_FILES_KEY);
+      const opts: GenOpts = { format: pending.format, files, subject: pending.subject, notes: pending.notes, from: pending.from, back: { name: "home" } };
+      try {
+        const result = await waitForJob(pending.jobId, pending.format);
+        clearPendingJob();
+        await finishGeneration(result, opts);
+      } catch (error) {
+        clearPendingJob();
+        say(errorText(error));
+        setView({ name: "home" });
+      }
+    })();
+  }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function markDone(planId: string, sessionId: string, outcome?: QuizOutcome) {
     updatePlan(planId, (plan) => ({

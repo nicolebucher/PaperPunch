@@ -86,6 +86,21 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
+          <h2 className="mb-1 font-semibold text-white">Android app</h2>
+          <p>
+            The PaperPunch Android app works without an account. Your profile (language, country, school type,
+            grade, appearance), study plans, punches, your last 20 study materials and the photos/PDFs you used
+            for them are stored only on your phone and are deleted when you uninstall the app. The app uses the
+            camera only when you take a photo of your study material, and local notifications only for study
+            plan reminders you switch on. To create material, your photos/PDFs and profile details are sent to
+            our server and the AI provider as described in sections 2–4; while a material is being created, the
+            finished result is held in our hosting provider&apos;s storage (Vercel, EU/US) for at most 24 hours
+            until your app has fetched it, and then deleted. If you rate a material, we receive the stars, your
+            optional comment, the format, subject, grade, country, language and score – no name, no photos. The
+            app contains no ads and no analytics or tracking tools.
+          </p>
+        </section>
+        <section>
           <h2 className="mb-1 font-semibold text-white">9. Minors</h2>
           <p>
             This service may be used by students who are minors. If you are under the age of legal majority in
@@ -190,6 +205,22 @@ function PrivacyDe() {
             Rechtsgrundlage ist deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO, § 25 Abs. 1 TDDDG). Du kannst
             sie jederzeit über „Cookie-Einstellungen“ unten auf jeder Seite widerrufen. Eine Übermittlung in die
             USA ist auf Grundlage des EU-US Data Privacy Framework möglich. Werbe-Cookies verwenden wir nicht.
+          </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">Android-App</h2>
+          <p>
+            Die PaperPunch-App für Android funktioniert ohne Konto. Dein Profil (Sprache, Land, Schulart, Klasse,
+            Darstellung), Lernpläne, Punches, deine letzten 20 Lernmaterialien und die dafür verwendeten
+            Fotos/PDFs werden nur auf deinem Handy gespeichert und beim Deinstallieren der App gelöscht. Die App
+            nutzt die Kamera nur, wenn du deinen Lernstoff fotografierst, und lokale Benachrichtigungen nur für
+            Lernplan-Erinnerungen, die du selbst einschaltest. Zum Erstellen von Material werden deine Fotos/PDFs
+            und Profilangaben wie in Abschnitt 2–4 beschrieben an unseren Server und den KI-Anbieter übermittelt;
+            während ein Material erstellt wird, liegt das fertige Ergebnis höchstens 24 Stunden im Speicher
+            unseres Hosting-Anbieters (Vercel, EU/USA), bis deine App es abgeholt hat, und wird dann gelöscht.
+            Wenn du ein Material bewertest, erhalten wir die Sterne, deinen optionalen Kommentar, Format, Fach,
+            Klasse, Land, Sprache und Punktzahl – keinen Namen, keine Fotos. Die App enthält keine Werbung und
+            keine Analyse- oder Tracking-Tools.
           </p>
         </section>
         <section>

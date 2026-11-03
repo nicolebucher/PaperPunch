@@ -197,3 +197,31 @@ export async function deleteMaterial(id: string): Promise<void> {
     // ignorieren
   }
 }
+
+
+// ---------- Laufende Erstellung (Hintergrund-Job) ----------
+// Damit ein Lernspiel auch fertig wird, wenn das Handy gesperrt oder die App geschlossen wird.
+
+export interface StoredPendingJob {
+  jobId: string;
+  format: import("./types").MaterialFormat;
+  startedAt: number;
+  subject?: string;
+  notes?: string;
+  from?: { planId: string; session: StoredSession };
+  fileCount: number;
+}
+
+const PENDING_KEY = "paperpunch-pending-job";
+export const PENDING_FILES_KEY = "pending-job";
+
+export const loadPendingJob = () => read<StoredPendingJob>(PENDING_KEY);
+export const savePendingJob = (job: StoredPendingJob) => write(PENDING_KEY, job);
+export function clearPendingJob() {
+  try {
+    localStorage.removeItem(PENDING_KEY);
+  } catch {
+    // ignorieren
+  }
+  void clearPlanFiles(PENDING_FILES_KEY);
+}

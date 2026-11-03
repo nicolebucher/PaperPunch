@@ -1,4 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import { cleanupOldJobs, jobsEnabled, saveJob } from "@/lib/jobs";
 import { z } from "zod";
 import { track } from "@vercel/analytics/server";
 import { profileSchema, outputFormats, spellingItemSchema, type OutputFormat } from "@/types/generation";
@@ -96,68 +98,93 @@ async function handleGenerate(request: NextRequest) {
     return NextResponse.json({ error: messages.missingTopic }, { status: 400 });
   }
 
-  try {
-    const fileBlocks = await filesToClaudeBlocks(files);
+  const run = async (): Promise<NextResponse> => {
+    try {
+      const fileBlocks = await filesToClaudeBlocks(files);
 
-    if (format === "worksheet") {
-      const data = await generateWorksheet(profile, fileBlocks, locale);
-      const pdf = await renderWorksheetPdf(data, profile);
-      const filename = `${slugify(data.title)}.pdf`;
-      await track("Material generated", { format });
-      return NextResponse.json({ data, filename, pdfBase64: Buffer.from(pdf).toString("base64") });
+      if (format === "worksheet") {
+        const data = await generateWorksheet(profile, fileBlocks, locale);
+        const pdf = await renderWorksheetPdf(data, profile);
+        const filename = `${slugify(data.title)}.pdf`;
+        await track("Material generated", { format });
+        return NextResponse.json({ data, filename, pdfBase64: Buffer.from(pdf).toString("base64") });
+      }
+
+      if (format === "test") {
+        const data = await generateTest(profile, fileBlocks, locale);
+        const pdf = await renderTestPdf(data, profile);
+        const filename = `${slugify(data.title)}.pdf`;
+        await track("Material generated", { format });
+        return NextResponse.json({ data, filename, pdfBase64: Buffer.from(pdf).toString("base64") });
+      }
+
+      if (format === "game") {
+        const game = await generateGameLevels(profile, fileBlocks, locale);
+        await track("Material generated", { format });
+        return NextResponse.json({ game });
+      }
+
+      if (format === "podcast") {
+        const podcast = await generatePodcastScript(profile, fileBlocks, locale);
+        const audio = await synthesizeSpeech(podcast.script);
+        const filename = `${slugify(podcast.title)}.mp3`;
+        await track("Material generated", { format });
+        return NextResponse.json({
+          title: podcast.title,
+          script: podcast.script,
+          filename,
+          audioBase64: Buffer.from(audio).toString("base64"),
+        });
+      }
+
+      // "spelling" has two phases. Nothing is persisted between them, so the client resends the
+      // same files plus - for the follow-up - the diagnostic items the student got wrong.
+      if (formData.get("phase") === "followup") {
+        let missedItems;
+        try {
+          missedItems = z.array(spellingItemSchema).parse(JSON.parse(String(formData.get("missed") ?? "[]")));
+        } catch {
+          return NextResponse.json({ error: messages.invalidRequest }, { status: 400 });
+        }
+        if (missedItems.length === 0) {
+          return NextResponse.json({ error: messages.invalidRequest }, { status: 400 });
+        }
+        const data = await generateSpellingFollowup(profile, fileBlocks, locale, missedItems);
+        const pdf = await renderWorksheetPdf(data, profile);
+        const filename = `${slugify(data.title)}.pdf`;
+        await track("Material generated", { format: "spelling-followup" });
+        return NextResponse.json({ data, filename, pdfBase64: Buffer.from(pdf).toString("base64") });
+      }
+
+      const diagnostic = await generateSpellingDiagnostic(profile, fileBlocks, locale);
+      await track("Material generated", { format: "spelling-diagnostic" });
+      return NextResponse.json({ diagnostic });
+    } catch (error) {
+      console.error("Generation failed:", error instanceof Error ? error.message : error);
+      return NextResponse.json({ error: messages.generationFailed }, { status: 500 });
     }
+  };
 
-    if (format === "test") {
-      const data = await generateTest(profile, fileBlocks, locale);
-      const pdf = await renderTestPdf(data, profile);
-      const filename = `${slugify(data.title)}.pdf`;
-      await track("Material generated", { format });
-      return NextResponse.json({ data, filename, pdfBase64: Buffer.from(pdf).toString("base64") });
-    }
-
-    if (format === "game") {
-      const game = await generateGameLevels(profile, fileBlocks, locale);
-      await track("Material generated", { format });
-      return NextResponse.json({ game });
-    }
-
-    if (format === "podcast") {
-      const podcast = await generatePodcastScript(profile, fileBlocks, locale);
-      const audio = await synthesizeSpeech(podcast.script);
-      const filename = `${slugify(podcast.title)}.mp3`;
-      await track("Material generated", { format });
-      return NextResponse.json({
-        title: podcast.title,
-        script: podcast.script,
-        filename,
-        audioBase64: Buffer.from(audio).toString("base64"),
-      });
-    }
-
-    // "spelling" has two phases. Nothing is persisted between them, so the client resends the
-    // same files plus - for the follow-up - the diagnostic items the student got wrong.
-    if (formData.get("phase") === "followup") {
-      let missedItems;
+  // Hintergrund-Modus (App): sofort eine Job-ID zurückgeben und weiterarbeiten, auch wenn das Handy
+  // gesperrt wird. Das Ergebnis holt die App über /api/jobs/<id> ab.
+  if (formData.get("async") === "1" && jobsEnabled()) {
+    const jobId = randomUUID();
+    after(async () => {
+      await cleanupOldJobs();
       try {
-        missedItems = z.array(spellingItemSchema).parse(JSON.parse(String(formData.get("missed") ?? "[]")));
-      } catch {
-        return NextResponse.json({ error: messages.invalidRequest }, { status: 400 });
+        const res = await run();
+        const body = (await res.json()) as Record<string, unknown>;
+        await saveJob(
+          jobId,
+          res.ok ? { status: "done", result: body } : { status: "error", error: String(body.error ?? messages.generationFailed) }
+        );
+      } catch (error) {
+        console.error("[jobs] generation failed:", error instanceof Error ? error.message : error);
+        await saveJob(jobId, { status: "error", error: messages.generationFailed }).catch(() => undefined);
       }
-      if (missedItems.length === 0) {
-        return NextResponse.json({ error: messages.invalidRequest }, { status: 400 });
-      }
-      const data = await generateSpellingFollowup(profile, fileBlocks, locale, missedItems);
-      const pdf = await renderWorksheetPdf(data, profile);
-      const filename = `${slugify(data.title)}.pdf`;
-      await track("Material generated", { format: "spelling-followup" });
-      return NextResponse.json({ data, filename, pdfBase64: Buffer.from(pdf).toString("base64") });
-    }
-
-    const diagnostic = await generateSpellingDiagnostic(profile, fileBlocks, locale);
-    await track("Material generated", { format: "spelling-diagnostic" });
-    return NextResponse.json({ diagnostic });
-  } catch (error) {
-    console.error("Generation failed:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: messages.generationFailed }, { status: 500 });
+    });
+    return NextResponse.json({ jobId }, { status: 202 });
   }
+
+  return run();
 }
