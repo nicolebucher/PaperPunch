@@ -101,7 +101,7 @@ export function GameShell({ game }: { game: GameData }) {
 
       {allDone && <ResultScreen levels={sortedLevels} results={results} />}
 
-      <ol className="mx-auto flex max-w-md flex-col gap-3">
+      <ol className="mx-auto flex max-w-md flex-col">
         {tiles.map((level, i) => {
           const isMixed = level.id === -1;
           const result = results[level.id];
@@ -131,6 +131,10 @@ export function GameShell({ game }: { game: GameData }) {
                   </span>
                 </span>
               </button>
+              {/* Weg zum nächsten Level, wie auf der Level-Karte der App */}
+              {i < tiles.length - 1 && (
+                <span aria-hidden="true" className="ml-[45px] block h-6 w-0 border-l-[3px] border-dashed border-zinc-600" />
+              )}
             </li>
           );
         })}
