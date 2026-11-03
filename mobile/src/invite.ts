@@ -5,7 +5,6 @@ import { Share } from "@capacitor/share";
 // wie oft geteilt wurde; später kann der Server über ?ref=CODE echte Anmeldungen zuordnen (Growth-Motor).
 
 const KEY = "paperpunch-invite";
-// Sobald paper-punch.com live ist, hier umstellen.
 export const INVITE_BASE = "https://paper-punch.com";
 
 interface InviteState {
