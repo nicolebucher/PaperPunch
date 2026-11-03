@@ -8,12 +8,14 @@ import type { MaterialFormat, Profile } from "../types";
 export function Capture({
   profile: initialProfile,
   initialMode,
+  initialTopic,
   say,
   onBack,
   onCreate,
 }: {
   profile: Profile;
   initialMode: "photo" | "topic";
+  initialTopic?: string;
   say: (msg: string) => void;
   onBack: () => void;
   onCreate: (format: MaterialFormat, files: File[], topic: string, profile: Profile, notes: string) => void;
@@ -22,7 +24,7 @@ export function Capture({
   const [mode, setMode] = useState(initialMode);
   const [files, setFiles] = useState<File[]>([]);
   const [sheet, setSheet] = useState(initialMode === "topic");
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(initialTopic ?? "");
   const [notes, setNotes] = useState("");
   const [format, setFormat] = useState<MaterialFormat | null>(null);
   const [profile, setProfile] = useState(initialProfile);

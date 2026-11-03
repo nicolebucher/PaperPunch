@@ -34,7 +34,7 @@ type View =
   | { name: "onboarding" }
   | { name: "settings" }
   | { name: "home" }
-  | { name: "capture"; mode: "photo" | "topic" }
+  | { name: "capture"; mode: "photo" | "topic"; topic?: string }
   | { name: "working"; format: MaterialFormat | "plan" | "adjust"; fileCount: number }
   | { name: "result"; result: GenerateResult; from?: SessionRef; materialId?: string }
   | { name: "quiz"; game: GameResult["game"]; from?: SessionRef; result?: GenerateResult; materialId?: string }
@@ -330,6 +330,7 @@ function AppInner() {
           materials={materials}
           onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
+          onTopic={(topic) => setView({ name: "capture", mode: "topic", topic })}
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
@@ -344,6 +345,7 @@ function AppInner() {
         <Capture
           profile={profile!}
           initialMode={view.mode}
+          initialTopic={view.topic}
           say={say}
           onBack={() => setView({ name: "home" })}
           onCreate={(format, files, topic, p, notes) => {
@@ -519,6 +521,7 @@ function AppInner() {
           materials={materials}
           onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
           onQuick={() => setView({ name: "capture", mode: "photo" })}
+          onTopic={(topic) => setView({ name: "capture", mode: "topic", topic })}
           onOpenPlan={(planId) => setView({ name: "plan", planId })}
           onNewPlan={() => setView({ name: "planSetup" })}
           onSettings={() => setView({ name: "settings" })}
