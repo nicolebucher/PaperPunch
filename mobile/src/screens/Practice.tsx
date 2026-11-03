@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useT } from "../i18n";
+import { MathText } from "../math";
 import { Icon } from "../ui";
 import type { QuizOutcome, Task } from "../types";
 import { POINTS, type RewardLine } from "../punches";
@@ -191,7 +192,7 @@ export function Practice({
           <span style={{ fontSize: 15, fontWeight: 800, color: "var(--teal-dark)" }}>
             {t.taskLabel(task.number)} · {title}
           </span>
-          <h1 style={{ fontSize: 24, lineHeight: 1.3 }}>{task.question.replace("___", "______")}</h1>
+          <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={task.question.replace("___", "______")} /></h1>
         </div>
 
         {(task.type === "multiple-choice" || task.type === "unterstreichen") && task.options ? (
@@ -201,7 +202,7 @@ export function Practice({
               const cls = answered && normalize(opt) === normalize(task.answer) ? "option right" : tried || (answered && picked === opt) ? "option wrong" : "option";
               return (
                 <button key={opt} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => void submitAnswer(opt)} disabled={answered || tried}>
-                  {opt}
+                  <MathText text={opt} />
                 </button>
               );
             })}
@@ -235,7 +236,7 @@ export function Practice({
             </label>
             {!answered && !revealed && (
               <button type="submit" className="btn dark block" disabled={(auto && !typed.trim()) || status === "checking"}>
-                {status === "checking" ? t.checking : typed.trim() ? (status === "retry" ? t.checkAgain : t.check) : t.showSolution}
+                {status === "checking" ? t.checking : !typed.trim() && !auto ? t.showSolution : status === "retry" ? t.checkAgain : t.check}
               </button>
             )}
           </form>
@@ -245,8 +246,12 @@ export function Practice({
           <div className="feedback retry" role="status">
             <span style={{ fontSize: 18, fontWeight: 900 }}>{t.tryAgain2}</span>
             {hint && <span>{hint}</span>}
-            <button type="button" className="link-btn" onClick={giveUp}>{t.giveUp}</button>
           </div>
+        )}
+
+        {/* Immer gleich: wer nicht weiterweiß, kann jederzeit die Lösung ansehen (auch vor dem ersten Versuch). */}
+        {auto && !answered && !revealed && status !== "checking" && (
+          <button type="button" className="btn ghost block giveup-btn" onClick={giveUp}>{t.dontKnow}</button>
         )}
 
         {task.type === "zuordnen" && !revealed && (

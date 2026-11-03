@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useT } from "../i18n";
+import { MathText } from "../math";
 import { Icon } from "../ui";
 import { PIXEL_COLORS } from "../brand";
 import { PunchIcon } from "../rewards";
@@ -386,7 +387,7 @@ function LevelPlay({
         </div>
 
         <div className={`qcard ${fx?.kind === "wrong" ? "shake" : ""}`} key={`q${replay ? "r" : ""}${index}-${fx?.id ?? 0}`}>
-          <h1 style={{ fontSize: 24, lineHeight: 1.3 }}>{q.type === "lueckentext" ? q.prompt.replace("___", "______") : q.prompt}</h1>
+          <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={q.type === "lueckentext" ? q.prompt.replace("___", "______") : q.prompt} /></h1>
           {fx?.kind === "right" && (
             <>
               <span className="gain">+{fx.gain}</span>
@@ -405,7 +406,7 @@ function LevelPlay({
               const cls = answered && opt === answer ? "option right" : tried ? "option wrong" : "option";
               return (
                 <button key={opt} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => void submit(opt)} disabled={answered || tried}>
-                  {opt}
+                  <MathText text={opt} />
                 </button>
               );
             })}
@@ -428,8 +429,12 @@ function LevelPlay({
           <div className="feedback retry" role="status">
             <span style={{ fontSize: 18, fontWeight: 900 }}>{t.tryAgain2}</span>
             {hint && <span>{hint}</span>}
-            <button type="button" className="link-btn" onClick={reveal}>{t.giveUp}</button>
           </div>
+        )}
+
+        {/* Immer gleich: wer nicht weiterweiß, kann jederzeit die Lösung ansehen (zählt 0 Punkte, kommt in der Nachschlag-Runde wieder). */}
+        {!answered && status !== "checking" && (
+          <button type="button" className="btn ghost block giveup-btn" onClick={reveal}>{t.dontKnow}</button>
         )}
 
         {canJoker && (

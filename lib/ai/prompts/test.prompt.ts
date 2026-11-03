@@ -1,6 +1,6 @@
 import { describeProfile, type Profile } from "@/types/generation";
 import type { Locale } from "@/lib/i18n/translations";
-import { contentBasis, contentLanguage, levelSource, titleRule } from "./material-source";
+import { contentBasis, contentLanguage, levelSource, MATH_RULE, titleRule } from "./material-source";
 
 export function buildTestSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean): string {
   return `You are an experienced teacher creating a test (exam) for a student to prepare for a real classroom test.
@@ -48,6 +48,8 @@ a slightly-off difficulty level:
   "correct"
 
 ${titleRule("title")}
+
+${MATH_RULE}
 
 ${contentLanguage(hasMaterial, locale, "title, introduction, questions, answers")}
 

@@ -6,6 +6,7 @@ export type Lang = "de" | "en";
 const de = {
   tryAgain2: "Nicht ganz – versuch's nochmal!",
   giveUp: "Lösung zeigen",
+  dontKnow: "Weiß ich nicht – Lösung zeigen",
   checkAgain: "Nochmal prüfen",
   checking: "Prüfe …",
   levelAria: (n: number, p: number) => `Level ${n}, ${p} Punches`,
@@ -363,6 +364,7 @@ const de = {
 const en: typeof de = {
   tryAgain2: "Not quite – try again!",
   giveUp: "Show answer",
+  dontKnow: "I don't know – show answer",
   checkAgain: "Check again",
   checking: "Checking …",
   levelAria: (n: number, p: number) => `Level ${n}, ${p} punches`,

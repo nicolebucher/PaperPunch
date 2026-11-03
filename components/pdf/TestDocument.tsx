@@ -1,9 +1,9 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { MathText, PdfBrand } from "./PdfParts";
 import { formatProfileMeta, type Profile, type Task, type WorksheetData } from "@/types/generation";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 11, fontFamily: "Helvetica" },
-  brand: { marginBottom: 10, fontSize: 13, fontFamily: "Helvetica-BoldOblique", color: "#0e9fb1" },
   header: { marginBottom: 16 },
   title: { fontSize: 18, fontWeight: 700, marginBottom: 4 },
   meta: { fontSize: 10, color: "#666666" },
@@ -30,9 +30,9 @@ function TaskBody({ task }: { task: Task }) {
     return (
       <>
         {task.options?.map((option, i) => (
-          <Text key={i} style={styles.option}>
-            {String.fromCharCode(65 + i)}) {option}
-          </Text>
+          <MathText key={i} style={styles.option} prefix={`${String.fromCharCode(65 + i)}) `}>
+            {option}
+          </MathText>
         ))}
       </>
     );
@@ -90,7 +90,7 @@ export function TestDocument({ data, profile }: { data: WorksheetData; profile: 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.brand}>PaperPunch</Text>
+        <PdfBrand />
         <View style={styles.header}>
           <Text style={styles.title}>{data.title}</Text>
           <Text style={styles.meta}>{[meta, `${totalPoints} ${labels.totalPoints}`].filter(Boolean).join(" · ")}</Text>
@@ -109,24 +109,19 @@ export function TestDocument({ data, profile }: { data: WorksheetData; profile: 
                 {task.points} {labels.points}
               </Text>
             </View>
-            <Text>{task.question}</Text>
+            <MathText>{task.question}</MathText>
             <TaskBody task={task} />
           </View>
         ))}
       </Page>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.brand}>PaperPunch</Text>
+        <PdfBrand />
         <Text style={styles.solutionsTitle}>
           {labels.solutions} — {data.title}
         </Text>
         {data.tasks.map((task) => (
           <View key={task.number} style={styles.solutionRow}>
-            <Text>
-              <Text style={{ fontWeight: 700 }}>
-                {labels.task} {task.number}:{" "}
-              </Text>
-              {task.answer}
-            </Text>
+            <MathText prefix={<Text style={{ fontWeight: 700 }}>{`${labels.task} ${task.number}: `}</Text>}>{task.answer}</MathText>
           </View>
         ))}
       </Page>

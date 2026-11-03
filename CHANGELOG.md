@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.5.1 – 3 November 2026
+
+Fractions like in school, real logo on the PDF, consistent “show answer”.
+
+| Area | Change |
+| --- | --- |
+| Website & App | Fractions are shown like in school, numerator above denominator (3/4, 12/18, mixed numbers like 2 1/2) – in worksheet and test PDFs (tasks, options, solutions), in practice and in the learning game |
+| Website · AI | Prompts ask for one fraction notation (3/4, 2 1/2; no ½, no LaTeX) and school symbols (× and : or ÷) so the display works reliably |
+| Website | Worksheet and test PDFs show the real logo (book with colourful pixels) plus the PaperPunch wordmark at the top instead of text only |
+| App | “Show answer” works the same everywhere: a clear button “I don't know – show answer” under every question, from the start; before, it was sometimes only a small link after the first mistake and sometimes a disabled button |
+
 ## v0.5.0 – 3 November 2026
 
 Bonus round in the learning game.

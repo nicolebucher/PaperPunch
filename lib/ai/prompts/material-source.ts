@@ -61,3 +61,9 @@ content. 2-6 words, at most 40 characters, e.g. "Brüche kürzen und erweitern",
 "Photosynthese-Profi", "Fraction Adventure", "Quiz Master"), no format words (worksheet, test, quiz,
 game, Arbeitsblatt, Lernspiel), no grade or school type, no emojis.`;
 }
+
+/** Mathe-Schreibweise, damit App und PDF Brüche wie in der Schule (untereinander) darstellen können. */
+export const MATH_RULE = `Math notation: write every fraction as numerator/denominator with digits and a slash, e.g. 3/4,
+12/18, and mixed numbers as "2 1/2". Never use Unicode fraction characters (½, ¾), LaTeX, "\\frac" or words
+like "drei Viertel" in place of a fraction. Use × for multiplication and : or ÷ for division as taught in
+school, never "*". Write units after a space (5 km/h, 3 cm).`;
