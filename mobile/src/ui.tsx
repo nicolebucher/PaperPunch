@@ -7,7 +7,15 @@ import type { MaterialFormat, Profile } from "./types";
 export function Logo({ size = 26, light }: { size?: number; light?: boolean }) {
   return (
     <span className="logo" style={{ fontSize: size }}>
-      <img src={light ? "/brand/logo-black.svg" : "/brand/logo-white.svg"} alt="" aria-hidden="true" />
+      {light ? (
+        <img src="/brand/logo-black.svg" alt="" aria-hidden="true" />
+      ) : (
+        <>
+          {/* Im dunklen Modus das weiße Logo, im hellen das schwarze (per CSS umgeschaltet) */}
+          <img className="logo-on-dark" src="/brand/logo-white.svg" alt="" aria-hidden="true" />
+          <img className="logo-on-light" src="/brand/logo-black.svg" alt="" aria-hidden="true" />
+        </>
+      )}
       <span>
         <span className="logo-paper">Paper</span>
         <span className="logo-punch">Punch</span>

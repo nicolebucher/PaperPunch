@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 
-// Bildmarke aus dem Logo (public/brand/logo-white.svg): aufgeschlagenes Buch, aus dem Pixel "herausgestanzt" werden.
+// Bildmarke aus dem Logo (public/brand/logo-white.svg bzw. logo-black.svg). Das Buch nimmt die Textfarbe an
+// (hell im dunklen, schwarz im hellen Modus), die Pixel bleiben bunt.
+// Bildmarke: aufgeschlagenes Buch, aus dem Pixel "herausgestanzt" werden.
 // Die Pixel lassen sich einzeln animieren – das ist das wiederkehrende Motiv von Start- und Ladebildschirm.
 
 const CYAN = "#1FD6EA";
@@ -32,7 +34,7 @@ type Mode = "still" | "punch" | "float" | "intro";
  * float: Pixel schweben leicht (Startseite).
  * intro: einmalig – das Buch zeichnet sich, dann fliegen die Pixel nacheinander von weit her ein (Willkommen).
  */
-export function BrandMark({ mode = "still", stroke = "#FFFFFF", className, style }: { mode?: Mode; stroke?: string; className?: string; style?: CSSProperties }) {
+export function BrandMark({ mode = "still", stroke = "currentColor", className, style }: { mode?: Mode; stroke?: string; className?: string; style?: CSSProperties }) {
   return (
     <svg className={`mark mark-${mode} ${className ?? ""}`} style={style} viewBox="14 6 180 112" role="img" aria-label="PaperPunch">
       <g className="mark-book" fill="none" stroke={stroke} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">

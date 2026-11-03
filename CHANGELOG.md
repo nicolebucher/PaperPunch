@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.3.1 – 3 November 2026
+
+Fix: logo visible in light mode.
+
+| Area | Change |
+| --- | --- |
+| App | Light mode: the logo (start screen, welcome, header, building screen, level page) now uses the black book with colourful pixels instead of the white one; “Punch” in the wordmark in a darker turquoise so it stays readable |
+
 ## v0.3.0 – 3 November 2026
 
 New look for the home screen, the first-time setup and the result screen.

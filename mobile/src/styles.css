@@ -876,3 +876,10 @@ h1 .beta { position: relative; top: -3px; }
 .viewer .sheet-dots { padding: 4px 0 14px; }
 .viewer-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
 .viewer-actions .btn { min-height: 56px; }
+
+/* Logo im hellen Modus: schwarzes Buch, bunte Pixel */
+.mark { color: var(--fg); }
+.logo .logo-on-light { display: none; }
+:root[data-theme="light"] .logo .logo-on-dark { display: none; }
+:root[data-theme="light"] .logo .logo-on-light { display: inline; }
+:root[data-theme="light"] .logo-punch { color: var(--teal-text); }

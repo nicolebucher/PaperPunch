@@ -79,7 +79,7 @@ function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => voi
         <div className="levelup-burst" aria-hidden="true">
           {Array.from({ length: 18 }, (_, i) => <i key={i} style={{ ["--a" as string]: `${i * 20}deg`, background: PIXEL_COLORS[i % 3] }} />)}
         </div>
-        <BrandMark mode="intro" className="levelup-mark" />
+        <BrandMark mode="intro" className="levelup-mark" stroke="#FFFFFF" />
         <span className="eyebrow">{t.levelUpTitle}</span>
         <h1 className="display levelup-name">{lvlAfter.current.name[lang]}</h1>
         <p className="muted">{t.levelNumber(lvlAfter.number)}</p>
