@@ -73,18 +73,21 @@ export function AppHome() {
       <div className="flex flex-col gap-2.5 lg:hidden">{ways(false)}</div>
       <div className="hidden grid-cols-3 gap-4 lg:grid">{ways(true)}</div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        {hasList ? <div className="px-1 lg:rounded-3xl lg:bg-[#15171b] lg:px-5 lg:py-4 lg:ring-1 lg:ring-white/[0.06]">{continueList}</div> : <div className="hidden lg:block" />}
-        <div className="hidden flex-col gap-2.5 rounded-3xl bg-[#15171b] px-5 py-4 ring-1 ring-white/[0.06] lg:flex">
+      {/* Am Computer: links "So funktioniert's", rechts "Weitermachen". Beim ersten Besuch (noch nichts gespeichert)
+          nimmt "So funktioniert's" die ganze Breite ein, damit nichts einsam am Rand klebt. */}
+      <div className={`mt-6 grid gap-4 ${hasList ? "lg:grid-cols-[1fr_1.4fr]" : ""}`}>
+        <div className={`hidden flex-col gap-2.5 rounded-3xl bg-[#15171b] px-5 py-4 ring-1 ring-white/[0.06] lg:flex ${hasList ? "" : "lg:flex-row lg:items-center lg:gap-8 lg:px-6"}`}>
           <SectionLabel>{tx.howTitle}</SectionLabel>
-          <ol className="flex flex-col gap-1.5 text-sm font-semibold text-zinc-400">
+          <ol className={`flex gap-1.5 text-sm font-semibold text-zinc-400 ${hasList ? "flex-col" : "flex-1 flex-row gap-6"}`}>
             {tx.how.map((h, i) => (
-              <li key={i}><b className="mr-1.5 text-zinc-100">{i + 1}</b>{h}</li>
+              <li key={i} className={hasList ? "" : "flex-1"}><b className="mr-1.5 text-zinc-100">{i + 1}</b>{h}</li>
             ))}
           </ol>
-          <span className="mt-auto pt-3 text-xs font-semibold text-zinc-500">{tx.localNote}</span>
+          {hasList && <span className="mt-auto pt-3 text-xs font-semibold text-zinc-500">{tx.localNote}</span>}
         </div>
+        {hasList && <div className="px-1 lg:rounded-3xl lg:bg-[#15171b] lg:px-5 lg:py-4 lg:ring-1 lg:ring-white/[0.06]">{continueList}</div>}
       </div>
+      {!hasList && <p className="mt-3 hidden text-xs font-semibold text-zinc-500 lg:block">{tx.localNote}</p>}
 
       <p className="mt-auto pt-8 text-center text-[11px] font-semibold text-zinc-500 lg:hidden">{tx.localNote}</p>
     </div>
