@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
   if (!key || params.get("key") !== key) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   const format = params.get("format") ?? "worksheet";
-  const sample = SAMPLES[Number(params.get("sample") ?? "0")];
+  const base = SAMPLES[Number(params.get("sample") ?? "0")];
+  // locale=de|en simuliert eine andere App-Sprache (Test: Ausgabesprache folgt der Eingabe)
+  const forced = params.get("locale");
+  const sample = base && (forced === "de" || forced === "en") ? { ...base, locale: forced as Locale } : base;
   const variant = (params.get("model") === "haiku" ? "haiku" : "sonnet") as ModelVariant;
   if (!sample || !["worksheet", "test", "game"].includes(format)) return NextResponse.json({ error: "bad params" }, { status: 400 });
 
