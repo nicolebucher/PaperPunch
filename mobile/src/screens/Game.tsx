@@ -437,11 +437,20 @@ function LevelPlay({
           <button type="button" className="btn ghost block giveup-btn" onClick={reveal}>{t.dontKnow}</button>
         )}
 
-        {canJoker && (
-          <button type="button" className="joker" onClick={joker} disabled={totalPunches() < POINTS.joker5050}>
-            50:50 · <PunchIcon size={12} /> {POINTS.joker5050}
-          </button>
-        )}
+        {/* Joker kostet Punches – Preis als eigener Chip mit Minus, damit klar ist, dass etwas abgezogen wird. */}
+        {canJoker && (() => {
+          const tooFew = totalPunches() < POINTS.joker5050;
+          return (
+            <button type="button" className="joker" onClick={joker} disabled={tooFew}>
+              <span className="joker-text">
+                <b>{t.jokerName}</b>
+                <small>{tooFew ? t.jokerTooFew(POINTS.joker5050) : t.jokerWhat}</small>
+              </span>
+              <span className="joker-cost">−{POINTS.joker5050} <PunchIcon size={12} /></span>
+            </button>
+          );
+        })()}
+        {hidden.length > 0 && !answered && <p className="joker-used">{t.jokerUsed(POINTS.joker5050)}</p>}
 
         {answered && (
           <div className={ok ? "feedback ok" : "feedback no"} role="status">

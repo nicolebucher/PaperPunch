@@ -63,6 +63,7 @@ export function GameShell({ game }: { game: GameData }) {
         totalSnaps={totalSnaps}
         onExit={() => setActiveLevelId(null)}
         onSnap={handleSnap}
+        joker
         onComplete={(result) => {
           if (activeLevel.id !== -1) {
             setResults((prev) => ({ ...prev, [activeLevel.id]: result }));

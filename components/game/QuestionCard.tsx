@@ -7,10 +7,13 @@ export function QuestionCard({
   question,
   selected,
   onSelect,
+  hidden = [],
 }: {
   question: Question;
   selected: number | null;
   onSelect: (index: number) => void;
+  /** Vom Joker 50:50 entfernte Antworten. */
+  hidden?: number[];
 }) {
   // QuestionCard is only ever rendered for "multiple-choice" questions (LevelPlayer branches on
   // question.type), where "options"/"correctIndex" are guaranteed by the schema's own refine -
@@ -25,6 +28,7 @@ export function QuestionCard({
         {options.map((option, i) => {
           const isSelected = selected === i;
           const isCorrect = i === correctIndex;
+          const gone = hidden.includes(i) && selected === null;
           let stateClass = "border-zinc-200 bg-slate-50 hover:border-[#1fd6ea]";
           if (selected !== null) {
             if (isCorrect) stateClass = "border-[#1fd6ea] bg-[#cff7fb]";
@@ -35,9 +39,10 @@ export function QuestionCard({
             <button
               key={i}
               type="button"
-              disabled={selected !== null}
+              disabled={selected !== null || gone}
+              aria-hidden={gone || undefined}
               onClick={() => onSelect(i)}
-              className={`min-h-[58px] rounded-[18px] border-2 px-4 py-3 text-center text-lg font-extrabold transition active:scale-[0.98] ${stateClass}`}
+              className={`min-h-[58px] rounded-[18px] border-2 px-4 py-3 text-center text-lg font-extrabold transition active:scale-[0.98] ${gone ? "invisible" : stateClass}`}
             >
               <MathText text={option} />
             </button>

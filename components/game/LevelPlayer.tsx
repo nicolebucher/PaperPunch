@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Level } from "@/types/generation";
+import { JOKER_PUNCHES, PUNCHES_EVENT, spendPunches, totalPunches } from "@/lib/webapp/punches";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { SnapIcon } from "@/components/icons/ActionIcons";
 import { QuestionCard } from "./QuestionCard";
@@ -22,7 +23,10 @@ export function LevelPlayer({
   onComplete,
   onExit,
   onSnap,
+  joker = false,
 }: {
+  /** Joker 50:50 gegen Punches anbieten (nicht in Challenges, damit es fair bleibt). */
+  joker?: boolean;
   level: Level;
   totalSnaps: number;
   onComplete: (result: LevelResult) => void;
@@ -35,6 +39,8 @@ export function LevelPlayer({
   const [selected, setSelected] = useState<number | null>(null);
   const [typedValue, setTypedValue] = useState("");
   const [checked, setChecked] = useState(false);
+  const [hidden, setHidden] = useState<number[]>([]);
+  const [wallet, setWallet] = useState(0);
   const [snapBurst, setSnapBurst] = useState<{ key: number; amount: number } | null>(null);
   // Mirrors `answered`/advance-in-progress synchronously so a second click/tap event
   // (e.g. a touch device firing both `touchend` and a synthetic `click`) landing before
@@ -61,6 +67,23 @@ export function LevelPlayer({
   useEffect(() => {
     readyAtRef.current = Date.now() + 400;
   }, [index]);
+
+  // Aktueller Punches-Stand für den Joker (ändert sich durch richtige Antworten und Joker).
+  useEffect(() => {
+    setWallet(totalPunches());
+    const update = () => setWallet(totalPunches());
+    window.addEventListener(PUNCHES_EVENT, update);
+    return () => window.removeEventListener(PUNCHES_EVENT, update);
+  }, []);
+
+  const canJoker = joker && isMultipleChoice && (question.options?.length ?? 0) >= 3 && selected === null && hidden.length === 0;
+  const jokerUsed = hidden.length > 0 && selected === null;
+
+  function applyJoker() {
+    if (!canJoker || !spendPunches(JOKER_PUNCHES)) return;
+    const wrong = (question.options ?? []).map((_, i) => i).filter((i) => i !== question.correctIndex).sort(() => Math.random() - 0.5);
+    setHidden(wrong.slice(0, Math.max(1, (question.options?.length ?? 0) - 2)));
+  }
 
   function awardIfCorrect(correct: boolean) {
     if (correct) {
@@ -95,6 +118,7 @@ export function LevelPlayer({
       onComplete({ stars, score: correctCount });
     } else {
       setSelected(null);
+      setHidden([]);
       setTypedValue("");
       setChecked(false);
       answeredRef.current = false;
@@ -120,7 +144,7 @@ export function LevelPlayer({
       <h2 className="mb-4 text-sm font-extrabold text-[#1fd6ea]">{level.title} · {index + 1}/{level.questions.length}</h2>
       <div className="relative">
         {isMultipleChoice ? (
-          <QuestionCard question={question} selected={selected} onSelect={handleSelect} />
+          <QuestionCard question={question} selected={selected} onSelect={handleSelect} hidden={hidden} />
         ) : (
           <FillBlankCard
             prompt={question.prompt}
@@ -133,6 +157,24 @@ export function LevelPlayer({
         )}
         {snapBurst && <SnapEffect key={snapBurst.key} amount={snapBurst.amount} snapsUnit={t.game.snapsUnit} />}
       </div>
+      {/* Joker kostet Punches – Preis als Chip mit Minus, damit klar ist, dass etwas abgezogen wird. */}
+      {canJoker && (
+        <button
+          type="button"
+          onClick={applyJoker}
+          disabled={wallet < JOKER_PUNCHES}
+          className="mx-auto mt-4 flex min-h-12 items-center gap-3 rounded-full border-2 border-dashed border-zinc-600 py-1.5 pl-4 pr-1.5 text-left disabled:opacity-45"
+        >
+          <span className="flex flex-col leading-tight">
+            <b className="text-sm font-extrabold">{t.game.jokerName}</b>
+            <small className="text-xs font-semibold text-zinc-400">{wallet < JOKER_PUNCHES ? t.game.jokerTooFew(JOKER_PUNCHES) : t.game.jokerWhat}</small>
+          </span>
+          <span className={`flex h-[34px] items-center gap-1 whitespace-nowrap rounded-full px-3 text-sm font-black text-white ${wallet < JOKER_PUNCHES ? "bg-zinc-500" : "bg-[#f23a8e]"}`}>
+            −{JOKER_PUNCHES} <SnapIcon className="h-3.5 w-3.5" />
+          </span>
+        </button>
+      )}
+      {jokerUsed && <p className="mt-4 text-center text-[13px] font-bold text-[#f23a8e]">{t.game.jokerUsed(JOKER_PUNCHES)}</p>}
       {answered && (
         <div
           className={`mt-4 rounded-[20px] p-4 text-[15px] ${

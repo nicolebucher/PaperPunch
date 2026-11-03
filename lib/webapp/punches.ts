@@ -7,6 +7,9 @@ export const PUNCHES_EVENT = "paperpunch-punches";
 /** Punches für eine richtig gelöste Aufgabe beim Online-Lösen (wie "sheetAnswer" in der App). */
 export const SHEET_ANSWER_PUNCHES = 10;
 
+/** Joker 50:50 im Lernspiel – kostet so viel wie in der App. */
+export const JOKER_PUNCHES = 30;
+
 export const LEVELS = [
   { min: 0, name: "Rookie" },
   { min: 100, name: "Starter" },
@@ -42,6 +45,24 @@ export function addPunches(amount: number): void {
   } catch {
     // ignorieren
   }
+}
+
+/** Punches ausgeben (Joker). Gibt false zurück, wenn nicht genug da sind. */
+export function spendPunches(amount: number): boolean {
+  const total = totalPunches();
+  if (total < amount) return false;
+  const next = total - amount;
+  try {
+    localStorage.setItem(KEY, String(next));
+  } catch {
+    return false;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(PUNCHES_EVENT, { detail: { total: next, added: -amount } }));
+  } catch {
+    // ignorieren
+  }
+  return true;
 }
 
 export type LevelInfo = {

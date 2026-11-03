@@ -9,7 +9,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.7.0 – 3 November 2026
 
-Website /app: Punches & levels like in the app, app logo.
+Website /app: Punches & levels like in the app, app logo; the joker's price is clearly marked.
 
 | Area | Change |
 | --- | --- |
@@ -17,6 +17,8 @@ Website /app: Punches & levels like in the app, app logo.
 | Website | Level ring with Punches top right (phone header and desktop), same ten ranks as the app (Rookie … Unstoppable); tap shows the rank and how many Punches until the next one |
 | Website | App logo in /app: the open book with colourful pixels instead of the pixel grid; the book takes the text colour (white on dark, black on light) |
 | Website | Learning game: dashed path between the levels |
+| Website | 50:50 joker in learning games (not in challenges, to keep them fair): costs 30 Punches, two wrong answers disappear |
+| App + Website | Joker shows its price clearly: “Joker 50:50” with a pink “−30 Punches” chip and the line “Two wrong answers disappear”; with too few Punches it is greyed out and says “You need 30 Punches”; after using it: “Joker used · −30 Punches” |
 
 ## v0.6.2 – 3 November 2026
 

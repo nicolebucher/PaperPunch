@@ -486,8 +486,14 @@ h1 .beta { position: relative; top: -3px; }
 .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
 .burst i { position: absolute; width: 10px; height: 10px; border-radius: 2px; animation: burst 0.8s cubic-bezier(.16,1,.3,1) forwards; }
 .option.gone { visibility: hidden; min-height: 0; height: 0; padding: 0; border: 0; margin: -6px 0; }
-.joker { align-self: center; display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 20px; border: 2px dashed #d4d4d8; background: transparent; color: var(--sheet-fg); font-weight: 800; font-size: 14px; }
-.joker:disabled { opacity: 0.4; }
+.joker { align-self: center; display: inline-flex; align-items: center; gap: 12px; min-height: 48px; padding: 6px 6px 6px 16px; border-radius: 24px; border: 2px dashed #d4d4d8; background: transparent; color: var(--sheet-fg); text-align: left; }
+.joker-text { display: flex; flex-direction: column; line-height: 1.15; }
+.joker-text b { font-weight: 800; font-size: 14px; }
+.joker-text small { font-weight: 600; font-size: 12px; opacity: 0.65; }
+.joker-cost { display: inline-flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px; border-radius: 17px; background: var(--pink); color: #fff; font-weight: 900; font-size: 14px; white-space: nowrap; }
+.joker:disabled { opacity: 0.45; }
+.joker:disabled .joker-cost { background: #a1a1aa; }
+.joker-used { align-self: center; margin: 0; font-size: 13px; font-weight: 700; color: var(--pink); }
 .boss-play .progress > div { background: var(--pink); }
 
 .level-end { align-items: stretch; }
