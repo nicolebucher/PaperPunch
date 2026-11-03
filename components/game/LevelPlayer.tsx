@@ -7,6 +7,7 @@ import { SnapIcon } from "@/components/icons/ActionIcons";
 import { QuestionCard } from "./QuestionCard";
 import { FillBlankCard } from "./FillBlankCard";
 import { SnapEffect } from "./SnapEffect";
+import { answerMatches } from "@/lib/answer-match";
 
 export interface LevelResult {
   stars: number;
@@ -54,7 +55,7 @@ export function LevelPlayer({
   const answered = isMultipleChoice ? selected !== null : checked;
   const isCorrect = isMultipleChoice
     ? answered && selected === question.correctIndex
-    : answered && typedValue.trim() === question.correctAnswer;
+    : answered && answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers);
   const snapsForThisQuestion = SNAPS_BY_DIFFICULTY[level.difficulty] ?? 10;
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export function LevelPlayer({
     if (answeredRef.current || Date.now() < readyAtRef.current || typedValue.trim() === "") return;
     answeredRef.current = true;
     setChecked(true);
-    awardIfCorrect(typedValue.trim() === question.correctAnswer);
+    awardIfCorrect(answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers));
   }
 
   function handleNext() {
