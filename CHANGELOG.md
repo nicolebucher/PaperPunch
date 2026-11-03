@@ -15,9 +15,11 @@ New look for the home screen, the first-time setup and the result screen.
 | --- | --- |
 | App | Home screen redesigned (“Bento”): greeting by time of day, large “Snap your study material” tile, study-plan tile (days left, today's session), level tile with progress ring, “Continue” card with progress bars; light and dark mode |
 | App | Home screen on first start: “Create study plan” and “Level 1” invitations plus topic suggestions to tap (opens the topic entry already filled in) |
-| App | First-time setup as single steps: “How it works” (photo → format → practise & collect punches), then language, country (detected from the phone), school type, grade and light/dark with previews; tapping an answer moves on automatically |
+| App | First-time setup as single steps: language, country (detected from the phone), school type, grade and light/dark with previews, then “How it works” (photo → format → practise & collect punches); tapping an answer moves on automatically |
 | App | Result screen redesigned: success moment with check mark and title, estimated time and punches, “How do you want to practise?” with solve in the app, print and share; footer only “AI can make mistakes.” |
 | App | “Reshuffle” removed from the result screen (saves AI calls) |
+| App | Result screen: “Preview” button for worksheets and tests opens a full-screen preview to swipe through the pages, with Print and Solve |
+| App | First-time setup: “How it works” is the last step, after the questions |
 
 ## v0.2.4 – 3 November 2026
 

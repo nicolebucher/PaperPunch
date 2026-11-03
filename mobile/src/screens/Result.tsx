@@ -1,15 +1,90 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
 import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, type IconName } from "../ui";
-import type { GameResult, GenerateResult, MaterialFormat } from "../types";
+import type { GameResult, GenerateResult, MaterialFormat, Task } from "../types";
 import type { SessionRef } from "../App";
 import { RatingCard } from "./RatingCard";
 import { POINTS } from "../punches";
 
 function slug(s: string) {
   return s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 50) || "paperpunch";
+}
+
+const TASKS_PER_PAGE = 4;
+
+/** Vollbild-Vorschau des Arbeitsblatts / Tests: Seiten zum Wischen, unten Drucken und Lösen. */
+function SheetViewer({ title, intro, tasks, onClose, onPrint, onSolve }: { title: string; intro: string; tasks: Task[]; onClose: () => void; onPrint: () => void; onSolve: () => void }) {
+  const { t } = useT();
+  const [page, setPage] = useState(0);
+  const scroller = useRef<HTMLDivElement>(null);
+  const pages: Task[][] = [];
+  for (let i = 0; i < tasks.length; i += TASKS_PER_PAGE) pages.push(tasks.slice(i, i + TASKS_PER_PAGE));
+  if (pages.length === 0) pages.push([]);
+
+  return (
+    <div className="viewer" role="dialog" aria-modal="true" aria-label={t.preview}>
+      <div className="viewer-top">
+        <button type="button" className="home-b-profile" onClick={onClose} aria-label={t.close}>
+          <Icon name="close" size={20} stroke={2.4} />
+        </button>
+        <span className="viewer-title">
+          <b>{t.preview}</b>
+          <span>{t.pageOf(page + 1, pages.length)}</span>
+        </span>
+        <span style={{ width: 44 }} />
+      </div>
+      <div
+        className="viewer-pages"
+        ref={scroller}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          setPage(Math.round(el.scrollLeft / el.clientWidth));
+        }}
+      >
+        {pages.map((list, p) => (
+          <div className="viewer-slot" key={p}>
+            <div className="viewer-paper">
+              <span className="sheet-head">
+                <span className="sheet-brand">Paper<b>Punch</b></span>
+                <span>{t.sheetNameLine}</span>
+              </span>
+              {p === 0 && (
+                <>
+                  <span className="sheet-title">{title}</span>
+                  {intro && <span className="sheet-intro">{intro}</span>}
+                </>
+              )}
+              {list.map((task) => (
+                <span className="sheet-task" key={task.number}>
+                  <b>{t.taskLabel(task.number)} · {task.points} P.</b>
+                  <span>{task.question.replace("___", "________")}</span>
+                  {task.options ? (
+                    <span className="sheet-options">{task.options.map((o) => `○ ${o}`).join("   ")}</span>
+                  ) : task.type === "zuordnen" && task.pairs ? (
+                    <span className="sheet-options">{task.pairs.map((x) => x.left).join(" · ")}</span>
+                  ) : task.type !== "lueckentext" ? (
+                    <span className="sheet-line" />
+                  ) : null}
+                </span>
+              ))}
+              <span className="sheet-foot">{t.pageOf(p + 1, pages.length)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      {pages.length > 1 && (
+        <div className="sheet-dots" aria-hidden="true">
+          {pages.map((_, i) => <span key={i} className={i === page ? "on" : ""} />)}
+        </div>
+      )}
+      <div className="viewer-actions">
+        <button type="button" className="btn ghost" onClick={onPrint}><Icon name="print" size={20} stroke={2} /> {t.print}</button>
+        <button type="button" className="btn primary" onClick={onSolve}><Icon name="play" size={20} filled /> {t.solve}</button>
+      </div>
+    </div>
+  );
 }
 
 /** Konfetti hinter dem Haken: feste Positionen, damit nichts über dem Text liegt. */
@@ -49,6 +124,7 @@ export function Result({
 }) {
   const { t, lang } = useT();
   const [showScript, setShowScript] = useState(false);
+  const [preview, setPreview] = useState(false);
 
   const isSheet = result.format === "worksheet" || result.format === "test";
   const title = result.format === "game" ? result.game.gameTitle : result.format === "podcast" ? result.title : result.data.title;
@@ -128,7 +204,16 @@ export function Result({
           <span className="result-e-ready">{t.resultReady(result.format)}</span>
           <h1 className="result-e-title">{title}</h1>
           {meta && <span className="result-e-meta">{meta}</span>}
-          {maxPunches > 0 && <span className="result-e-punches">{t.upToPunches(maxPunches)}</span>}
+          {(maxPunches > 0 || isSheet) && (
+            <span className="result-e-chips">
+              {maxPunches > 0 && <span className="result-e-punches">{t.upToPunches(maxPunches)}</span>}
+              {isSheet && (
+                <button type="button" className="result-e-preview" onClick={() => setPreview(true)}>
+                  <Icon name="eye" size={16} stroke={2.2} /> {t.preview}
+                </button>
+              )}
+            </span>
+          )}
         </div>
       </div>
 
@@ -172,6 +257,17 @@ export function Result({
       {!rated && onRate && <RatingCard onSend={onRate} />}
 
       <p className="result-e-foot">{t.aiShort}</p>
+
+      {preview && isSheet && (
+        <SheetViewer
+          title={result.data.title}
+          intro={result.data.introduction}
+          tasks={result.data.tasks}
+          onClose={() => setPreview(false)}
+          onPrint={() => void view()}
+          onSolve={() => { setPreview(false); onPractice(); }}
+        />
+      )}
     </div>
   );
 }

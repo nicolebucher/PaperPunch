@@ -856,3 +856,23 @@ h1 .beta { position: relative; top: -3px; }
 .ob-hint { font-size: 12px; font-weight: 600; color: var(--muted); text-align: center; }
 :root[data-theme="light"] .ob-opt.on, :root[data-theme="light"] .ob-grade.on { color: #ffffff; }
 @media (prefers-reduced-motion: reduce) { .ob-body { animation: none; } }
+
+/* Ergebnis: Vorschau-Knopf und Vollbild-Vorschau */
+.result-e-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 2px; }
+.result-e-preview { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border: none; border-radius: 999px; background: var(--surface-2); color: var(--fg); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.viewer { position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; background: var(--bg); padding: env(safe-area-inset-top, 0px) 0 max(18px, env(safe-area-inset-bottom, 0px)); animation: fadein 0.2s ease-out; }
+.viewer-top { display: flex; align-items: center; justify-content: space-between; padding: 18px 16px 0; }
+.viewer-title { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.viewer-title b { font-size: 15px; font-weight: 900; }
+.viewer-title span { font-size: 12px; font-weight: 800; color: var(--muted); }
+.viewer-pages { flex: 1; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.viewer-pages::-webkit-scrollbar { display: none; }
+.viewer-slot { flex: 0 0 100%; scroll-snap-align: center; display: flex; align-items: center; justify-content: center; padding: 16px 0; }
+.viewer-paper {
+  width: min(84vw, 360px); aspect-ratio: 1 / 1.414; max-height: 100%; box-sizing: border-box; border-radius: 6px; background: #ffffff; color: #141416;
+  padding: 22px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35); display: flex; flex-direction: column; gap: 10px; font-size: 11px; line-height: 1.4; overflow: hidden;
+}
+.viewer-paper .sheet-title { font-size: 15px; }
+.viewer .sheet-dots { padding: 4px 0 14px; }
+.viewer-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; }
+.viewer-actions .btn { min-height: 56px; }
