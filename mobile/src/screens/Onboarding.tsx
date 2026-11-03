@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRIES, getCountry, guessCountry, type CountryCode } from "../countries";
 import { DICTS, deviceLang, LangProvider, type Lang } from "../i18n";
 import { BrandMark } from "../brand";
@@ -6,14 +6,17 @@ import { Icon, ProfileSelects, TopBar } from "../ui";
 import type { Profile } from "../types";
 
 /**
- * Erster Start: animierter Willkommensbildschirm, dann ein Einrichtungs-Schritt (Sprache, Land, Schule, Darstellung).
- * Als Einstellungen: nur das Formular.
+ * Erster Start: animierter Willkommensbildschirm, "So funktioniert's", dann eine Frage pro Screen
+ * (Sprache, Land, Schulart, Klasse, Darstellung) mit automatischem Weiter nach dem Antippen.
+ * Als Einstellungen: alles auf einer Seite.
  */
 export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: Profile | null; isSettings: boolean; onSave: (p: Profile) => void; onBack: () => void }) {
   const [profile, setProfile] = useState<Profile>(
     () => initial ?? { lang: deviceLang(), country: guessCountry(), schoolType: "", grade: 0 }
   );
   const [step, setStep] = useState(isSettings ? 1 : 0);
+  const [showAll, setShowAll] = useState(false);
+  const [detected] = useState(() => guessCountry());
   const t = DICTS[profile.lang];
   const ready = !!profile.schoolType && profile.grade > 0;
 
@@ -28,49 +31,10 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     }));
   }
 
-  const langPicker = (
-    <div className="stack" style={{ gap: 8 }}>
-      <span className="field-label">{t.language}</span>
-      <div className="row">
-        {(["de", "en"] as Lang[]).map((l) => (
-          <button key={l} type="button" className={profile.lang === l ? "pill on" : "pill"} aria-pressed={profile.lang === l} onClick={() => setProfile({ ...profile, lang: l })}>
-            {l === "de" ? "Deutsch" : "English"}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
   // Hell/Dunkel sofort sichtbar machen, während man wählt
   useEffect(() => {
     document.documentElement.dataset.theme = profile.theme ?? "dark";
   }, [profile.theme]);
-
-  const themePicker = (
-    <div className="stack" style={{ gap: 8 }}>
-      <span className="field-label">{t.theme}</span>
-      <div className="row">
-        {(["dark", "light"] as const).map((m) => (
-          <button key={m} type="button" className={(profile.theme ?? "dark") === m ? "pill on" : "pill"} aria-pressed={(profile.theme ?? "dark") === m} onClick={() => setProfile({ ...profile, theme: m })}>
-            {m === "dark" ? t.themeDark : t.themeLight}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  const countryPicker = (
-    <label className="field">
-      {t.country}
-      <select className="input set" value={profile.country} onChange={(e) => setCountry(e.target.value as CountryCode)}>
-        {COUNTRIES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.name[profile.lang]}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
 
   // ---------- Einstellungen: alles auf einer Seite ----------
   if (isSettings) {
@@ -80,9 +44,36 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
           <TopBar onBack={onBack} />
           <div className="stack" style={{ gap: 20, paddingBottom: 28, flex: 1 }}>
             <h1 className="display">{t.settings}</h1>
-            {langPicker}
-            {themePicker}
-            {countryPicker}
+            <div className="stack" style={{ gap: 8 }}>
+              <span className="field-label">{t.language}</span>
+              <div className="row">
+                {(["de", "en"] as Lang[]).map((l) => (
+                  <button key={l} type="button" className={profile.lang === l ? "pill on" : "pill"} aria-pressed={profile.lang === l} onClick={() => setProfile({ ...profile, lang: l })}>
+                    {l === "de" ? "Deutsch" : "English"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="stack" style={{ gap: 8 }}>
+              <span className="field-label">{t.theme}</span>
+              <div className="row">
+                {(["dark", "light"] as const).map((m) => (
+                  <button key={m} type="button" className={(profile.theme ?? "dark") === m ? "pill on" : "pill"} aria-pressed={(profile.theme ?? "dark") === m} onClick={() => setProfile({ ...profile, theme: m })}>
+                    {m === "dark" ? t.themeDark : t.themeLight}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="field">
+              {t.country}
+              <select className="input set" value={profile.country} onChange={(e) => setCountry(e.target.value as CountryCode)}>
+                {COUNTRIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.name[profile.lang]}
+                  </option>
+                ))}
+              </select>
+            </label>
             <ProfileSelects profile={profile} onChange={setProfile} />
             <div className="stack" style={{ gap: 4 }}>
               <span className="field-label">{t.contactTitle}</span>
@@ -124,27 +115,179 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     );
   }
 
-  // ---------- Ein Einrichtungs-Schritt: Sprache, Land, Schule, Darstellung ----------
+  // ---------- Einrichtung: "So funktioniert's", dann eine Frage pro Screen ----------
+  const TOTAL = 6;
+  const country = getCountry(profile.country);
+  const theme = profile.theme ?? "dark";
+  // Erkanntes Land zuerst, dann die übrigen; "Anderes Land" steht immer am Ende.
+  const countryList = [getCountry(detected), ...COUNTRIES.filter((c) => c.code !== detected)].filter((c) => c.code !== "OTHER");
+  const shownCountries = showAll ? countryList : countryList.slice(0, 3);
+  const shownSchools = showAll ? country.schoolTypes : country.schoolTypes.slice(0, 5);
+
+  function go(next: number) {
+    setShowAll(false);
+    setStep(next);
+  }
+  // Nach dem Antippen kurz zeigen, was gewählt ist, dann automatisch weiter.
+  function advance() {
+    const from = step;
+    window.setTimeout(() => setStep((s) => (s === from ? from + 1 : s)), 260);
+    setShowAll(false);
+  }
+
+  const answered = step === 4 ? !!profile.schoolType : step === 5 ? profile.grade > 0 : true;
+
+  const option = (key: string, label: string, on: boolean, onClick: () => void, sub?: string) => (
+    <button key={key} type="button" className={on ? "ob-opt on" : "ob-opt"} aria-pressed={on} onClick={onClick}>
+      <span className="ob-opt-text">
+        <span className="ob-opt-label">{label}</span>
+        {sub && <span className="ob-opt-sub">{sub}</span>}
+      </span>
+      <span className="ob-opt-mark">{on && <Icon name="check" size={15} stroke={3} />}</span>
+    </button>
+  );
+
+  let content: ReactNode;
+  if (step === 1) {
+    content = (
+      <>
+        <div className="ob-q">
+          <h1>{t.obHowTitle}</h1>
+          <p>{t.obHowSub}</p>
+        </div>
+        <div className="ob-how">
+          <div className="ob-how-item">
+            <span className="ob-how-icon c1"><Icon name="camera" size={24} /></span>
+            <span className="ob-how-text"><b>{t.obHow1}</b><span>{t.obHow1Text}</span></span>
+          </div>
+          <span className="ob-how-sep" />
+          <div className="ob-how-item">
+            <span className="ob-how-icon c2"><Icon name="worksheet" size={24} /></span>
+            <span className="ob-how-text">
+              <b>{t.obHow2}</b>
+              <span>{t.obHow2Text}</span>
+              <span className="ob-how-formats">
+                <span><i className="c1" />{t.formats.worksheet}</span>
+                <span><i className="c2" />{t.formats.test}</span>
+                <span><i className="c3" />{t.formats.game}</span>
+              </span>
+            </span>
+          </div>
+          <span className="ob-how-sep" />
+          <div className="ob-how-item">
+            <span className="ob-how-icon c3"><Icon name="play" size={24} filled /></span>
+            <span className="ob-how-text"><b>{t.obHow3}</b><span>{t.obHow3Text}</span></span>
+          </div>
+        </div>
+      </>
+    );
+  } else if (step === 2) {
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQLang}</h1><p>{t.obQLangSub}</p></div>
+        <div className="ob-opts">
+          {(["de", "en"] as Lang[]).map((l) =>
+            option(l, l === "de" ? "Deutsch" : "English", profile.lang === l, () => { setProfile((p) => ({ ...p, lang: l })); advance(); })
+          )}
+        </div>
+      </>
+    );
+  } else if (step === 3) {
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQCountry}</h1><p>{t.obQCountrySub}</p></div>
+        <div className="ob-opts">
+          {shownCountries.map((c) =>
+            option(c.code, c.name[profile.lang], profile.country === c.code, () => { setCountry(c.code); advance(); }, c.code === detected ? t.obDetected : undefined)
+          )}
+          {option("OTHER", getCountry("OTHER").name[profile.lang], profile.country === "OTHER", () => { setCountry("OTHER"); advance(); })}
+          {!showAll && countryList.length > 3 && (
+            <button type="button" className="ob-more" onClick={() => setShowAll(true)}>{t.obMoreCountries}</button>
+          )}
+        </div>
+      </>
+    );
+  } else if (step === 4) {
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQSchool}</h1><p>{country.name[profile.lang]}</p></div>
+        <div className="ob-opts">
+          {shownSchools.map((sc) =>
+            option(sc.value, sc.label[profile.lang], profile.schoolType === sc.value, () => { setProfile((p) => ({ ...p, schoolType: sc.value })); advance(); })
+          )}
+          {!showAll && country.schoolTypes.length > 5 && (
+            <button type="button" className="ob-more" onClick={() => setShowAll(true)}>{t.obMoreSchools}</button>
+          )}
+        </div>
+      </>
+    );
+  } else if (step === 5) {
+    const school = country.schoolTypes.find((x) => x.value === profile.schoolType);
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQGrade}</h1><p>{[school?.label[profile.lang], country.name[profile.lang]].filter(Boolean).join(" · ")}</p></div>
+        <div className="ob-grades">
+          {country.grades.map((g) => (
+            <button
+              key={g.value}
+              type="button"
+              className={profile.grade === g.value ? "ob-grade on" : "ob-grade"}
+              aria-pressed={profile.grade === g.value}
+              aria-label={g.label[profile.lang]}
+              onClick={() => { setProfile((p) => ({ ...p, grade: g.value })); advance(); }}
+            >
+              {g.value}
+            </button>
+          ))}
+        </div>
+      </>
+    );
+  } else {
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQTheme}</h1><p>{t.obQThemeSub}</p></div>
+        <div className="ob-themes">
+          {(["dark", "light"] as const).map((m) => (
+            <button key={m} type="button" className={theme === m ? "ob-theme on" : "ob-theme"} aria-pressed={theme === m} onClick={() => setProfile({ ...profile, theme: m })}>
+              <span className={`ob-theme-prev ${m}`} aria-hidden="true">
+                <i className="l1" /><i className="l2" /><i className="hero" />
+                <span className="tiles"><i /><i /></span>
+                <i className="card" />
+              </span>
+              <span className="ob-theme-label">
+                {m === "dark" ? t.themeDark : t.themeLight}
+                <span className="ob-opt-mark">{theme === m && <Icon name="check" size={15} stroke={3} />}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  const last = step === TOTAL;
   return (
     <LangProvider lang={profile.lang}>
-      <div className="screen">
-        <div className="topbar">
-          <button type="button" className="iconbtn" onClick={() => setStep(0)} aria-label={t.back}>
-            <Icon name="back" />
+      <div className="screen ob-flow">
+        <div className="ob-top">
+          <button type="button" className="home-b-profile" onClick={() => go(step - 1)} aria-label={t.back}>
+            <Icon name="back" size={20} stroke={2.4} />
           </button>
+          <span className="ob-progress" role="progressbar" aria-valuemin={1} aria-valuemax={TOTAL} aria-valuenow={step} aria-label={t.stepOf(step, TOTAL)}>
+            {Array.from({ length: TOTAL }, (_, i) => <i key={i} className={i < step ? "on" : ""} />)}
+          </span>
         </div>
-        <div className="stack ob-step" style={{ gap: 20, paddingBottom: 28, flex: 1 }}>
-          <div className="stack" style={{ gap: 8 }}>
-            <h1 className="display">{t.obSetup}</h1>
-            <p className="muted">{t.welcomeText}</p>
-          </div>
-          {langPicker}
-          {countryPicker}
-          <ProfileSelects profile={profile} onChange={setProfile} />
-          {themePicker}
-          <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
-            {t.start}
+        <div className="ob-body" key={step}>{content}</div>
+        <div className="ob-foot">
+          <button
+            type="button"
+            className="btn primary block"
+            disabled={last ? !ready : !answered}
+            onClick={() => (last ? onSave(profile) : go(step + 1))}
+          >
+            {step === 1 ? t.obLetsGo : last ? t.start : t.next}
           </button>
+          <span className="ob-hint">{step === 1 ? t.obAfterHow : last ? t.obFirstTime : t.obAutoNext}</span>
         </div>
       </div>
     </LangProvider>

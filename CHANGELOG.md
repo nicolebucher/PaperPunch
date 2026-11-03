@@ -7,6 +7,18 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.3.0 – 3 November 2026
+
+New look for the home screen, the first-time setup and the result screen.
+
+| Area | Change |
+| --- | --- |
+| App | Home screen redesigned (“Bento”): greeting by time of day, large “Snap your study material” tile, study-plan tile (days left, today's session), level tile with progress ring, “Continue” card with progress bars; light and dark mode |
+| App | Home screen on first start: “Create study plan” and “Level 1” invitations plus topic suggestions to tap (opens the topic entry already filled in) |
+| App | First-time setup as single steps: “How it works” (photo → format → practise & collect punches), then language, country (detected from the phone), school type, grade and light/dark with previews; tapping an answer moves on automatically |
+| App | Result screen redesigned: success moment with check mark and title, estimated time and punches, “How do you want to practise?” with solve in the app, print and share; footer only “AI can make mistakes.” |
+| App | “Reshuffle” removed from the result screen (saves AI calls) |
+
 ## v0.2.4 – 3 November 2026
 
 Small improvements to the building screen and the recent-activity list.
