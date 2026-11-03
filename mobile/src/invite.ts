@@ -6,7 +6,7 @@ import { Share } from "@capacitor/share";
 
 const KEY = "paperpunch-invite";
 // Sobald paper-punch.com live ist, hier umstellen.
-export const INVITE_BASE = "https://snap-it-new.vercel.app";
+export const INVITE_BASE = "https://paper-punch.com";
 
 interface InviteState {
   code: string;

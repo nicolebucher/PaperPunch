@@ -14,6 +14,7 @@ Fix after the internal model comparison (Sonnet 5 vs Haiku 5.5).
 | --- | --- |
 | Website · AI | Worksheets and tests no longer get cut off: the length limit was raised from 4,096 to 12,000 tokens. Before, long sheets were regenerated up to 3 times, which tripled cost and waiting time |
 | Website · Tech | Internal model comparison: the AI model can be chosen per request, and real tokens and costs are counted |
+| Website | paper-punch.com is live (DNS at Strato points to Vercel); the app's invite link now uses paper-punch.com |
 
 ## v0.2 – 3 November 2026
 
@@ -59,7 +60,6 @@ Focus: snap.it becomes PaperPunch; first Android app with study plan and game me
 Items move into the next version when they ship.
 
 - [ ] Ratings into the Google Sheet (add the web app URL)
-- [ ] Take paper-punch.com live and switch the invite link to it
 - [ ] Website recognises invite codes (?ref=) – basis for the growth engine
 - [ ] Explainer cards: concept explanation per question and after weak checkpoints
 - [ ] Timed mock exam before test day
