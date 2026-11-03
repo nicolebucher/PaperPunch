@@ -1,17 +1,97 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
 import { buildStandaloneGameHtml } from "../gameExport";
-import { Icon, TopBar } from "../ui";
-import type { GameResult, GenerateResult, MaterialFormat } from "../types";
-import { RatingCard } from "./RatingCard";
+import { Icon, type IconName } from "../ui";
+import type { GameResult, GenerateResult, MaterialFormat, Task } from "../types";
 import type { SessionRef } from "../App";
+import { RatingCard } from "./RatingCard";
 
 function slug(s: string) {
   return s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 50) || "paperpunch";
 }
 
-/** Ergebnis: ansehen bzw. spielen/anhören – und alles lässt sich teilen. */
+const TASKS_PER_PAGE = 4;
+
+/** Kleine Papier-Vorschau des Arbeitsblatts / Tests, seitenweise wischbar. Tippen öffnet das PDF. */
+function SheetPreview({ title, intro, tasks, onOpen }: { title: string; intro: string; tasks: Task[]; onOpen: () => void }) {
+  const { t } = useT();
+  const [page, setPage] = useState(0);
+  const scroller = useRef<HTMLDivElement>(null);
+  const pages: Task[][] = [];
+  for (let i = 0; i < tasks.length; i += TASKS_PER_PAGE) pages.push(tasks.slice(i, i + TASKS_PER_PAGE));
+  if (pages.length === 0) pages.push([]);
+
+  return (
+    <div className="sheet-preview">
+      <div
+        className="sheet-pages"
+        ref={scroller}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          setPage(Math.round(el.scrollLeft / el.clientWidth));
+        }}
+      >
+        {pages.map((list, p) => (
+          <div className="sheet-slot" key={p}>
+            {p === 0 && <div className="sheet-behind" aria-hidden="true" />}
+            <button type="button" className="sheet-paper" onClick={onOpen} aria-label={`${t.openPdf}: ${title}, ${t.pageOf(p + 1, pages.length)}`}>
+              <span className="sheet-head">
+                <span className="sheet-brand">Paper<b>Punch</b></span>
+                <span>{t.sheetNameLine}</span>
+              </span>
+              {p === 0 && (
+                <>
+                  <span className="sheet-title">{title}</span>
+                  {intro && <span className="sheet-intro">{intro}</span>}
+                </>
+              )}
+              {list.map((task) => (
+                <span className="sheet-task" key={task.number}>
+                  <b>{t.taskLabel(task.number)} · {task.points} P.</b>
+                  <span>{task.question.replace("___", "________")}</span>
+                  {task.options ? (
+                    <span className="sheet-options">{task.options.map((o) => `○ ${o}`).join("   ")}</span>
+                  ) : task.type === "zuordnen" && task.pairs ? (
+                    <span className="sheet-options">{task.pairs.map((x) => x.left).join(" · ")}</span>
+                  ) : task.type !== "lueckentext" ? (
+                    <span className="sheet-line" />
+                  ) : null}
+                </span>
+              ))}
+              <span className="sheet-foot">{t.pageOf(p + 1, pages.length)}</span>
+            </button>
+          </div>
+        ))}
+      </div>
+      {pages.length > 1 && (
+        <div className="sheet-dots" aria-hidden="true">
+          {pages.map((_, i) => <span key={i} className={i === page ? "on" : ""} />)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Vorschau eines Lernspiels: die Level als gestapelte Karten. */
+function GamePreview({ game }: { game: GameResult["game"] }) {
+  const { t } = useT();
+  return (
+    <div className="game-preview">
+      {game.levels.map((level, i) => (
+        <div className="game-preview-level" key={level.id}>
+          <span className="game-preview-num">{i + 1}</span>
+          <span className="stack" style={{ gap: 2, minWidth: 0 }}>
+            <span className="material-title">{level.title}</span>
+            <span className="material-sub">{t.questionsCount(level.questions.length)}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Ergebnis (Design A): das fertige Material groß als Vorschau, darunter Lösen und die wichtigsten Aktionen. */
 export function Result({
   result,
   from,
@@ -43,16 +123,10 @@ export function Result({
 }) {
   const { t, lang } = useT();
   const [showScript, setShowScript] = useState(false);
-  const [choosing, setChoosing] = useState(false);
 
   const isSheet = result.format === "worksheet" || result.format === "test";
   const title = result.format === "game" ? result.game.gameTitle : result.format === "podcast" ? result.title : result.data.title;
-  const subtitle =
-    result.format === "game"
-      ? result.game.levels.map((l) => l.title).join(" · ")
-      : result.format === "podcast"
-        ? t.formats.podcast
-        : t.tasks(result.data.tasks.length);
+  const subject = result.format === "game" ? result.game.subject : "";
 
   async function share() {
     try {
@@ -83,119 +157,94 @@ export function Result({
     }
   }
 
+  const tiles: { icon: IconName; label: string; onClick: () => void }[] = [];
+  if (isSheet) tiles.push({ icon: "print", label: t.print, onClick: () => void view() });
+  tiles.push({ icon: "share", label: t.share, onClick: () => void share() });
+  if (onRegenerate && sourcesCount > 0 && result.format !== "podcast") {
+    tiles.push({ icon: "review", label: t.reshuffle, onClick: () => onRegenerate(result.format) });
+  }
+
+  const questionTotal = result.format === "game" ? result.game.levels.reduce((s, l) => s + l.questions.length, 0) : 0;
+
   return (
-    <div className="screen">
-      <TopBar
-        right={
-          from ? (
-            <button type="button" className="btn ghost small" onClick={onNew}>
-              <Icon name="back" size={18} /> {t.backToPlan}
-            </button>
-          ) : (
-            <button type="button" className="iconbtn" onClick={onHome} aria-label={t.home}>
-              <Icon name="home" size={20} />
-            </button>
-          )
-        }
-      />
-      <div className="stack" style={{ alignItems: "center", textAlign: "center", padding: "4px 0 18px" }}>
-        <h1 className="display">{t.done}</h1>
-        <span className="muted" style={{ fontWeight: 700 }}>{t.formats[result.format]} · {subtitle}</span>
+    <div className="screen result-a">
+      <div className="result-a-top">
+        <button type="button" className="iconbtn plain" onClick={from ? onNew : onHome} aria-label={from ? t.backToPlan : t.back}>
+          <Icon name="back" size={22} stroke={2.4} />
+        </button>
+        <span className="result-a-done">{t.done}</span>
+        <button type="button" className="iconbtn plain" onClick={onHome} aria-label={t.home}>
+          <Icon name="home" size={22} stroke={2} />
+        </button>
       </div>
 
-      <div className="card" style={{ background: "#fff", color: "var(--sheet-fg)", boxShadow: "0 12px 40px rgba(31,214,234,0.25)" }}>
-        <h2 style={{ fontSize: 19 }}>{title}</h2>
-        {isSheet && (
-          <>
-            <p style={{ color: "var(--sheet-muted)" }}>{result.data.introduction}</p>
-            <ol style={{ margin: 0, paddingLeft: 20, color: "#374151", fontSize: 14, lineHeight: 1.4 }}>
-              {result.data.tasks.slice(0, 3).map((task) => (
-                <li key={task.number}>{task.question}</li>
-              ))}
-            </ol>
-          </>
-        )}
-        {result.format === "game" && (
-          <p style={{ color: "var(--sheet-muted)" }}>
-            {t.questionsCount(result.game.levels.reduce((s, l) => s + l.questions.length, 0))} · {result.game.subject}
-          </p>
-        )}
-        {result.format === "podcast" && (
-          <>
-            <audio controls src={`data:audio/mpeg;base64,${result.audioBase64}`} style={{ width: "100%" }}>
-              {t.listen}
-            </audio>
-            <button type="button" className="btn ghost small" onClick={() => setShowScript((v) => !v)} aria-expanded={showScript}>
-              {t.transcript}
-            </button>
-            {showScript && <p style={{ whiteSpace: "pre-line", textAlign: "left", fontSize: 15 }}>{result.script}</p>}
-          </>
-        )}
+      <div className="stack" style={{ gap: 4, marginTop: 10 }}>
+        <span className="home-a-label">
+          {t.formats[result.format]}
+          {subject ? ` · ${subject}` : ""}
+        </span>
+        <h1 className="result-a-title">{title}</h1>
       </div>
 
-      {sourcesCount > 0 && (onRegenerate || onShareSources) && (
-        <div className="sources-card">
-          <div className="row" style={{ justifyContent: "space-between", flexWrap: "nowrap" }}>
-            <span className="stack" style={{ gap: 2 }}>
-              <span style={{ fontWeight: 800 }}>{t.yourMaterial}</span>
-              <span className="muted" style={{ fontSize: 14 }}>{t.photosCount(sourcesCount)} · {t.savedOnPhone}</span>
-            </span>
-            {onShareSources && (
-              <button type="button" className="iconbtn" onClick={onShareSources} aria-label={t.sharePhotos}>
-                <Icon name="share" size={18} />
-              </button>
-            )}
-          </div>
-          {onRegenerate && !choosing && (
-            <button type="button" className="btn ghost small block" onClick={() => setChoosing(true)}>
-              <Icon name="review" size={18} /> {t.newFromPhotos}
-            </button>
-          )}
-          {onRegenerate && choosing && (
-            <div className="row" style={{ gap: 8 }}>
-              {(["worksheet", "test", "game"] as const).map((f) => (
-                <button key={f} type="button" className="pill" onClick={() => onRegenerate(f)}>
-                  <Icon name={f} size={16} stroke={2.4} /> {t.formats[f]}
-                </button>
-              ))}
-            </div>
-          )}
+      {isSheet && <SheetPreview title={result.data.title} intro={result.data.introduction} tasks={result.data.tasks} onOpen={() => void view()} />}
+      {result.format === "game" && <GamePreview game={result.game} />}
+      {result.format === "podcast" && (
+        <div className="card" style={{ marginTop: 18 }}>
+          <audio controls src={`data:audio/mpeg;base64,${result.audioBase64}`} style={{ width: "100%" }}>
+            {t.listen}
+          </audio>
+          <button type="button" className="btn ghost small" onClick={() => setShowScript((v) => !v)} aria-expanded={showScript}>
+            {t.transcript}
+          </button>
+          {showScript && <p style={{ whiteSpace: "pre-line", fontSize: 15 }}>{result.script}</p>}
         </div>
       )}
 
-      {!rated && onRate && <RatingCard onSend={onRate} />}
-
-      <div className="stack" style={{ marginTop: "auto", padding: "20px 0 28px" }}>
-        <div className="grid2">
-          {result.format === "game" && (
-            <button type="button" className="btn primary" onClick={() => onPlay(result.game)}>
-              <Icon name="play" /> {t.playGame}
-            </button>
-          )}
-          {isSheet && (
-            <button type="button" className="btn primary" onClick={onPractice}>
-              <Icon name="play" /> {t.solveOnline}
-            </button>
-          )}
-          {isSheet && (
-            <button type="button" className="btn ghost" onClick={() => void view()}>
-              <Icon name="print" /> {t.print}
-            </button>
-          )}
-          <button type="button" className={result.format === "podcast" ? "btn primary" : "btn ghost"} style={result.format !== "game" ? { gridColumn: "1 / -1" } : undefined} onClick={() => void share()}>
-            <Icon name="share" /> {t.share}
-          </button>
-        </div>
-        {result.format === "game" && <p className="muted" style={{ fontSize: 13, textAlign: "center" }}>{t.shareHint}</p>}
-        {from ? (
-          <button type="button" className="btn ghost block" onClick={onDone}>
-            <Icon name="check" /> {t.markDone}
-          </button>
-        ) : (
-          <button type="button" className="btn ghost block" onClick={onDone}>
-            <Icon name="plus" /> {t.newMaterial}
+      <div className="stack result-a-actions">
+        {isSheet && (
+          <button type="button" className="home-a-cta result-a-cta" onClick={onPractice}>
+            <Icon name="play" size={22} filled />
+            <span>{t.solveCount(result.data.tasks.length)}</span>
           </button>
         )}
+        {result.format === "game" && (
+          <button type="button" className="home-a-cta result-a-cta" onClick={() => onPlay(result.game)}>
+            <Icon name="play" size={22} filled />
+            <span>{t.playCount(questionTotal)}</span>
+          </button>
+        )}
+
+        <div className="result-a-tiles" style={{ gridTemplateColumns: `repeat(${tiles.length}, minmax(0, 1fr))` }}>
+          {tiles.map((tile) => (
+            <button key={tile.label} type="button" className="result-a-tile" onClick={tile.onClick}>
+              <Icon name={tile.icon} size={20} stroke={2} />
+              {tile.label}
+            </button>
+          ))}
+        </div>
+        {result.format === "game" && <p className="muted" style={{ fontSize: 13, textAlign: "center", margin: 0 }}>{t.shareHint}</p>}
+
+        <span className="result-a-meta">
+          {sourcesCount > 0 ? (
+            <>
+              {t.fromPhotos(sourcesCount)}
+              {onShareSources && (
+                <>
+                  {" · "}
+                  <button type="button" className="link-btn inline" onClick={onShareSources}>{t.sharePhotos}</button>
+                </>
+              )}
+            </>
+          ) : (
+            t.savedInMaterials
+          )}
+        </span>
+
+        {!rated && onRate && <RatingCard onSend={onRate} />}
+
+        <button type="button" className="btn ghost block" onClick={onDone}>
+          <Icon name={from ? "check" : "plus"} /> {from ? t.markDone : t.newMaterial}
+        </button>
       </div>
     </div>
   );
