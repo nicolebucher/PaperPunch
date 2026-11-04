@@ -74,6 +74,13 @@ function PrivacyEn() {
             processing agreement; transfers to the USA are based on the EU-US Data Privacy Framework and the EU
             Standard Contractual Clauses. Our server runs in Frankfurt (EU).
           </p>
+          <p className="mt-2">
+            Weekly limit during the beta: to count how many materials have been created this week, we store a
+            counter together with a pseudonymous key (a one-way hash of a random ID generated on your device, or of
+            your IP address if no ID is sent) with Upstash, Inc. (Redis database, data centre in Frankfurt), our
+            processor. No content, names or other details are stored. The counter is deleted automatically after
+            8 days.
+          </p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">8. Analytics</h2>
@@ -238,6 +245,14 @@ function PrivacyDe() {
             ist unser Auftragsverarbeiter (Auftragsverarbeitungsvertrag); Übermittlungen in die USA erfolgen auf
             Grundlage des EU-US Data Privacy Framework und der EU-Standardvertragsklauseln. Unser Server läuft in
             Frankfurt (EU).
+          </p>
+          <p className="mt-2">
+            Wochen-Kontingent in der Beta: Um zu zählen, wie viele Materialien in dieser Woche erstellt wurden,
+            speichern wir einen Zähler zusammen mit einem pseudonymen Schlüssel (ein nicht umkehrbarer Hash einer
+            zufälligen, auf deinem Gerät erzeugten Kennung bzw. deiner IP-Adresse, falls keine Kennung mitgeschickt
+            wird) bei Upstash, Inc. (Redis-Datenbank, Rechenzentrum Frankfurt) als Auftragsverarbeiter. Inhalte,
+            Namen oder andere Angaben werden dabei nicht gespeichert. Der Zähler wird nach 8 Tagen automatisch
+            gelöscht.
           </p>
         </section>
         <section>

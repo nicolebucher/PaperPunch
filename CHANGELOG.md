@@ -20,6 +20,7 @@ Beta limit of 10 new materials per week, name filter for study groups and challe
 | App + Website | Beta limit: 10 new materials per week per device (worksheet, test, learning game; resets Monday 00:00 Berlin time); practising, playing, study groups and challenges stay unlimited; a failed creation doesn't count |
 | App + Website | One-time “Welcome to the beta 🚀” sheet the first time you open the create screen (pink BETA badge, 10 bars, “Got it”) – never shown again |
 | App + Website | Create screen shows “Beta · 7 of 10 left this week” with bars; when the week is used up, the create button is replaced by a note (“new ones arrive on Monday”) and a link to write to us |
+| Website | Privacy policy: weekly counter (hashed device key, Upstash in Frankfurt, deleted after 8 days) |
 | Website · Tech | New /api/quota; /api/generate checks and counts per device (random ID, stored only as a hash; IP as fallback for older app versions); counter in Upstash Redis via the Vercel Marketplace, limit configurable with QUOTA_PER_WEEK; without Redis nothing is limited |
 
 ## v0.9.0 – 4 November 2026
