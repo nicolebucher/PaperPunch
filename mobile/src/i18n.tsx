@@ -437,7 +437,6 @@ const de = {
   planOver: "Der Test ist vorbei. Viel Erfolg – oder leg gleich einen neuen Plan an.",
   newPlan: "Neuen Plan anlegen",
   planAnother: "Lernplan für ein weiteres Fach",
-  planShort: "Lernplan",
   // Fehler
   errNetwork: "Keine Verbindung zum Server. Prüfe dein Internet und versuch es nochmal.",
   errGeneric: "Das hat nicht geklappt. Versuch es bitte nochmal.",
@@ -869,7 +868,6 @@ const en: typeof de = {
   planOver: "The test is over. Good luck – or set up a new plan.",
   newPlan: "New plan",
   planAnother: "Study plan for another subject",
-  planShort: "Study plan",
   errNetwork: "Can't reach the server. Check your internet and try again.",
   errGeneric: "That didn't work. Please try again.",
   tryAgain: "Try again",

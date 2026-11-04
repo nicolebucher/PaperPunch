@@ -22,7 +22,7 @@ Beta limit of 10 new materials per week, name filter for study groups and challe
 | App + Website | Create screen shows “Beta · 7 of 10 left this week” with bars; when the week is used up, the create button is replaced by a note (“new ones arrive on Monday”) and a link to write to us |
 | Website | Privacy policy: weekly counter (hashed device key, Upstash in Frankfurt, deleted after 8 days) |
 | Website · Tech | New /api/quota; /api/generate checks and counts per device (random ID, stored only as a hash; IP as fallback for older app versions); counter in Upstash Redis via the Vercel Marketplace, limit configurable with QUOTA_PER_WEEK; without Redis nothing is limited |
-| App | Several study plans: when a plan is running, the home screen now has “+ Study plan” next to Invite, Challenge and Study group, and every plan has “Study plan for another subject” at the bottom (tester feedback: English was set up, Latin couldn't be added) |
+| App | Several study plans: the third big button on the home screen is now always “Create study plan” (green); every running plan is listed under “Continue” with days left and today's session; every plan also has “Study plan for another subject” at the bottom (tester feedback: English was set up, Latin couldn't be added) |
 | Website · Tech | Upstash Redis database “paperpunch-quota” (free plan, Frankfurt) connected to snap-it-new – the weekly limit is active |
 
 ## v0.9.0 – 4 November 2026

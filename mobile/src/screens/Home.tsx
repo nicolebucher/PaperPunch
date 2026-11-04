@@ -14,7 +14,7 @@ import { isBlockedName } from "../nameFilter";
 
 /**
  * Startseite S1: oben Datum/Begrüßung, rechts Level + Punches und Profil. Darunter drei große Wege
- * (Lernmaterial fotografieren, Thema eintippen, Lernplan) – läuft ein Lernplan, zeigt der dritte Weg ihn an.
+ * (Lernmaterial fotografieren, Thema eintippen, Lernplan erstellen) – laufende Lernpläne stehen unter "Weitermachen".
  * Darunter klein "Weitermachen" (Lernpläne zuerst, dann Materialien), ganz unten Einladen und Herausfordern.
  */
 export function Home({
@@ -53,14 +53,13 @@ export function Home({
   const running = plans
     .filter((p) => daysBetween(today, p.goal.testDate) > 0)
     .sort((a, b) => daysBetween(today, a.goal.testDate) - daysBetween(today, b.goal.testDate));
-  const plan = running[0];
 
   // "Weitermachen": alle laufenden Lernpläne, dann angefangenes und zuletzt genutztes Material – zusammen höchstens vier.
   const resumable = materials.filter(isResumable).sort((a, b) => b.updatedAt - a.updatedAt);
   const rest = materials.filter((m) => !isResumable(m)).sort((a, b) => b.updatedAt - a.updatedAt);
-  // Der nächste Plan steht schon im dritten Button – in der Liste nur weitere Pläne.
-  const morePlans = running.slice(1);
-  const items = [...resumable, ...rest].slice(0, Math.max(0, 4 - morePlans.length));
+  // Alle laufenden Pläne stehen in der Liste; der dritte Button legt immer einen neuen Plan an.
+  const morePlans = running;
+  const items = [...resumable, ...rest].slice(0, Math.max(1, 4 - morePlans.length));
 
   const firstStart = materials.length === 0 && plans.length === 0;
   const hour = new Date().getHours();
@@ -99,8 +98,6 @@ export function Home({
     };
   }, [materials]);
 
-  const planToday = plan ? todaySession(plan, today) : undefined;
-  const planDays = plan ? daysBetween(today, plan.goal.testDate) : 0;
 
   return (
     <div className="screen home home-c">
@@ -132,17 +129,7 @@ export function Home({
       <div className="home-c-ways">
         <WayButton icon="camera" color="c1" title={t.homeCta} sub={t.wayPhotoSub} main onClick={onQuick} />
         <WayButton icon="edit" color="c2" title={t.wayTopic} sub={t.wayTopicSub} onClick={() => onTopic?.("")} />
-        {plan ? (
-          <WayButton
-            icon="calendar"
-            color="c3"
-            title={plan.plan.title}
-            sub={planToday ? t.wayPlanToday(planDays, planToday) : t.homePlanActive(planDays)}
-            onClick={() => onOpenPlan(plan.id)}
-          />
-        ) : (
-          <WayButton icon="calendar" color="c3" title={t.createPlan} sub={t.wayPlanSub} beta onClick={onNewPlan} />
-        )}
+        <WayButton icon="calendar" color="c3" title={t.createPlan} sub={t.wayPlanSub} beta onClick={onNewPlan} />
       </div>
 
       {(morePlans.length > 0 || items.length > 0 || groups.length > 0) && (
@@ -202,11 +189,6 @@ export function Home({
         <button type="button" onClick={() => setGroupSheet({})}>
           <Icon name="group" size={16} stroke={2} /> {t.groupShort}
         </button>
-        {plan && (
-          <button type="button" onClick={onNewPlan}>
-            <Icon name="plus" size={16} stroke={2} /> {t.planShort}
-          </button>
-        )}
       </div>
 
       {groupSheet && (
