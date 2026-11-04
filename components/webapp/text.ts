@@ -108,6 +108,8 @@ export const APP_TEXT = {
     aiShort: "KI kann Fehler machen.",
     // Weiterempfehlen
     punchesTitle: "Deine Punches",
+    streak: (n: number) => (n === 1 ? "Serie: 1 Tag" : `Serie: ${n} Tage in Folge`),
+    streakKeep: "Heute noch lernen, damit die Serie hält",
     punchesLevel: (n: number, name: string) => `Level ${n} · ${name}`,
     punchesToNext: (p: number, name: string) => `Noch ${p} Punches bis ${name}`,
     punchesMax: "Höchste Stufe erreicht!",
@@ -218,6 +220,8 @@ export const APP_TEXT = {
     linkCopied: "Link copied – send it on!",
     aiShort: "AI can make mistakes.",
     punchesTitle: "Your Punches",
+    streak: (n: number) => (n === 1 ? "Streak: 1 day" : `Streak: ${n} days in a row`),
+    streakKeep: "Learn today to keep your streak",
     punchesLevel: (n: number, name: string) => `Level ${n} · ${name}`,
     punchesToNext: (p: number, name: string) => `${p} Punches to ${name}`,
     punchesMax: "Top level reached!",

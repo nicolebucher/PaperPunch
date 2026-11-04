@@ -23,7 +23,9 @@ Fixes from tester feedback (English-speaking tester): tap targets, language of t
 | App | Boss round: rematch questions are never duplicated; a rematch solved on the first try is removed from the list; “missed” in the result only counts questions that were never solved |
 | Website · AI | A single faulty boss question no longer makes game creation fail – invalid ones are dropped (boss round only with at least 4 valid questions) |
 | Website | Punches can't be farmed: in learning games only the first run of a level earns Punches (not the Mixed level or replays); a worksheet pays once, also after reloading the page |
-| App | Punches balanced: boss questions ×1.5 instead of ×2, combo at most ×3 (boss round ×2) instead of ×4 – a full game now gives about 700 instead of 950 Punches; boss map label “New hard questions & rematches · 1.5× punches” |
+| App | Punches balanced: combo multiplier removed (“3 in a row” is still shown, without extra Punches), boss questions ×1.5 instead of ×2 – a full game now gives about 400 instead of 950 Punches; boss map label “New hard questions & rematches · 1.5× punches”; website text “Levels, stars and a boss level” |
+| App + Website | New learning streak: days in a row with Punches, shown as a flame with the number next to the Punches on the home screen (app) and in the Punches badge (web); outlined until you have learned today; reward card says “Streak started – learn again tomorrow” or “5 days in a row – keep going!”; level page shows the streak instead of “Level x/10”. Punches are never lost – a break only resets the streak |
+| App | Without internet: finished games play fully offline; if a typed answer can't be checked twice in a row, the app's own comparison decides, so nobody gets stuck |
 | App | Joker text “Wrong answers disappear, 2 are left”; rematch label “Rematch – this one was tricky earlier” (it also covers questions solved on the second try) |
 
 ## v0.7.0 – 3 November 2026

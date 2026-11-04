@@ -32,8 +32,44 @@ export function totalPunches(): number {
   }
 }
 
+const DAYS_KEY = "paperpunch-web-days";
+
+const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+function activeDays(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(DAYS_KEY) ?? "[]") as string[];
+  } catch {
+    return [];
+  }
+}
+
+/** Serie: Tage in Folge mit Punches – bis heute oder, solange heute noch nichts war, bis gestern (wie in der App). */
+export function streakDays(): number {
+  const days = new Set(activeDays());
+  const d = new Date();
+  if (!days.has(iso(d))) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (days.has(iso(d))) {
+    n++;
+    d.setDate(d.getDate() - 1);
+  }
+  return n;
+}
+
+export function learnedToday(): boolean {
+  return activeDays().includes(iso(new Date()));
+}
+
 export function addPunches(amount: number): void {
   if (!(amount > 0)) return;
+  try {
+    const today = iso(new Date());
+    const days = activeDays();
+    if (!days.includes(today)) localStorage.setItem(DAYS_KEY, JSON.stringify([...days, today].slice(-120)));
+  } catch {
+    // ohne Speicher keine Serie
+  }
   const next = totalPunches() + Math.round(amount);
   try {
     localStorage.setItem(KEY, String(next));

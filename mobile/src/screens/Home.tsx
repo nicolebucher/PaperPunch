@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
 import { useT } from "../i18n";
 import { Beta, Icon, type IconName } from "../ui";
-import { levelFor, POINTS, totalPunches } from "../punches";
+import { learnedToday, levelFor, POINTS, streakDays, totalPunches } from "../punches";
 import { inviteShares } from "../invite";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
@@ -65,6 +65,7 @@ export function Home({
   const dateLabel = new Date().toLocaleDateString(lang, { weekday: "short", day: "numeric", month: "short" });
 
   const total = totalPunches();
+  const streak = streakDays();
   const lvl = levelFor(total);
   const inviteBonus = inviteShares() === 0;
   const [challengeOpen, setChallengeOpen] = useState(false);
@@ -80,6 +81,11 @@ export function Home({
           <span className="home-b-hello">{greeting}</span>
         </div>
         <div className="home-c-top">
+          {streak > 0 && (
+            <button type="button" className={learnedToday() ? "home-c-streak" : "home-c-streak open"} onClick={onLevels} aria-label={t.streakAria(streak)}>
+              <Icon name="flame" size={16} stroke={2.2} /> {streak}
+            </button>
+          )}
           <button type="button" className="home-c-punch" onClick={onLevels} aria-label={t.levelAria(lvl.number, total)}>
             <span className="home-c-ring" style={{ "--p": `${Math.round(lvl.progress * 100)}%` } as CSSProperties}>
               <span>{lvl.number}</span>

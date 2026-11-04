@@ -40,6 +40,7 @@ export function Toast({ text }: { text: string }) {
 
 const PATHS = {
   back: "M15 18l-6-6 6-6",
+  flame: "M12 3c.5 3.5 4.5 5.5 4.5 10a4.5 4.5 0 0 1-9 0c0-2 1-3.5 2-4.5.3 1.5 1 2.5 2 3 0-3-1-5.5.5-8.5z",
   chevron: "M9 6l6 6-6 6",
   home: "M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5",
   eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",

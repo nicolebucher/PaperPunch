@@ -91,6 +91,28 @@ export function weekPunches(): number {
   return load().log.filter((e) => e.date >= since && e.amount > 0).reduce((s, e) => s + e.amount, 0);
 }
 
+/**
+ * Serie: Tage in Folge, an denen Punches dazukamen. Zählt bis heute – oder bis gestern, solange heute noch nichts gemacht wurde
+ * (die Serie reißt erst, wenn ein ganzer Tag ohne Lernen vorbei ist). Punches gehen dabei nie verloren.
+ */
+export function streakDays(): number {
+  const days = new Set(load().log.filter((e) => e.amount > 0 && e.key !== "archive").map((e) => e.date));
+  let d = todayISO();
+  if (!days.has(d)) d = addDays(d, -1);
+  let n = 0;
+  while (days.has(d)) {
+    n++;
+    d = addDays(d, -1);
+  }
+  return n;
+}
+
+/** true, wenn heute schon gelernt wurde (Serie für heute gesichert). */
+export function learnedToday(): boolean {
+  const today = todayISO();
+  return load().log.some((e) => e.date === today && e.amount > 0);
+}
+
 export function recentEntries(n = 12): PunchEntry[] {
   return load().log.filter((e) => e.key !== "archive").slice(-n).reverse();
 }

@@ -3,7 +3,7 @@ import { deviceLang, LangProvider, useT } from "./i18n";
 import { loadProfile } from "./storage";
 import { BrandMark, PIXEL_COLORS } from "./brand";
 import { Icon } from "./ui";
-import { LEVELS, levelFor, recentEntries, totalPunches, weekPunches, type Reward } from "./punches";
+import { learnedToday, LEVELS, levelFor, recentEntries, streakDays, totalPunches, weekPunches, type Reward } from "./punches";
 
 // Belohnungs-Anzeige: Punches-Zähler oben, Abrechnung nach einer Einheit, Level-Aufstieg, Level-Seite.
 
@@ -73,6 +73,7 @@ function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => voi
   const shown = useCountUp(0, reward.total);
   const runningTotal = useCountUp(reward.before, reward.after, 1200);
   const lvlAfter = levelFor(reward.after);
+  const streak = reward.total > 0 ? streakDays() : 0;
 
   if (phase === "levelup") {
     return (
@@ -105,6 +106,12 @@ function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => voi
               </li>
             ))}
           </ul>
+        )}
+        {streak > 0 && (
+          <div className="reward-streak">
+            <span className="streak-flame"><Icon name="flame" size={18} stroke={2.2} /></span>
+            <span>{streak === 1 ? t.streakStart : t.streakGrow(streak)}</span>
+          </div>
         )}
         <div className="stack" style={{ gap: 6 }}>
           <div className="row" style={{ justifyContent: "space-between", fontWeight: 800, fontSize: 14 }}>
@@ -180,7 +187,11 @@ export function LevelScreen({ onBack }: { onBack: () => void }) {
         </div>
         <div className="grid2">
           <div className="card"><span className="muted" style={{ fontSize: 13, fontWeight: 700 }}>{t.thisWeek}</span><b style={{ fontSize: 24 }}>+{weekPunches()}</b></div>
-          <div className="card"><span className="muted" style={{ fontSize: 13, fontWeight: 700 }}>{t.levelLabel}</span><b style={{ fontSize: 24 }}>{lvl.number}/10</b></div>
+          <div className="card">
+            <span className="muted" style={{ fontSize: 13, fontWeight: 700 }}>{t.streakLabel}</span>
+            <b style={{ fontSize: 24, display: "inline-flex", alignItems: "center", gap: 6 }}><span className="streak-flame"><Icon name="flame" size={20} stroke={2.2} /></span>{t.streakDays(streakDays())}</b>
+            {streakDays() > 0 && !learnedToday() && <span className="muted" style={{ fontSize: 12, fontWeight: 700 }}>{t.streakKeep}</span>}
+          </div>
         </div>
 
         <div className="stack" style={{ gap: 8 }}>
