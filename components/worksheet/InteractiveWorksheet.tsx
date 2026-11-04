@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import type { Task, WorksheetData } from "@/types/generation";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { addPunches, SHEET_ANSWER_PUNCHES } from "@/lib/webapp/punches";
+import { ReportProblem } from "@/components/ReportProblem";
 
 function shuffle<T>(items: T[]): T[] {
   const copy = [...items];
@@ -194,6 +195,12 @@ export function InteractiveWorksheet({ data }: { data: WorksheetData }) {
               <p className="mt-2 text-sm text-green-600">
                 {t.practice.correctAnswerLabel} {task.answer}
               </p>
+            )}
+            {revealed && (
+              <ReportProblem
+                tone="light"
+                context={{ source: "web-sheet", title: data.title, question: task.question, expected: task.answer, options: task.options, given: answers[task.number] || undefined }}
+              />
             )}
           </div>
         ))}

@@ -3,6 +3,7 @@ import { useT } from "../i18n";
 import { Icon } from "../ui";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import { answerMatches } from "../answerMatch";
+import { ReportProblem } from "../ReportProblem";
 
 const CHECKPOINT_MAX = 15;
 
@@ -154,6 +155,9 @@ export function Quiz({ game, checkpoint, inPlan, onClose, onFinish }: { game: Ga
           <button type="button" className="btn dark block" style={{ marginTop: "auto" }} onClick={next}>
             {last ? t.finish : t.next}
           </button>
+        )}
+        {answered && (
+          <ReportProblem key={`r${index}`} context={{ source: "app-quiz", title: game.gameTitle, subject: game.subject, level: q.level, question: q.prompt, expected: answer, options: q.type === "multiple-choice" ? q.options : q.acceptedAnswers, given: picked ?? undefined }} />
         )}
       </div>
     </div>

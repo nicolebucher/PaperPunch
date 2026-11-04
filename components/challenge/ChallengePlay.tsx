@@ -144,6 +144,7 @@ export function ChallengePlay({ challenge }: { challenge: ChallengeRecord }) {
           totalSnaps={correct}
           onSnap={() => undefined}
           onExit={() => setStage("intro")}
+          report={{ source: "web-challenge", title: challenge.game.gameTitle, subject: challenge.game.subject }}
           onComplete={(result) => {
             setCorrect((c) => c + result.score);
             if (levelIndex + 1 < levels.length) setLevelIndex((i) => i + 1);

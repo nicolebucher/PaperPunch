@@ -172,6 +172,7 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
           totalSnaps={correct}
           onSnap={() => undefined}
           onExit={() => setStage("intro")}
+          report={{ source: "web-group", title: game.gameTitle, subject: game.subject }}
           onComplete={(result) => {
             const next = correct + result.score;
             setCorrect(next);

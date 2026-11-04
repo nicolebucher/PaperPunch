@@ -10,6 +10,7 @@ import { QuestionCard } from "./QuestionCard";
 import { FillBlankCard } from "./FillBlankCard";
 import { SnapEffect } from "./SnapEffect";
 import { answerMatches } from "@/lib/answer-match";
+import { ReportProblem } from "@/components/ReportProblem";
 
 export interface LevelResult {
   stars: number;
@@ -25,7 +26,10 @@ export function LevelPlayer({
   onExit,
   onSnap,
   joker = false,
+  report,
 }: {
+  /** Herkunft für "Fehler melden" (z. B. "web-group") plus Spieltitel/Fach. */
+  report?: { source: string; title?: string; subject?: string };
   /** Joker 50:50 gegen Punches anbieten (nicht in Challenges, damit es fair bleibt). */
   joker?: boolean;
   level: Level;
@@ -199,6 +203,18 @@ export function LevelPlayer({
           {isLast ? t.game.finishLevel : t.game.next}
         </button>
       )}
+      {answered && <ReportProblem
+        context={{
+          source: report?.source ?? "web-game",
+          title: report?.title,
+          subject: report?.subject,
+          level: level.title,
+          question: question.prompt,
+          expected: isMultipleChoice ? question.options?.[question.correctIndex ?? 0] : question.correctAnswer,
+          options: isMultipleChoice ? question.options : question.acceptedAnswers,
+          given: isMultipleChoice ? (selected !== null ? question.options?.[selected] : undefined) : typedValue.trim() || undefined,
+        }}
+      />}
     </div>
   );
 }

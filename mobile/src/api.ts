@@ -112,6 +112,44 @@ export interface Quota {
   remaining: number;
 }
 
+export interface ReportPayload {
+  source: string;
+  reason: "unclear" | "wrong-solution" | "my-answer-right" | "other";
+  note?: string;
+  question: string;
+  expected?: string;
+  options?: string[];
+  given?: string;
+  title?: string;
+  subject?: string;
+  level?: string;
+  lang?: string;
+}
+
+/** "Fehler melden" an einer Frage – geht ins Feedback-Sheet der Website. */
+export async function reportProblem(p: ReportPayload): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/api/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...p,
+        question: p.question.slice(0, 1000),
+        expected: p.expected?.slice(0, 400),
+        options: p.options?.slice(0, 6).map((o) => o.slice(0, 200)),
+        given: p.given?.slice(0, 300),
+        title: p.title?.slice(0, 200),
+        subject: p.subject?.slice(0, 80),
+        level: p.level?.slice(0, 120),
+        note: p.note?.slice(0, 1000),
+      }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** Wochen-Kontingent fürs Erstellen (Beta). null, wenn offline oder der Server nicht antwortet. */
 export async function fetchQuota(): Promise<Quota | null> {
   try {

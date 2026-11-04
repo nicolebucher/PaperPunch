@@ -18,6 +18,10 @@ Teachers can adjust a learning game before sharing it with their class (feedback
 | Website | Replace a whole level: new sub-topic (e.g. “comparing fractions” instead of “recognising fractions”), difficulty (easier/same/harder) and number of questions (6/8/10); all new questions at a glance, then Apply level, Whole level again or Discard |
 | Website | Changes go into a copy “… (edited)” saved in the browser, the original stays; “Continue to name & share” goes back to the study group with the edited game preselected |
 | App | Home screen: Invite, Challenge and Study group always stay in one line at the bottom (font and spacing shrink slightly on narrow phones) |
+| App + Website | “Report a problem” under every answered question (learning game, worksheet/test online, challenge, study group, study plan quiz): question unclear / solution wrong / my answer was right / something else, plus an optional note; reports go to the feedback sheet (kind “report”) with question, expected and given answer and game title |
+| App + Website | Answer check: lists count as the same regardless of separators – “Zehntel Hundertstel Tausendstel” = “Zehntel, Hundertstel und Tausendstel” (order still matters) |
+| Website · Tech | Game generation: questions whose answer is a list must say exactly what and how many to name, and accept the list with commas and with “und” (tester saw an unclear decimal-places question) |
+| Website · Tech | New /api/report (IP limit 10 per minute) |
 | Website · Tech | New /api/edit-game (one question or one level, Claude via the existing structured-output helper, options shuffled); doesn't count towards the weekly limit, IP limit 15 per minute; GA4 events edit_open, edit_link, edit_question_replaced, edit_level_replaced, edit_question_deleted |
 
 ## v0.10.0 – 4 November 2026 (Android: version code 9)

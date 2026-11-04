@@ -7,6 +7,7 @@ import { POINTS, type RewardLine } from "../punches";
 import { hapticRight, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
 import type { PracticeProgress } from "../storage";
+import { ReportProblem } from "../ReportProblem";
 
 const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ").replace(/[.!?]$/, "");
 const isChoice = (task: Task) => (task.type === "multiple-choice" || task.type === "unterstreichen") && !!task.options;
@@ -291,6 +292,9 @@ export function Practice({
           <button type="button" className="btn dark block" style={{ marginTop: "auto" }} onClick={next}>
             {last ? t.finish : t.next}
           </button>
+        )}
+        {answered && (
+          <ReportProblem key={`r${index}`} context={{ source: "app-practice", title, question: task.question, expected: task.answer, options: task.options, given: typed.trim() || undefined }} />
         )}
       </div>
     </div>

@@ -79,6 +79,11 @@ function gapVariants(prompt: string, answers: string[]): string[] {
   return out;
 }
 
+/** Aufzählungen vergleichbar machen: "Zehntel, Hundertstel und Tausendstel" = "Zehntel Hundertstel Tausendstel". */
+function listKey(s: string): string {
+  return s.replace(/\s*(?:,|;|\/|&|\+|\bund\b|\band\b|\bsowie\b)\s*/g, " ").replace(/\s+/g, " ").trim();
+}
+
 /** true, wenn `given` als richtig gilt. `prompt` (optional) = Aufgabentext mit "___" für Lückentexte. */
 export function answerMatches(given: string, expected: string, accepted: string[] = [], prompt = ""): boolean {
   const g = fold(given).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "");
@@ -88,6 +93,7 @@ export function answerMatches(given: string, expected: string, accepted: string[
   const gNum = asNumber(g);
   for (const c of candidates) {
     if (g === c) return true;
+    if (c.includes(" ") && listKey(g) === listKey(c)) return true;
     const cNum = asNumber(c);
     if (gNum !== null && cNum !== null) {
       if (Math.abs(gNum - cNum) < 1e-9) return true;

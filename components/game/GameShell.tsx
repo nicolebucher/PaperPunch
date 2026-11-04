@@ -66,6 +66,7 @@ export function GameShell({ game }: { game: GameData }) {
         onExit={() => setActiveLevelId(null)}
         onSnap={handleSnap}
         joker
+        report={{ source: "web-game", title: game.gameTitle, subject: game.subject }}
         onComplete={(result) => {
           track("level_complete", { level: activeLevel.id === -1 ? "mixed" : String(activeLevel.id), difficulty: activeLevel.difficulty, stars: result.stars, correct: result.score, total: activeLevel.questions.length, replay: results[activeLevel.id] !== undefined });
           if (activeLevel.id !== -1) {

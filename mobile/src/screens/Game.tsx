@@ -9,6 +9,7 @@ import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
+import { ReportProblem } from "../ReportProblem";
 
 type Game = GameResult["game"];
 type Q = Question & { difficulty: string; revanche?: boolean };
@@ -110,6 +111,8 @@ export function GameScreen({
       <LevelPlay
         key={String(playing)}
         title={isBoss ? t.bossTitle : game.levels[playing].title}
+        gameTitle={game.gameTitle}
+        subject={game.subject}
         isBoss={isBoss}
         questions={questions}
         gameKey={gameKey}
@@ -196,6 +199,8 @@ export function GameScreen({
 
 function LevelPlay({
   title,
+  gameTitle,
+  subject,
   isBoss,
   questions,
   gameKey,
@@ -203,6 +208,8 @@ function LevelPlay({
   onDone,
 }: {
   title: string;
+  gameTitle?: string;
+  subject?: string;
   isBoss: boolean;
   questions: Q[];
   gameKey: string;
@@ -518,6 +525,12 @@ function LevelPlay({
           <button type="button" className="btn dark block" style={{ marginTop: "auto" }} onClick={next}>
             {index === round.length - 1 ? t.finish : t.next}
           </button>
+        )}
+        {answered && (
+          <ReportProblem
+            key={`r${replay ? "r" : ""}${index}`}
+            context={{ source: "app-game", title: gameTitle, subject, level: title, question: q.prompt, expected: answer, options: q.type === "multiple-choice" ? q.options : q.acceptedAnswers, given: q.type === "multiple-choice" ? wrongPicks[wrongPicks.length - 1] : typed.trim() || undefined }}
+          />
         )}
       </div>
     </div>

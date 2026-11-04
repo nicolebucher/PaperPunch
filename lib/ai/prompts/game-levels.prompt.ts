@@ -49,7 +49,10 @@ Questions should be age-appropriate, unambiguous, and factually correct. A wrong
 answer key is a serious failure - before finalizing each question, re-read it together with its
 answer ("correctIndex" for multiple-choice, "correctAnswer" for lueckentext) and verify they
 actually match; for lueckentext, also make sure "prompt" makes the intended word unambiguous from
-context and grammar without spelling it out elsewhere in the sentence. When several questions in
+context and grammar without spelling it out elsewhere in the sentence. If the answer is a list of
+several terms, the prompt must say exactly what to give and how many (e.g. "Wie heißen die ersten drei Stellen
+nach dem Komma?" rather than "Zähle die Stellen nach dem Komma auf"), and "acceptedAnswers" should also contain
+the list written with commas and with "und"/"and". When several questions in
 a level test the same vocabulary/word list, phrase all
 of them using ONE consistent question template (e.g. always "What does '___' mean?" with
 translations as the options, or always the same translation direction) - do not mix different

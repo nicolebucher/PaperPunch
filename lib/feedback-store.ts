@@ -4,7 +4,7 @@ import { put } from "@vercel/blob";
 // 1. als Sicherung in einen privaten Vercel Blob Store (Frankfurt) unter feedback/JJJJ-MM-TT/…json – damit nichts verloren geht,
 // 2. an das Google Sheet (Apps-Script-Webhook in RATINGS_WEBHOOK_URL), das einmal pro Woche durchgegangen wird.
 
-export type FeedbackKind = "rating" | "feedback";
+export type FeedbackKind = "rating" | "feedback" | "report";
 
 export async function storeFeedback(kind: FeedbackKind, row: Record<string, unknown>): Promise<{ stored: boolean }> {
   const record = { kind, submittedAt: new Date().toISOString(), ...row };
