@@ -1,4 +1,5 @@
 import { createGroup, fetchGroupBoard, submitGroupResult, type GroupBoard } from "./api";
+// Gegenstück auf der Website: lib/groups.ts (Speicher) und components/group/GroupPlay.tsx (Mitspielen im Browser).
 import { shareLink, type InviteOutcome } from "./invite";
 import { savedNickname } from "./challenge";
 import type { Dict } from "./i18n";
