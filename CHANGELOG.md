@@ -21,6 +21,7 @@ Study groups: everyone plays the same learning game via a link, with a shared le
 | Website · Tech | New endpoints /api/groups (create), /api/groups/CODE (leaderboard), /api/groups/CODE/result (first try per device); stored in the public Vercel Blob store in Frankfurt, one file per entry, deleted after at most 44 days |
 | Website | Privacy policy: new “Study groups” section |
 | Website | GA4 events for groups (opened, joined, finished, created, shared, new round) – only with consent |
+| Website · Tech | Build rule fix: if Vercel's shallow clone doesn't contain the previous commit, the project is built instead of failing |
 
 ## v0.8.0 – 4 November 2026
 
