@@ -13,6 +13,8 @@ const CELLS = 12;
 export function Working({ format, fileCount }: { format: MaterialFormat | "plan" | "adjust"; fileCount: number }) {
   const { t } = useT();
   const [seconds, setSeconds] = useState(0);
+  // Jedes Mal an einer zufälligen Stelle anfangen, damit nicht immer dieselben Tipps kommen.
+  const [tipStart] = useState(() => Math.floor(Math.random() * 1000));
 
   useEffect(() => {
     const id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
@@ -25,7 +27,7 @@ export function Working({ format, fileCount }: { format: MaterialFormat | "plan"
   const filled = Math.floor(progress * CELLS);
   const step = progress < 0.25 ? 0 : progress < 0.7 ? 1 : 2;
   const steps = [t.stepRead(fileCount), t.stepThink, t.stepBuild];
-  const tip = t.loadingTips[Math.floor(seconds / 7) % t.loadingTips.length];
+  const tip = t.loadingTips[(tipStart + Math.floor(seconds / 8)) % t.loadingTips.length];
 
   const title = format === "plan" ? t.planCreating : format === "adjust" ? t.adjusting : t.working(t.formats[format]);
 
