@@ -58,6 +58,7 @@ export function Result({
   onPractice,
   onDone,
   onHome,
+  onDelete,
   onNew,
   rated = true,
   onRate,
@@ -71,6 +72,8 @@ export function Result({
   onDone: () => void;
   onNew: () => void;
   onHome: () => void;
+  /** Material löschen (nur gespeicherte Materialien). */
+  onDelete?: () => void;
   rated?: boolean;
   onRate?: (stars: number, text: string) => void;
   /** Werden auf dem Ergebnis-Screen nicht mehr angezeigt; bleiben optional für Aufrufer. */
@@ -85,6 +88,7 @@ export function Result({
   const [showScript, setShowScript] = useState(false);
   const [preview, setPreview] = useState(false);
   const [challengeOpen, setChallengeOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [nickname, setNickname] = useState(savedNickname);
   const [challengeBusy, setChallengeBusy] = useState(false);
 
@@ -172,9 +176,26 @@ export function Result({
         <button type="button" className="home-b-profile" onClick={from ? onNew : onHome} aria-label={from ? t.backToPlan : t.back}>
           <Icon name="back" size={20} stroke={2.4} />
         </button>
-        <button type="button" className="home-b-profile" onClick={onHome} aria-label={t.home}>
-          <Icon name="home" size={20} stroke={2} />
-        </button>
+        <div className="row" style={{ gap: 8, flexWrap: "nowrap" }}>
+          <button type="button" className="home-b-profile" onClick={onHome} aria-label={t.home}>
+            <Icon name="home" size={20} stroke={2} />
+          </button>
+          {onDelete && (
+            <button type="button" className="home-b-profile" onClick={() => setMenuOpen((v) => !v)} aria-label={t.moreActions} aria-expanded={menuOpen}>
+              <Icon name="more" size={22} stroke={3} />
+            </button>
+          )}
+        </div>
+        {menuOpen && onDelete && (
+          <>
+            <div className="menu-backdrop" onClick={() => setMenuOpen(false)} />
+            <div className="menu-pop" role="menu">
+              <button type="button" role="menuitem" className="menu-item danger" onClick={() => { setMenuOpen(false); onDelete(); }}>
+                <Icon name="trash" size={18} stroke={2.2} /> {t.deleteThis}
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="result-e-hero">

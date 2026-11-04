@@ -74,6 +74,24 @@ function AppInner() {
     toastTimer.current = window.setTimeout(() => setToast(""), 3200);
   }, []);
 
+  // Löschen ohne Rückfrage – 5 Sekunden lang "Rückgängig" (das Material bleibt so lange im Speicher des Toasts).
+  const [undoItem, setUndoItem] = useState<StoredMaterial | null>(null);
+  const undoTimer = useRef<number>();
+  const removeMaterial = useCallback((m: StoredMaterial) => {
+    void deleteMaterial(m.id);
+    setMaterials((list) => list.filter((x) => x.id !== m.id));
+    setUndoItem(m);
+    window.clearTimeout(undoTimer.current);
+    undoTimer.current = window.setTimeout(() => setUndoItem(null), 5000);
+  }, []);
+  const undoRemove = useCallback(() => {
+    if (!undoItem) return;
+    void saveMaterial(undoItem);
+    setMaterials((list) => [undoItem, ...list.filter((x) => x.id !== undoItem.id)].sort((a, b) => b.updatedAt - a.updatedAt));
+    setUndoItem(null);
+    window.clearTimeout(undoTimer.current);
+  }, [undoItem]);
+
   const setPlans = useCallback((next: ActivePlan[]) => {
     setPlansState(next);
     savePlans(next);
@@ -385,6 +403,15 @@ function AppInner() {
           }}
           onNew={() => setView(view.from ? { name: "plan", planId: view.from.planId } : { name: "capture", mode: "photo" })}
           onHome={() => setView({ name: "home" })}
+          onDelete={
+            view.materialId && materialById(view.materialId)
+              ? () => {
+                  const m = materialById(view.materialId);
+                  if (m) removeMaterial(m);
+                  setView({ name: "home" });
+                }
+              : undefined
+          }
           rated={!view.materialId || !!materialById(view.materialId)?.rating || !materialById(view.materialId)}
           onRate={(stars, text) => rate(view.materialId, view.result, stars, text)}
           sourcesCount={materialById(view.materialId)?.sources?.length ?? 0}
@@ -404,10 +431,7 @@ function AppInner() {
           materials={materials}
           onBack={() => setView({ name: "home" })}
           onOpen={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
-          onDelete={(m) => {
-            void deleteMaterial(m.id);
-            setMaterials((list) => list.filter((x) => x.id !== m.id));
-          }}
+          onDelete={removeMaterial}
         />
       );
       break;
@@ -546,7 +570,14 @@ function AppInner() {
       <GoHomeContext.Provider value={view.name === "onboarding" || view.name === "working" ? null : goHome}>
         {screen}
       </GoHomeContext.Provider>
-      {toast && <Toast text={toast} />}
+      {undoItem ? (
+        <div className="toast undo" role="status">
+          <span>{t.deletedUndo(materialTitle(undoItem))}</span>
+          <button type="button" onClick={undoRemove}>{t.undo}</button>
+        </div>
+      ) : (
+        toast && <Toast text={toast} />
+      )}
       {splash && <Splash onDone={endSplash} />}
     </LangProvider>
   );

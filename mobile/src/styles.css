@@ -1072,3 +1072,11 @@ h1 .beta { position: relative; top: -3px; }
 .pair.match.ok { border-color: #65a30d; background: #f0fdf4; }
 .pair.match.no { border-color: #ea580c; background: #fff7ed; }
 .pair.match s { margin-right: 4px; }
+
+/* "⋯"-Menü (Material löschen) und Rückgängig-Toast */
+.menu-backdrop { position: fixed; inset: 0; z-index: 20; }
+.menu-pop { position: absolute; right: 0; top: 70px; z-index: 21; min-width: 200px; padding: 6px; border-radius: 16px; background: var(--row-bg, #151518); border: 1px solid var(--row-line, #26262b); box-shadow: 0 14px 40px rgba(0,0,0,0.35); }
+.menu-item { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; border: none; border-radius: 12px; background: none; color: var(--fg); font: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer; }
+.menu-item.danger { color: #f97316; }
+.toast.undo { display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; }
+.toast.undo button { border: none; background: none; color: var(--teal-dark, #0891b2); font: inherit; font-weight: 900; padding: 6px 4px; cursor: pointer; }
