@@ -1,6 +1,7 @@
 import type { GameResult, GenerateResult, MaterialFormat, PlanGoal, Profile, QuizOutcome, StudyPlan } from "./types";
 import { daysBetween, todayISO } from "./dates";
 import { answerMatches } from "./answerMatch";
+import { deviceId } from "./device";
 
 // Die App hat keine eigene KI-Schnittstelle: Sie ruft die API der Website auf.
 // Standard ist die feste Vercel-Adresse der Website – sie funktioniert immer, auch bevor paper-punch.com
@@ -8,7 +9,7 @@ import { answerMatches } from "./answerMatch";
 const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "https://snap-it-new.vercel.app";
 
 export class ApiError extends Error {
-  constructor(message: string, readonly network = false) {
+  constructor(message: string, readonly network = false, readonly code?: string) {
     super(message);
   }
 }
@@ -27,8 +28,8 @@ async function post<T>(path: string, body: FormData): Promise<T> {
     // keine JSON-Antwort, z.B. Zeitüberschreitung des Servers
   }
   if (!res.ok) {
-    const message = (json as { error?: string } | null)?.error;
-    throw new ApiError(message || `HTTP ${res.status}`);
+    const err = json as { error?: string; code?: string } | null;
+    throw new ApiError(err?.error || `HTTP ${res.status}`, false, err?.code);
   }
   return json as T;
 }
@@ -92,6 +93,7 @@ export async function generateMaterial(opts: {
   profileFields(body, opts.profile);
   body.set("format", opts.format);
   body.set("async", "1");
+  body.set("device", deviceId());
   if (opts.subject) body.set("subject", opts.subject.slice(0, 60));
   if (opts.notes) body.set("notes", opts.notes.slice(0, 300));
   opts.files.forEach((f) => body.append("file", f, f.name));
@@ -101,6 +103,23 @@ export async function generateMaterial(opts: {
     return waitForJob(json.jobId, opts.format);
   }
   return { format: opts.format, ...json } as GenerateResult;
+}
+
+export interface Quota {
+  enforced: boolean;
+  limit: number;
+  used: number;
+  remaining: number;
+}
+
+/** Wochen-Kontingent fürs Erstellen (Beta). null, wenn offline oder der Server nicht antwortet. */
+export async function fetchQuota(): Promise<Quota | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/quota?device=${encodeURIComponent(deviceId())}`, { cache: "no-store" });
+    return res.ok ? ((await res.json()) as Quota) : null;
+  } catch {
+    return null;
+  }
 }
 
 function goalFields(body: FormData, goal: PlanGoal) {

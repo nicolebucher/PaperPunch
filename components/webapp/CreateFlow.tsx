@@ -10,6 +10,8 @@ import { MAX_FILES, MAX_TOTAL_SIZE } from "@/lib/files/extract-input";
 import { getPlan, newId, saveMaterial, savePlan, type WebFormat, type WebMaterial } from "@/lib/webapp/store";
 import { schoolTypes } from "@/types/generation";
 import { AppIcon, useAppText } from "./ui";
+import { BetaIntro, QuotaEmpty, QuotaLine, useQuota } from "./BetaQuota";
+import { deviceId } from "@/lib/webapp/groups";
 
 const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
 const PROFILE_KEY = "paperpunch-web-profile";
@@ -33,6 +35,9 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   const [schoolType, setSchoolType] = useState("");
   const [error, setError] = useState("");
   const [buildStep, setBuildStep] = useState(0);
+  const [quotaHit, setQuotaHit] = useState(false);
+  const quota = useQuota();
+  const quotaGone = quotaHit || (!!quota?.enforced && quota.remaining <= 0);
   const pickRef = useRef<HTMLInputElement>(null);
   const camRef = useRef<HTMLInputElement>(null);
 
@@ -104,6 +109,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     const body = new FormData();
     body.set("format", format);
     body.set("locale", locale);
+    body.set("device", deviceId());
     if (grade) body.set("grade", grade);
     if (schoolType) body.set("schoolType", schoolType);
     if (subject.trim()) body.set("subject", subject.trim().slice(0, 60));
@@ -112,6 +118,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     try {
       const res = await fetch("/api/generate", { method: "POST", body });
       const json = await res.json().catch(() => null);
+      if (res.status === 429 && json?.code === "quota") setQuotaHit(true);
       if (!res.ok || !json) throw new Error(json?.error ?? t.serverErrors.unexpected);
       const id = newId();
       const material: WebMaterial =
@@ -135,6 +142,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   const backHref = planId ? `/app/plans?id=${planId}` : "/app";
   const header = (title: string, onBack?: () => void) => (
     <div className="mb-3 mt-2 flex flex-col gap-3 lg:mt-0">
+      <BetaIntro limit={quota?.limit} />
       <div className="flex items-center gap-3">
         {onBack ? (
           <button type="button" onClick={onBack} aria-label={tx.back} className="grid h-11 w-11 place-items-center rounded-full bg-[#15171b] ring-1 ring-white/[0.06]"><AppIcon name="back" /></button>
@@ -182,8 +190,14 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     return (
       <div className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center gap-4 text-center">
         <h1 className="text-2xl font-extrabold">{tx.genError}</h1>
-        <p className="text-zinc-400">{error}</p>
-        <button type="button" onClick={() => setStep("format")} className="rounded-2xl bg-[#1fd6ea] px-6 py-3.5 font-extrabold text-black">{tx.retry}</button>
+        {quotaHit ? (
+          <QuotaEmpty limit={quota?.limit ?? 10} />
+        ) : (
+          <>
+            <p className="text-zinc-400">{error}</p>
+            <button type="button" onClick={() => setStep("format")} className="rounded-2xl bg-[#1fd6ea] px-6 py-3.5 font-extrabold text-black">{tx.retry}</button>
+          </>
+        )}
       </div>
     );
   }
@@ -228,7 +242,12 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
           </label>
         </div>
         <span className="px-1 text-xs font-semibold text-zinc-500">{tx.remembered}</span>
-        <button type="button" onClick={() => void create()} className={`${primary} mt-6`}>{tx.createBtn(tx.formats[format])}</button>
+        <div className="mt-4"><QuotaLine quota={quota} /></div>
+        {quotaGone ? (
+          <QuotaEmpty limit={quota?.limit ?? 10} />
+        ) : (
+          <button type="button" onClick={() => void create()} className={`${primary} mt-4`}>{tx.createBtn(tx.formats[format])}</button>
+        )}
       </div>
     );
   }

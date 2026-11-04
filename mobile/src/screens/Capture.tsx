@@ -3,6 +3,7 @@ import { useT } from "../i18n";
 import { addFiles, formatMb, isNative, MAX_BYTES, MAX_FILES, takeNativePhoto, totalBytes, type FileError } from "../files";
 import { FileChips, FilePick, FORMATS, Icon, ProfileSelects, TopBar } from "../ui";
 import type { MaterialFormat, Profile } from "../types";
+import { BetaIntro, QuotaEmpty, QuotaLine, useQuota } from "../BetaQuota";
 
 /** Prototyp D: Kamera zuerst, alternativ Thema tippen; danach Auswahl-Sheet mit Format, Klasse, Schulart. */
 export function Capture({
@@ -32,6 +33,8 @@ export function Capture({
   const [profile, setProfile] = useState(initialProfile);
   const [flash, setFlash] = useState(false);
   const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);
+  const quota = useQuota();
+  const quotaGone = !!quota?.enforced && quota.remaining <= 0;
 
   const n = files.length;
   const errors: Record<FileError, string> = { type: t.errFileType, count: t.errTooMany, size: t.errTooBig };
@@ -221,18 +224,24 @@ export function Capture({
 
               <ProfileSelects profile={profile} onChange={setProfile} />
 
-              <button
-                type="button"
-                className="btn dark block"
-                disabled={!!blocker}
-                onClick={() => format && onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim())}
-              >
-                {blocker || t.create}
-              </button>
+              <QuotaLine quota={quota} />
+              {quotaGone ? (
+                <QuotaEmpty limit={quota.limit} />
+              ) : (
+                <button
+                  type="button"
+                  className="btn dark block"
+                  disabled={!!blocker}
+                  onClick={() => format && onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim())}
+                >
+                  {blocker || t.create}
+                </button>
+              )}
             </div>
           </div>
         </>
       )}
+      <BetaIntro limit={quota?.limit} />
     </div>
   );
 }

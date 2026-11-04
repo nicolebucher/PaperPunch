@@ -1038,3 +1038,23 @@ h1 .beta { position: relative; top: -3px; }
 
 /* Hinweis bei gesperrtem Namen (Lerngruppe, Challenge) */
 .name-blocked { display: block; margin-top: 6px; font-size: 13px; font-weight: 600; color: #ff8a80; text-transform: none; letter-spacing: 0; }
+
+/* Beta-Kontingent: einmaliger Hinweis, Zähler, leere Woche */
+.beta-backdrop { z-index: 30; }
+.beta-sheet { z-index: 31; gap: 16px; padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px)); }
+.beta-top { display: flex; justify-content: center; margin-top: 6px; }
+.beta-badge { padding: 8px 16px; border-radius: 999px; background: var(--pink); color: #0b0c0f; font-weight: 900; font-size: 14px; letter-spacing: 0.14em; }
+.beta-sheet h2 { text-align: center; margin: 0; }
+.beta-text { margin: 0; text-align: center; color: var(--muted); font-weight: 600; font-size: 16px; line-height: 1.45; }
+.beta-text b { color: var(--fg); font-weight: 800; }
+.beta-dots { display: grid; gap: 6px; }
+.beta-dots span { height: 10px; border-radius: 5px; background: var(--line, #3f3f46); }
+.beta-dots span.on { background: var(--teal); }
+.beta-sheet .beta-dots span { background: var(--teal); }
+.beta-dots-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: var(--muted); }
+.quota-line { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 800; color: var(--sheet-muted, var(--muted)); }
+.quota-line .beta-dots span { height: 8px; background: rgba(127, 127, 127, 0.25); }
+.quota-line .beta-dots span.on { background: var(--teal); }
+.quota-empty { display: flex; flex-direction: column; gap: 8px; text-align: center; padding: 16px; border-radius: 20px; background: rgba(127, 127, 127, 0.12); }
+.quota-empty p { margin: 0; font-weight: 600; line-height: 1.45; }
+.quota-empty a { font-weight: 800; color: var(--teal-dark, #0e9fb0); text-decoration: none; }

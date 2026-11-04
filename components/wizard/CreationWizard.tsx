@@ -15,6 +15,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 import { MAX_TOTAL_SIZE } from "@/lib/files/extract-input";
 import type { GameData, OutputFormat, Profile, SpellingDiagnostic, SpellingItem, WorksheetData } from "@/types/generation";
 import type { WebMaterial } from "@/lib/webapp/store";
+import { deviceId } from "@/lib/webapp/groups";
 
 type Step =
   | "input"
@@ -117,6 +118,7 @@ export function CreationWizard({
     if (profile.notes) body.set("notes", profile.notes);
     body.set("format", format);
     body.set("locale", locale);
+    body.set("device", deviceId());
     files.forEach((file) => body.append("file", file));
 
     try {
@@ -182,6 +184,7 @@ export function CreationWizard({
     body.set("phase", "followup");
     body.set("missed", JSON.stringify(spellingResult.missed));
     body.set("locale", locale);
+    body.set("device", deviceId());
     files.forEach((file) => body.append("file", file));
 
     try {

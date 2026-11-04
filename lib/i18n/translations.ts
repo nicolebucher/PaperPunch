@@ -194,6 +194,7 @@ const en = {
   difficulty: { leicht: "Easy", mittel: "Medium", schwer: "Hard" } as Record<string, string>,
   serverErrors: {
     tooManyRequests: "Too many requests. Please wait a moment and try again.",
+    quotaReached: "You've used all {n} materials for this week – new ones arrive on Monday. Practising, playing and study groups still work.",
     invalidRequest: "Invalid request.",
     invalidFormat: "Invalid format.",
     missingTopic: "Please upload material or enter a subject or topic.",
@@ -399,6 +400,7 @@ const de: typeof en = {
   difficulty: { leicht: "Leicht", mittel: "Mittel", schwer: "Schwer" },
   serverErrors: {
     tooManyRequests: "Zu viele Anfragen. Bitte warte einen Moment und versuche es erneut.",
+    quotaReached: "Diese Woche sind alle {n} Materialien verbraucht – ab Montag gibt’s neue. Üben, Spielen und Lerngruppen gehen weiter.",
     invalidRequest: "Ungültige Anfrage.",
     invalidFormat: "Ungültiges Format.",
     missingTopic: "Bitte lade Material hoch oder gib ein Fach oder Thema ein.",

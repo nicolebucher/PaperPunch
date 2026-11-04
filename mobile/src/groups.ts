@@ -1,4 +1,6 @@
 import { createGroup, fetchGroupBoard, submitGroupResult, type GroupBoard } from "./api";
+import { deviceId } from "./device";
+export { deviceId };
 // Gegenstück auf der Website: lib/groups.ts (Speicher) und components/group/GroupPlay.tsx (Mitspielen im Browser).
 import { shareLink, type InviteOutcome } from "./invite";
 import { savedNickname } from "./challenge";
@@ -8,7 +10,6 @@ import type { StoredMaterial } from "./storage";
 
 // Lerngruppen in der App: Geräte-ID, eigene Gruppen auf dem Gerät, Rangliste vom Server.
 
-const DEVICE_KEY = "paperpunch-device";
 const GROUPS_KEY = "paperpunch-groups";
 const NAME_KEY = "paperpunch-nickname";
 
@@ -23,19 +24,6 @@ export interface MyGroup {
   materialId?: string;
   submitted?: boolean;
   lastRank?: number;
-}
-
-export function deviceId(): string {
-  try {
-    let id = localStorage.getItem(DEVICE_KEY);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(DEVICE_KEY, id);
-    }
-    return id;
-  } catch {
-    return crypto.randomUUID();
-  }
 }
 
 export function myGroups(): MyGroup[] {

@@ -15,6 +15,7 @@ import { synthesizeSpeech } from "@/lib/ai/tts/elevenlabs";
 import { renderWorksheetPdf } from "@/lib/pdf/render-worksheet-pdf";
 import { renderTestPdf } from "@/lib/pdf/render-test-pdf";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { countCreation, getQuota, quotaSubject } from "@/lib/quota";
 import { slugify } from "@/lib/slugify";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
 import { preflight, withCors } from "@/lib/cors";
@@ -98,6 +99,21 @@ async function handleGenerate(request: NextRequest) {
     return NextResponse.json({ error: messages.missingTopic }, { status: 400 });
   }
 
+  // Wochen-Kontingent (Beta: 10 neue Materialien pro Woche). Die zweite Phase des Rechtschreib-Checks
+  // gehört zum selben Material und zählt nicht extra.
+  const quotaKey = quotaSubject(formData.get("device"), ip);
+  const counts = formData.get("phase") !== "followup";
+  if (counts) {
+    const quota = await getQuota(quotaKey);
+    if (quota.enforced && quota.remaining <= 0) {
+      return NextResponse.json({ error: messages.quotaReached.replace("{n}", String(quota.limit)), code: "quota", quota }, { status: 429 });
+    }
+  }
+  const countIfOk = async (res: NextResponse) => {
+    if (counts && res.ok) await countCreation(quotaKey);
+    return res;
+  };
+
   const run = async (): Promise<NextResponse> => {
     try {
       const fileBlocks = await filesToClaudeBlocks(files);
@@ -172,7 +188,7 @@ async function handleGenerate(request: NextRequest) {
     after(async () => {
       await cleanupOldJobs();
       try {
-        const res = await run();
+        const res = await countIfOk(await run());
         const body = (await res.json()) as Record<string, unknown>;
         await saveJob(
           jobId,
@@ -186,5 +202,5 @@ async function handleGenerate(request: NextRequest) {
     return NextResponse.json({ jobId }, { status: 202 });
   }
 
-  return run();
+  return countIfOk(await run());
 }

@@ -9,7 +9,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.10.0 – 4 November 2026
 
-Name filter for study groups and challenges, final imprint and privacy policy.
+Beta limit of 10 new materials per week, name filter for study groups and challenges, final imprint and privacy policy.
 
 | Area | Change |
 | --- | --- |
@@ -17,6 +17,10 @@ Name filter for study groups and challenges, final imprint and privacy policy.
 | Website · Tech | The server applies the same filter as a safety net (also for older app versions): a blocked name is replaced by the neutral default (“Player”, “Someone”, or the game title for the group name) |
 | Website | Imprint: operator name and address (Nicole Bucher, Pohrsdorf), contact form, consumer dispute resolution note; draft notice removed |
 | Website | Privacy policy: controller name and address, responsible supervisory authority (Saxony), consistent section numbering; draft notice removed |
+| App + Website | Beta limit: 10 new materials per week per device (worksheet, test, learning game; resets Monday 00:00 Berlin time); practising, playing, study groups and challenges stay unlimited; a failed creation doesn't count |
+| App + Website | One-time “Welcome to the beta 🚀” sheet the first time you open the create screen (pink BETA badge, 10 bars, “Got it”) – never shown again |
+| App + Website | Create screen shows “Beta · 7 of 10 left this week” with bars; when the week is used up, the create button is replaced by a note (“new ones arrive on Monday”) and a link to write to us |
+| Website · Tech | New /api/quota; /api/generate checks and counts per device (random ID, stored only as a hash; IP as fallback for older app versions); counter in Upstash Redis via the Vercel Marketplace, limit configurable with QUOTA_PER_WEEK; without Redis nothing is limited |
 
 ## v0.9.0 – 4 November 2026
 
