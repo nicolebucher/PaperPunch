@@ -130,7 +130,7 @@ const en = {
     formats: [
       { title: "Worksheet", text: "Practice tasks with an answer key, as a PDF and to solve online." },
       { title: "Test", text: "Feels like a real exam, so there are no surprises on test day." },
-      { title: "Learning game", text: "Levels, combos and a boss level – learning that feels like playing." },
+      { title: "Learning game", text: "Levels, stars and a boss level – learning that feels like playing." },
     ],
     appTitle: "The Android app",
     appLead: "The app adds what helps you keep going between tests:",
@@ -335,7 +335,7 @@ const de: typeof en = {
     formats: [
       { title: "Arbeitsblatt", text: "Übungsaufgaben mit Lösungen, als PDF und zum Online-Lösen." },
       { title: "Test", text: "Wie eine echte Klassenarbeit – damit dich am Testtag nichts überrascht." },
-      { title: "Lernspiel", text: "Level, Combos und ein Boss-Level – Lernen, das sich wie Spielen anfühlt." },
+      { title: "Lernspiel", text: "Level, Sterne und ein Boss-Level – Lernen, das sich wie Spielen anfühlt." },
     ],
     appTitle: "Die Android-App",
     appLead: "Die App ergänzt, was dir zwischen den Tests dranbleiben hilft:",

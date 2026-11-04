@@ -48,6 +48,7 @@ export function Practice({
   const [status, setStatus] = useState<"open" | "checking" | "retry">("open");
   const [wrongPicks, setWrongPicks] = useState<string[]>([]);
   const [hint, setHint] = useState("");
+  const [checkFailedOnce, setCheckFailedOnce] = useState(false);
   const [finished, setFinished] = useState(false);
 
   const task = list[index];
@@ -92,8 +93,9 @@ export function Practice({
     setStatus("checking");
     const result = await checkTypedAnswer({ question: task.question, expected: task.answer, accepted: task.acceptedAnswers, given: value, lang });
     setStatus(prev);
-    if (result.error) {
-      // Prüfung ging nicht (offline, Limit) – zählt nicht als Versuch.
+    if (result.error && !checkFailedOnce) {
+      // Prüfung ging nicht (offline, Limit) – beim ersten Mal zählt das nicht als Versuch, danach gilt der Vergleich in der App.
+      setCheckFailedOnce(true);
       setHint(t.checkFailed);
       return;
     }
@@ -134,6 +136,7 @@ export function Practice({
     setStatus("open");
     setWrongPicks([]);
     setHint("");
+    setCheckFailedOnce(false);
   }
 
   const correct = results.filter(Boolean).length;

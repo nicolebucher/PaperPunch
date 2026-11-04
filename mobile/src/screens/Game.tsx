@@ -30,8 +30,8 @@ function uniqueOptions(options: string[] = []): string[] {
     return true;
   });
 }
-// Combo: ab 3 richtigen in Folge ×2, ab 6 ×3 (vorher bis ×4). In der Boss-Runde höchstens ×2, sonst explodieren die Punches.
-const comboFactor = (streak: number, boss = false) => Math.min(boss ? 2 : 3, streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
+// Kein Combo-Multiplikator mehr (bewusst entfernt) – "x in Folge" wird nur noch angezeigt.
+const comboFactor = (_streak: number, _boss = false) => 1;
 /**
  * Sterne nach Trefferquote: im ersten Versuch richtig = 1 Punkt, im zweiten = ½, in der Nachschlag-Runde = ¾, aufgelöst = 0.
  * ab 85 % drei Sterne, ab 60 % zwei, sonst einer – wer ein Level zu Ende spielt, bekommt immer mindestens einen.
@@ -47,7 +47,7 @@ export interface GameOutcome {
 }
 
 /**
- * Das Lernspiel: Level-Karte mit Sternen (nach Trefferquote, ohne Leben – jedes Level wird zu Ende gespielt), Combo-Multiplikator, Boss-Level am Ende,
+ * Das Lernspiel: Level-Karte mit Sternen (nach Trefferquote, ohne Leben – jedes Level wird zu Ende gespielt), Serie "x in Folge" (ohne Punkte-Multiplikator), Boss-Level am Ende,
  * Joker 50:50 gegen Punches. Beim Verlassen werden die verdienten Punches gemeldet.
  */
 export function GameScreen({
@@ -220,6 +220,7 @@ function LevelPlay({
   const [wrongPicks, setWrongPicks] = useState<string[]>([]);
   const [hint, setHint] = useState("");
   const [gaveUp, setGaveUp] = useState(false);
+  const [checkFailedOnce, setCheckFailedOnce] = useState(false);
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
   const [end, setEnd] = useState(false);
@@ -235,7 +236,6 @@ function LevelPlay({
   const answered = status === "right" || status === "revealed";
   const ok = status === "right";
   const secondTry = status === "retry";
-  const factor = comboFactor(streak, isBoss);
 
   function handle(right: boolean, feedback = "") {
     setHint(feedback);
@@ -286,8 +286,10 @@ function LevelPlay({
     const result = await checkTypedAnswer({ question: q.prompt, expected: answer, accepted: q.acceptedAnswers, given: value, lang });
     // Status vor dem Prüfen wiederherstellen, damit handle() den richtigen Versuch erkennt
     setStatus(prev);
-    if (result.error) {
-      // Prüfung ging nicht (offline, Limit) – zählt nicht als Versuch.
+    if (result.error && !checkFailedOnce) {
+      // Prüfung ging nicht (offline, Limit) – beim ersten Mal zählt das nicht als Versuch.
+      // Klappt es auch beim zweiten Mal nicht (z. B. ohne Internet), gilt der Vergleich in der App – sonst hinge man fest.
+      setCheckFailedOnce(true);
       setHint(t.checkFailed);
       return;
     }
@@ -336,6 +338,7 @@ function LevelPlay({
     setWrongPicks([]);
     setHint("");
     setGaveUp(false);
+    setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
   }
@@ -366,6 +369,7 @@ function LevelPlay({
     setWrongPicks([]);
     setHint("");
     setGaveUp(false);
+    setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
     setEnd(false);
@@ -427,7 +431,7 @@ function LevelPlay({
         <div className="row" style={{ justifyContent: "space-between" }}>
           <span style={{ fontSize: 14, fontWeight: 800, color: isBoss ? "var(--pink)" : "var(--teal-dark)" }}>{replay ? `${t.replayTitle} · ${title}` : title} · {index + 1}/{round.length}</span>
           {streak > 0 ? (
-            <span className={`combo c${factor}`} key={factor}>{factor > 1 ? `×${factor} ${t.combo}` : t.inARow(streak)}</span>
+            <span className="combo c1">{t.inARow(streak)}</span>
           ) : (
             <span />
           )}
