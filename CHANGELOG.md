@@ -23,6 +23,7 @@ Teachers can adjust a learning game before sharing it with their class (feedback
 | Website · Tech | Game generation: questions whose answer is a list must say exactly what and how many to name, and accept the list with commas and with “und” (tester saw an unclear decimal-places question) |
 | App | Matching tasks (“zuordnen”) in worksheets/tests can now be solved: pick the matching value for each line from a list, then Check – one retry, then the solution with wrong lines marked (before, there was only “Show solution”) |
 | App + Website | Deleting materials and games: new “⋯” menu with “Delete” on every material (app result screen, website material page); deleting from the list works as before – no confirmation any more, instead “… deleted · Undo” for 5 seconds; running study groups and challenges keep their own copy |
+| Website · Tech | Consent rate: anonymous daily counts of how often the cookie banner was shown, accepted or declined (no ID, no cookie, nothing stored in the browser; Upstash keys stat:consent:<day>:shown/granted/denied) – explains why Google Analytics shows fewer visitors than Vercel Web Analytics |
 | Website · Tech | New /api/report (IP limit 10 per minute) |
 | Website · Tech | New /api/edit-game (one question or one level, Claude via the existing structured-output helper, options shuffled); doesn't count towards the weekly limit, IP limit 15 per minute; GA4 events edit_open, edit_link, edit_question_replaced, edit_level_replaced, edit_question_deleted |
 

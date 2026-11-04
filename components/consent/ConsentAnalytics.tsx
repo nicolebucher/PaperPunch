@@ -21,6 +21,18 @@ function readChoice(): Choice {
   }
 }
 
+/** Anonyme Tageszählung für die Zustimmungsquote (siehe app/api/consent-stat). */
+function countConsent(event: "shown" | "granted" | "denied") {
+  try {
+    const body = JSON.stringify({ event });
+    if (!navigator.sendBeacon?.("/api/consent-stat", new Blob([body], { type: "application/json" }))) {
+      void fetch("/api/consent-stat", { method: "POST", body, headers: { "Content-Type": "application/json" }, keepalive: true });
+    }
+  } catch {
+    // egal
+  }
+}
+
 export function openConsentSettings() {
   window.dispatchEvent(new Event("pp-open-consent"));
 }
@@ -36,12 +48,15 @@ export function ConsentAnalytics() {
     setChoice(c);
     setOpen(c === null);
     setReady(true);
+    // einmal pro Seitenaufruf (bewusst ohne Speicher im Browser – vor der Einwilligung wird nichts abgelegt)
+    if (c === null) countConsent("shown");
     const reopen = () => setOpen(true);
     window.addEventListener("pp-open-consent", reopen);
     return () => window.removeEventListener("pp-open-consent", reopen);
   }, []);
 
   function decide(c: "granted" | "denied") {
+    if (c !== choice) countConsent(c);
     try {
       localStorage.setItem(KEY, c);
     } catch {

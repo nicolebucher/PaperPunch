@@ -80,3 +80,15 @@ export async function countCreation(subject: string): Promise<QuotaState> {
   if (!r) return state(0, false, week);
   return state(Number(r[0] ?? 0) || 0, true, week);
 }
+
+/** Anonymer Tageszähler (z. B. Cookie-Banner: angezeigt/akzeptiert/abgelehnt) – keine Kennung, nur Summen. */
+export async function bumpCounter(name: string, ttlDays = 120): Promise<void> {
+  if (!quotaEnabled()) return;
+  const key = `stat:${name}`;
+  await redis([["INCR", key], ["EXPIRE", key, ttlDays * 86400]]);
+}
+
+/** Berliner Kalendertag als YYYY-MM-DD. */
+export function berlinDay(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
+}
