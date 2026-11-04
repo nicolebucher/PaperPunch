@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -115,6 +116,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
           ? { id, createdAt: Date.now(), format, title: json.game.gameTitle, subject: json.game.subject, game: json.game }
           : { id, createdAt: Date.now(), format, title: json.data.title, subject: subject.trim() || undefined, sheet: { data: json.data, pdfBase64: json.pdfBase64, filename: json.filename } };
       saveMaterial(material);
+      track("material_created", { format, mode, from_plan: !!planId });
       if (planId && session !== undefined) {
         const p = getPlan(planId);
         if (p && !p.done.includes(session)) savePlan({ ...p, done: [...p.done, session] });

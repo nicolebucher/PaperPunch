@@ -13,6 +13,7 @@ Fixes from tester feedback (English-speaking tester): tap targets, language of t
 
 | Area | Change |
 | --- | --- |
+| Website | Google Analytics in /app: “Cookie settings”, privacy and imprint links in the sidebar and phone menu (the footer is hidden there); with consent, GA4 events for material created, practice/game started, PDF viewed/downloaded, shared, challenge sent, recommended and rating sent – no content, no names |
 | Website | Rating on the web like in the app: “How was this material?” with 5 stars and an optional comment under each result in /app (once per material); goes to the feedback Sheet and the private store, marked as source “web” |
 | Website · Tech | Feedback pipeline live: Google Sheet “PaperPunch – Feedback” connected via Apps Script (RATINGS_WEBHOOK_URL), private Blob store connected via OIDC (BLOB_STORE_ID); challenges and jobs explicitly use the public store; weekly feedback review every Monday morning |
 | Website | Privacy policy, section 5 “Feedback and ratings”: which rating data is received (stars, comment, format, title, subject, language, country, school type, grade, score – no photos, no names), stored in a non-public Vercel storage area in Frankfurt and in a Google Sheet (Google Ireland), reviewed weekly, deleted after 24 months at the latest |

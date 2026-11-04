@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { saveMaterial, type WebMaterial } from "@/lib/webapp/store";
@@ -20,6 +21,7 @@ export function RatingCard({ material }: { material: WebMaterial }) {
 
   function send() {
     setSent(true);
+    track("rating_sent", { stars, format: material.format });
     saveMaterial({ ...material, rating: stars });
     let profile: { grade?: string; schoolType?: string } = {};
     try {

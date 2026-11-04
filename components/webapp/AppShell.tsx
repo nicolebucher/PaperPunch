@@ -6,6 +6,7 @@ import { useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { AppIcon, BrandMark, RecommendButton, useAppText } from "./ui";
 import { PunchBadge } from "./PunchBadge";
+import { openConsentSettings } from "@/components/consent/ConsentAnalytics";
 
 // Die App ist noch im geschlossenen Test – die Karte führt zur Infoseite mit Beta-Anmeldung.
 const ANDROID_INFO = "/about";
@@ -51,6 +52,15 @@ export function AppShell({ children }: { children: ReactNode }) {
     </>
   );
 
+  // Wie im Footer der Info-Seite: Cookie-Einstellungen (Google Analytics) und Datenschutz auch in der App erreichbar.
+  const legal = (
+    <div className="flex flex-wrap gap-x-4 gap-y-1 px-1.5 text-xs font-semibold text-zinc-500">
+      <button type="button" onClick={openConsentSettings} className="hover:text-zinc-300">{tx.cookies}</button>
+      <Link href="/privacy" className="hover:text-zinc-300">{tx.privacy}</Link>
+      <Link href="/imprint" className="hover:text-zinc-300">{tx.imprint}</Link>
+    </div>
+  );
+
   const langSwitch = (
     <div className="flex gap-1 rounded-full bg-[#15171b] p-1 ring-1 ring-white/[0.06]">
       {(["de", "en"] as const).map((l) => (
@@ -67,6 +77,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="px-1.5 pb-5"><Brand /></div>
         {links}
         <div className="mt-auto flex flex-col gap-3">
+          {legal}
           {langSwitch}
           <Link href={ANDROID_INFO} className="flex flex-col gap-1 rounded-2xl bg-[#15171b] p-3.5 ring-1 ring-white/[0.06]">
             <b className="text-sm">{tx.android}</b>
@@ -91,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {menu && (
           <div className="flex flex-col gap-1.5 border-b border-[#1d2026] px-4 pb-4 lg:hidden">
             {links}
-            <div className="pt-2">{langSwitch}</div>
+            <div className="flex flex-col gap-3 pt-2">{langSwitch}{legal}</div>
           </div>
         )}
         <main className="mx-auto flex w-full max-w-[1000px] flex-1 flex-col px-4 pb-8 lg:px-11 lg:pb-8 lg:pt-2">{children}</main>

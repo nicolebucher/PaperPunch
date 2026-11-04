@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -122,6 +123,7 @@ export function RecommendButton({ className }: { className: string }) {
   const tx = useAppText();
   const [copied, setCopied] = useState(false);
   async function recommend() {
+    track("recommend");
     const url = "https://paper-punch.com";
     const text = tx.recommendText;
     try {

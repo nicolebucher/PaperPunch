@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GameShell } from "@/components/game/GameShell";
@@ -70,6 +71,7 @@ export function ResultView({ material }: { material: WebMaterial }) {
   }
 
   async function share() {
+    track("share", { format: material.format });
     if (pdf) await shareOrDownloadFile(new File([pdf.blob], pdf.filename, { type: "application/pdf" }), material.title);
     else if (material.game) {
       const html = buildStandaloneGameHtml(material.game, locale);
@@ -78,6 +80,7 @@ export function ResultView({ material }: { material: WebMaterial }) {
   }
 
   async function challenge() {
+    track("challenge_sent");
     if (!material.game || busy) return;
     setBusy(true);
     setNote("");
@@ -146,11 +149,11 @@ export function ResultView({ material }: { material: WebMaterial }) {
 
       <div className="flex flex-col gap-2.5">
         <span className="px-1 text-[13px] font-extrabold text-zinc-400">{tx.howPractice}</span>
-        {material.sheet && option("play", tx.solveOnline, tx.solveSub, () => setView("practice"), true)}
-        {material.game && option("play", tx.playGame, tx.solveSub, () => setView("play"), true)}
-        {material.sheet && option("eye", tx.viewPdf, tx.viewPdfSub, () => setView("pdf"))}
+        {material.sheet && option("play", tx.solveOnline, tx.solveSub, () => { track("practice_start", { format: material.format }); setView("practice"); }, true)}
+        {material.game && option("play", tx.playGame, tx.solveSub, () => { track("game_start"); setView("play"); }, true)}
+        {material.sheet && option("eye", tx.viewPdf, tx.viewPdfSub, () => { track("pdf_view", { format: material.format }); setView("pdf"); })}
         {pdf && (
-          <a href={pdf.url} download={pdf.filename} className="flex w-full items-center gap-3.5 rounded-[22px] bg-[#15171b] p-4 text-left ring-1 ring-white/[0.06]">
+          <a href={pdf.url} download={pdf.filename} onClick={() => track("pdf_download", { format: material.format })} className="flex w-full items-center gap-3.5 rounded-[22px] bg-[#15171b] p-4 text-left ring-1 ring-white/[0.06]">
             <span className="grid h-[46px] w-[46px] flex-none place-items-center rounded-[14px] bg-[#22252b]"><AppIcon name="download" size={22} /></span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5"><b className="text-[17px]">{tx.download}</b><span className="text-[13px] font-semibold text-zinc-400">{tx.downloadSub}</span></span>
             <AppIcon name="chevron" size={18} stroke={2.6} />
