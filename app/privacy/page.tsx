@@ -120,6 +120,18 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
+          <h2 className="mb-1 font-semibold text-white">Study groups</h2>
+          <p>
+            If you start a study group, we store the learning game (questions and answers), the group name, your
+            nickname and the end date under a random six-character code in our hosting provider&apos;s storage
+            (Vercel, Frankfurt). Everyone who plays via the link adds an entry with their nickname, share of correct
+            answers, number of correct answers, playing time and a pseudonymous device key (derived from a random ID
+            stored on the device, so that only the first try counts). Anyone with the link sees the leaderboard with
+            nicknames and results. Please use a nickname, not your full name. Groups and entries are deleted after
+            at most 44 days (30 days plus a maximum running time of 14 days). There is no chat and no sign-up.
+          </p>
+        </section>
+        <section>
           <h2 className="mb-1 font-semibold text-white">9. Legal bases</h2>
           <p>
             Creating the material you ask for and running the website and app: Art. 6(1)(b) GDPR (providing the
@@ -273,6 +285,19 @@ function PrivacyDe() {
             Namen. Der Eintrag wird nach 30 Tagen gelöscht. Wer eine Challenge spielt, gibt einen Spitznamen ein,
             der nur im eigenen Browser bleibt; das Ergebnis wird nicht auf unserem Server gespeichert, außer man
             verschickt selbst eine neue Challenge.
+          </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">Lerngruppen</h2>
+          <p>
+            Wenn du eine Lerngruppe startest, speichern wir das Lernspiel (Fragen und Antworten), den Gruppennamen,
+            deinen Spitznamen und das Enddatum unter einem zufälligen sechsstelligen Code im Speicher unseres
+            Hosting-Anbieters (Vercel, Frankfurt). Wer über den Link mitspielt, legt einen Eintrag mit Spitzname,
+            Anteil und Zahl richtiger Antworten, Spielzeit und einem pseudonymen Geräteschlüssel an (abgeleitet aus
+            einer zufälligen, auf dem Gerät gespeicherten Kennung, damit nur der erste Versuch zählt). Wer den Link
+            hat, sieht die Rangliste mit Spitznamen und Ergebnissen. Bitte nutze einen Spitznamen, nicht deinen
+            vollen Namen. Gruppen und Einträge werden nach spätestens 44 Tagen gelöscht (30 Tage plus höchstens
+            14 Tage Laufzeit). Es gibt keinen Chat und keine Anmeldung.
           </p>
         </section>
         <section>

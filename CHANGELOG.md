@@ -7,6 +7,21 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.9.0 – 4 November 2026
+
+Study groups: everyone plays the same learning game via a link, with a shared leaderboard – no sign-up.
+
+| Area | Change |
+| --- | --- |
+| App + Website | “Start a study group”: pick one of your learning games or create a new one, choose an end (no end, tomorrow 6 pm, Friday 6 pm, in 1 week), group name and nickname, then share the link (e.g. in the class chat); anyone can start a group |
+| Website | Group page paper-punch.com/g/CODE: “Who gets the most right in …?”, number of players and time left, nickname, play all levels in the browser; afterwards the live leaderboard (“Place 3 of 12 🔥”, % to first place); only the first try per device counts, ties go to the faster player |
+| Website | When the group has ended the leaderboard is frozen: crown and “Lena won!”, share result, “Start a new round” with a different learning game |
+| App | Study groups under “Continue” on the home screen with your place (“7b – Maths · Place 3 of 12”) and “Ben overtook you”; tapping opens the leaderboard (share again, play now, new round); “Study group” link next to Invite and Challenge; your own score is added automatically once you have played the game |
+| Website | Study groups in /app: “Study group” in the sidebar and phone menu, “Start a study group” on every learning-game result, groups under “Continue” on the overview |
+| Website · Tech | New endpoints /api/groups (create), /api/groups/CODE (leaderboard), /api/groups/CODE/result (first try per device); stored in the public Vercel Blob store in Frankfurt, one file per entry, deleted after at most 44 days |
+| Website | Privacy policy: new “Study groups” section |
+| Website | GA4 events for groups (opened, joined, finished, created, shared, new round) – only with consent |
+
 ## v0.8.0 – 4 November 2026
 
 Fixes from tester feedback (English-speaking tester): tap targets, language of the reward card, boss round, fill-in answers.

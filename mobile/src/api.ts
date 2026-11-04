@@ -235,3 +235,51 @@ export async function createChallenge(game: GameResult["game"], name: string, pc
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`);
   return ((await res.json()) as { url: string }).url;
 }
+
+// --- Lerngruppen -------------------------------------------------------------------------------
+
+export interface GroupBoardEntry { name: string; pct: number; correct: number; total: number; ms: number; at: string; me: string }
+export interface GroupBoard {
+  meta: { code: string; name: string; createdAt: string; endsAt: string | null; lang: "de" | "en"; by: string };
+  entries: GroupBoardEntry[];
+  ended: boolean;
+  me?: string;
+}
+
+/** Lerngruppe anlegen; mit `result` steht die eigene Punktzahl gleich in der Rangliste. */
+export async function createGroup(input: { game: GameResult["game"]; name: string; by: string; lang: string; endsAt: string | null; device: string; result?: { pct: number; correct: number; total: number } }): Promise<{ code: string; url: string; name: string; endsAt: string | null }> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api/groups`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...input, lang: input.lang === "en" ? "en" : "de" }),
+    });
+  } catch {
+    throw new ApiError("network", true);
+  }
+  if (!res.ok) throw new ApiError(`HTTP ${res.status}`);
+  return (await res.json()) as { code: string; url: string; name: string; endsAt: string | null };
+}
+
+export async function fetchGroupBoard(code: string, device: string): Promise<GroupBoard | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/groups/${code}?device=${encodeURIComponent(device)}`);
+    return res.ok ? ((await res.json()) as GroupBoard) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function submitGroupResult(code: string, device: string, r: { name: string; pct: number; correct: number; total: number }): Promise<GroupBoard | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/groups/${code}/result`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ device, ...r, ms: 0 }),
+    });
+    return res.ok ? ((await res.json()) as GroupBoard) : null;
+  } catch {
+    return null;
+  }
+}

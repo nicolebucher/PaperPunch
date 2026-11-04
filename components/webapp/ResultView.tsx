@@ -13,6 +13,7 @@ import { slugify } from "@/lib/slugify";
 import type { WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
 import { RatingCard } from "./RatingCard";
+import { GroupCreate } from "./GroupCreate";
 
 function base64ToBlob(base64: string, type: string): Blob {
   const bin = atob(base64);
@@ -32,6 +33,7 @@ export function ResultView({ material }: { material: WebMaterial }) {
   const { locale } = useLanguage();
   const [view, setView] = useState<"home" | "practice" | "pdf" | "play">("home");
   const [challengeOpen, setChallengeOpen] = useState(false);
+  const [groupOpen, setGroupOpen] = useState(false);
   const [nick, setNick] = useState(() => {
     try {
       return localStorage.getItem("paperpunch-nickname") ?? "";
@@ -169,6 +171,8 @@ export function ResultView({ material }: { material: WebMaterial }) {
             <button type="button" disabled={busy} onClick={() => void challenge()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-60">{tx.challengeSend}</button>
           </div>
         )}
+        {material.game && option("group", tx.groupStart, tx.groupStartSub, () => { track("group_open_create"); setGroupOpen((v) => !v); })}
+        {groupOpen && material.game && <GroupCreate material={material} />}
         {option("share", tx.share, material.game ? tx.shareGameSub : tx.shareSub, () => void share())}
         {note && <p className="text-center text-sm font-semibold text-zinc-400">{note}</p>}
       </div>

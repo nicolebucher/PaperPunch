@@ -1,13 +1,15 @@
-import { useState, type CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useT } from "../i18n";
 import { Beta, Icon, type IconName } from "../ui";
 import { learnedToday, levelFor, POINTS, streakDays, totalPunches } from "../punches";
-import { inviteShares } from "../invite";
+import { inviteShares, shareLink } from "../invite";
 import { daysBetween, todayISO } from "../dates";
 import type { ActivePlan } from "../types";
 import type { StoredMaterial } from "../storage";
 import { isResumable, materialDate, materialTitle } from "./materialInfo";
 import { challengePctOf, savedNickname, sendChallenge } from "../challenge";
+import { endOptions, loadBoard, myGroups, startGroup, submitPending, timeLeft, updateGroup, type MyGroup } from "../groups";
+import type { GroupBoard } from "../api";
 
 /**
  * Startseite S1: oben Datum/Begrüßung, rechts Level + Punches und Profil. Darunter drei große Wege
@@ -69,6 +71,32 @@ export function Home({
   const lvl = levelFor(total);
   const inviteBonus = inviteShares() === 0;
   const [challengeOpen, setChallengeOpen] = useState(false);
+  const [groupSheet, setGroupSheet] = useState<{ exclude?: string; name?: string } | null>(null);
+  const [groups, setGroups] = useState<(MyGroup & { board?: GroupBoard | null; rank?: number; passed?: string })[]>([]);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
+  // Lerngruppen: eigenes Ergebnis nachreichen, dann Platz holen; wer vorbeigezogen ist, wird einmal genannt.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      await submitPending(materials).catch(() => undefined);
+      const list = myGroups().slice(0, 3);
+      const withBoards = await Promise.all(
+        list.map(async (g) => {
+          const board = await loadBoard(g.code);
+          const idx = board?.me ? board.entries.findIndex((e) => e.me === board.me) : -1;
+          const rank = idx >= 0 ? idx + 1 : undefined;
+          const passed = rank && g.lastRank && rank > g.lastRank ? board?.entries[idx - 1]?.name : undefined;
+          if (rank) updateGroup(g.code, { lastRank: rank });
+          return { ...g, board, rank, passed };
+        })
+      );
+      if (!cancelled) setGroups(withBoards);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [materials]);
 
   const planToday = plan ? todaySession(plan, today) : undefined;
   const planDays = plan ? daysBetween(today, plan.goal.testDate) : 0;
@@ -116,7 +144,7 @@ export function Home({
         )}
       </div>
 
-      {(morePlans.length > 0 || items.length > 0) && (
+      {(morePlans.length > 0 || items.length > 0 || groups.length > 0) && (
         <section className="home-c-list">
           <div className="home-c-list-head">
             <span>{t.continueLabel}</span>
@@ -124,6 +152,16 @@ export function Home({
               <button type="button" className="link-btn" onClick={onAllMaterials}>{t.allCount(materials.length)}</button>
             )}
           </div>
+          {groups.map((g) => (
+            <button key={g.code} type="button" className="home-c-row home-c-group" onClick={() => setOpenGroup(g.code)}>
+              <span className="home-c-group-icon"><Icon name="group" size={20} stroke={2} /></span>
+              <span className="home-c-row-text">
+                <b>{g.name} · {t.groupRow(g.rank, g.board?.entries.length ?? 0)}</b>
+                <span className="accent-pink">{g.passed ? t.groupPassed(g.passed) : g.title}{g.endsAt ? ` · ${timeLeft(g.endsAt, t)}` : ""}</span>
+              </span>
+              <Icon name="chevron" size={16} stroke={2.6} />
+            </button>
+          ))}
           {morePlans.map((p) => {
             const days = daysBetween(today, p.goal.testDate);
             const session = todaySession(p, today);
@@ -154,13 +192,41 @@ export function Home({
       <div className="home-c-foot">
         {onInvite && (
           <button type="button" onClick={onInvite}>
-            {inviteBonus ? `${t.inviteFriends} · +${POINTS.invite}` : t.inviteFriends}
+            {inviteBonus ? `${t.inviteShort} · +${POINTS.invite}` : t.inviteShort}
           </button>
         )}
         <button type="button" onClick={() => setChallengeOpen(true)}>
           <Icon name="punch" size={16} stroke={2} /> {t.challengeShort}
         </button>
+        <button type="button" onClick={() => setGroupSheet({})}>
+          <Icon name="group" size={16} stroke={2} /> {t.groupShort}
+        </button>
       </div>
+
+      {groupSheet && (
+        <GroupSheet
+          games={materials.filter((m) => m.result.format === "game" && materialTitle(m) !== groupSheet.exclude).sort((a, b) => b.updatedAt - a.updatedAt)}
+          initialName={groupSheet.name}
+          onClose={() => setGroupSheet(null)}
+          onNewGame={() => { setGroupSheet(null); onNewGame?.(); }}
+          onCreated={(g) => setGroups((list) => [{ ...g }, ...list.filter((x) => x.code !== g.code)].slice(0, 3))}
+          say={say}
+        />
+      )}
+      {openGroup && (() => {
+        const g = groups.find((x) => x.code === openGroup);
+        if (!g) return null;
+        const material = materials.find((m) => m.id === g.materialId);
+        return (
+          <GroupBoardSheet
+            group={g}
+            onClose={() => setOpenGroup(null)}
+            onPlay={material ? () => { setOpenGroup(null); onOpenMaterial?.(material); } : undefined}
+            onNewRound={() => { setOpenGroup(null); setGroupSheet({ exclude: g.title, name: g.name }); }}
+            say={say}
+          />
+        );
+      })()}
 
       {challengeOpen && (
         <ChallengeSheet
@@ -277,6 +343,150 @@ function ChallengeSheet({ games, onClose, onNewGame, say }: { games: StoredMater
             </button>
           </>
         )}
+      </div>
+    </>
+  );
+}
+
+/** "Lerngruppe starten" (Entwurf G1): Lernspiel wählen oder neu erstellen, Ende, Gruppenname, Spitzname → Link teilen. */
+function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: { games: StoredMaterial[]; initialName?: string; onClose: () => void; onNewGame: () => void; onCreated: (g: MyGroup) => void; say?: (msg: string) => void }) {
+  const { t, lang } = useT();
+  const [picked, setPicked] = useState(games[0]?.id ?? "");
+  const ends = endOptions(t);
+  const [end, setEnd] = useState("friday");
+  const [name, setName] = useState(initialName ?? "");
+  const [nick, setNick] = useState(savedNickname);
+  const [busy, setBusy] = useState(false);
+  const chosen = games.find((g) => g.id === picked);
+
+  async function create() {
+    if (!chosen || chosen.result.format !== "game" || busy) return;
+    setBusy(true);
+    try {
+      const { outcome, group } = await startGroup({ material: chosen, game: chosen.result.game, name, nick, endsAt: ends.find((e) => e.id === end)?.endsAt ?? null, lang, t });
+      onCreated(group);
+      if (outcome === "copied") say?.(t.inviteCopied);
+      onClose();
+    } catch {
+      say?.(t.errGeneric);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="backdrop" onClick={onClose} />
+      <div className="sheet home-b-sheet" role="dialog" aria-label={t.groupStart}>
+        <span className="home-b-grab" aria-hidden="true" />
+        <div className="stack" style={{ gap: 4 }}>
+          <h2>{t.groupStart}</h2>
+          <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{t.groupStartSub}</p>
+        </div>
+        <span className="group-lab">{t.groupGame}</span>
+        <div className="home-b-games">
+          <button type="button" className="home-b-game new" onClick={onNewGame}>
+            <span className="home-b-game-icon"><Icon name="plus" size={20} stroke={2.4} /></span>
+            <span className="home-b-game-text"><b>{t.groupNewGame}</b><span>{t.groupNewGameSub}</span></span>
+            <Icon name="chevron" size={18} stroke={2.6} />
+          </button>
+          {games.slice(0, 5).map((g) => {
+            const on = g.id === picked;
+            return (
+              <button key={g.id} type="button" className={on ? "home-b-game on" : "home-b-game"} aria-pressed={on} onClick={() => setPicked(g.id)}>
+                <span className="home-b-game-icon"><Icon name="game" size={20} stroke={2} /></span>
+                <span className="home-b-game-text"><b>{materialTitle(g)}</b><span>{g.result.format === "game" ? `${g.result.game.levels.length} Level` : ""}</span></span>
+                <span className="ob-opt-mark">{on && <Icon name="check" size={15} stroke={3} />}</span>
+              </button>
+            );
+          })}
+        </div>
+        {games.length > 0 && (
+          <>
+            <span className="group-lab">{t.groupEnds}</span>
+            <div className="group-chips">
+              {ends.map((e) => (
+                <button key={e.id} type="button" className={end === e.id ? "group-chip on" : "group-chip"} aria-pressed={end === e.id} onClick={() => setEnd(e.id)}>{e.label}</button>
+              ))}
+            </div>
+            <label className="field">
+              {t.groupName}
+              <input className="input set" value={name} maxLength={40} placeholder={t.groupNamePh} onChange={(e) => setName(e.target.value)} />
+            </label>
+            <label className="field">
+              {t.nickname}
+              <input className="input set" value={nick} maxLength={20} placeholder={t.nicknamePh} onChange={(e) => setNick(e.target.value)} />
+            </label>
+            <button type="button" className="btn primary block" disabled={!chosen || busy} onClick={() => void create()}>
+              <Icon name="share" size={20} /> {busy ? t.groupBusy : t.groupSend}
+            </button>
+            <p className="muted" style={{ fontSize: 12, fontWeight: 600, textAlign: "center" }}>{t.groupHint}</p>
+          </>
+        )}
+        {games.length === 0 && <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{t.groupEmptyText}</p>}
+      </div>
+    </>
+  );
+}
+
+/** Rangliste einer eigenen Lerngruppe (Entwürfe G3/G4). */
+function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: MyGroup & { board?: GroupBoard | null }; onClose: () => void; onPlay?: () => void; onNewRound: () => void; say?: (msg: string) => void }) {
+  const { t } = useT();
+  const board = group.board;
+  const entries = board?.entries ?? [];
+  const meIdx = board?.me ? entries.findIndex((e) => e.me === board.me) : -1;
+  const ended = !!board?.ended;
+  const left = timeLeft(group.endsAt, t);
+
+  async function share() {
+    const outcome = await shareLink(t.groupShareTitle, t.groupShareText(group.name, group.title), group.url);
+    if (outcome === "copied") say?.(t.inviteCopied);
+  }
+
+  return (
+    <>
+      <div className="backdrop" onClick={onClose} />
+      <div className="sheet home-b-sheet group-board" role="dialog" aria-label={group.name}>
+        <span className="home-b-grab" aria-hidden="true" />
+        <div className="group-board-head">
+          <b>{group.name}</b>
+          {left && <span className="group-pill">{left}</span>}
+        </div>
+        {board === null && <p className="muted">{t.groupOffline}</p>}
+        {board && (ended ? (
+          <div className="group-winner">
+            <span className="group-crown">👑</span>
+            <h2>{entries[0] ? t.groupWinner(entries[0].name) : t.groupNobody}</h2>
+          </div>
+        ) : (
+          <div className="stack" style={{ gap: 4 }}>
+            <span className="group-lab">{group.title}</span>
+            <h2>{meIdx >= 0 ? t.groupPlace(meIdx + 1, entries.length) : t.groupNotYet}</h2>
+            {meIdx >= 0 && <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{meIdx === 0 ? t.groupFirst : t.groupToFirst(entries[0].pct - entries[meIdx].pct)}</p>}
+          </div>
+        ))}
+        <div className="group-list">
+          {entries.slice(0, 8).map((e, i) => {
+            const me = i === meIdx;
+            const medal = ended && i === 0 ? "🏆" : ["🥇", "🥈", "🥉"][i];
+            return (
+              <div key={e.me + i} className={me ? "group-entry me" : "group-entry"}>
+                <span className="group-rank">{medal ?? i + 1}</span>
+                <span className="group-entry-name"><b>{me ? `${t.groupYou} (${e.name})` : e.name}</b><span>{e.correct}/{e.total}</span></span>
+                <b className="group-pct">{e.pct} %</b>
+              </div>
+            );
+          })}
+        </div>
+        {ended ? (
+          <button type="button" className="btn primary block" onClick={onNewRound}>{t.groupNewRound}</button>
+        ) : (
+          <>
+            {meIdx < 0 && onPlay && <button type="button" className="btn primary block" onClick={onPlay}><Icon name="play" size={20} /> {t.groupPlayNow}</button>}
+            <button type="button" className={meIdx < 0 && onPlay ? "btn ghost block" : "btn primary block"} onClick={() => void share()}><Icon name="share" size={20} /> {t.groupShareAgain}</button>
+          </>
+        )}
+        <button type="button" className="link-btn" onClick={() => window.open(group.url, "_blank")}>{t.groupOpenWeb}</button>
       </div>
     </>
   );

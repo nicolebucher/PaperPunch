@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 import { daysBetween, listMaterials, listPlans, todayISO, type WebMaterial, type WebPlan } from "@/lib/webapp/store";
 import { AppIcon, RecommendButton, SectionLabel, useAppText, WayButton } from "./ui";
 import { relDate, todaysSession } from "./util";
+import { fetchBoard, saveGroup, savedGroups, timeLeft, type SavedGroup } from "@/lib/webapp/groups";
 
 /** Übersicht /app: drei Wege (am Handy untereinander, am Computer als Karten), darunter Weitermachen. */
 export function AppHome() {
@@ -13,6 +14,7 @@ export function AppHome() {
   const { locale } = useLanguage();
   const [materials, setMaterials] = useState<WebMaterial[]>([]);
   const [plans, setPlans] = useState<WebPlan[]>([]);
+  const [groups, setGroups] = useState<(SavedGroup & { rank?: number; count?: number; passed?: string; ended?: boolean })[]>([]);
 
   // Gespeichertes erst im Browser lesen (nicht beim Server-Rendern).
   useEffect(() => {
@@ -20,6 +22,19 @@ export function AppHome() {
     setMaterials(listMaterials());
     setPlans(listPlans().filter((p) => daysBetween(todayISO(), p.testDate) > 0));
     /* eslint-enable react-hooks/set-state-in-effect */
+    // Lerngruppen: aktuellen Platz holen; wer seit dem letzten Besuch vorbeigezogen ist, wird genannt.
+    const mine = savedGroups().filter((g) => Date.now() - g.savedAt < 30 * 86_400_000).slice(0, 3);
+    void Promise.all(
+      mine.map(async (g) => {
+        const b = await fetchBoard(g.code).catch(() => null);
+        if (!b) return null;
+        const idx = b.me ? b.entries.findIndex((e) => e.me === b.me) : -1;
+        const rank = idx >= 0 ? idx + 1 : undefined;
+        const passed = rank && g.lastRank && rank > g.lastRank ? b.entries[idx - 1]?.name : undefined;
+        if (rank) saveGroup({ ...g, lastRank: rank });
+        return { ...g, rank, count: b.entries.length, passed, ended: b.ended };
+      })
+    ).then((list) => setGroups(list.filter((x): x is NonNullable<typeof x> => !!x)));
   }, []);
 
   const plan = plans[0];
@@ -42,6 +57,16 @@ export function AppHome() {
       <SectionLabel right={materials.length > 0 && <Link href="/app/materials" className="text-[13px] font-bold text-[#1fd6ea]">{tx.all(materials.length)}</Link>}>
         {tx.continue}
       </SectionLabel>
+      {groups.map((g) => (
+        <Link key={g.code} href={`/g/${g.code}`} className="my-1 flex items-center gap-3 rounded-[18px] bg-gradient-to-br from-pink-500/20 to-[#1fd6ea]/15 p-3 ring-1 ring-white/[0.08]">
+          <span className="grid h-[38px] w-[38px] place-items-center rounded-xl bg-black text-[#f23a8e]"><AppIcon name="group" size={20} /></span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <b className="truncate text-[15px]">{g.name} · {tx.groupRow(g.rank, g.count ?? 0)}</b>
+            <span className="text-xs font-bold text-pink-300">{g.passed ? tx.groupPassed(g.passed) : g.title}{g.endsAt ? ` · ${timeLeft(g.endsAt, locale === "en" ? "en" : "de")}` : ""}</span>
+          </span>
+          <AppIcon name="chevron" size={16} stroke={2.6} />
+        </Link>
+      ))}
       {plans.slice(1).map((p) => (
         <Link key={p.id} href={`/app/plans?id=${p.id}`} className="flex items-center gap-3 py-2.5">
           <span className="flex h-[34px] w-[34px] flex-col items-center justify-center rounded-[10px] leading-none ring-1 ring-inset ring-zinc-700">
@@ -63,7 +88,7 @@ export function AppHome() {
       ))}
     </div>
   );
-  const hasList = materials.length > 0 || plans.length > 1;
+  const hasList = materials.length > 0 || plans.length > 1 || groups.length > 0;
 
   return (
     <div className="flex flex-1 flex-col">

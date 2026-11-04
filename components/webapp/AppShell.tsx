@@ -33,6 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     { href: "/app", icon: "home", label: tx.overview },
     { href: "/app/materials", icon: "folder", label: tx.materials },
     { href: "/app/plans", icon: "calendar", label: tx.plans },
+    { href: "/app/groups/new", icon: "group", label: tx.groups },
   ];
   const active = (href: string) => (href === "/app" ? pathname === "/app" : pathname.startsWith(href));
 
