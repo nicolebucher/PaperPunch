@@ -21,6 +21,7 @@ Teachers can adjust a learning game before sharing it with their class (feedback
 | App + Website | “Report a problem” under every answered question (learning game, worksheet/test online, challenge, study group, study plan quiz): question unclear / solution wrong / my answer was right / something else, plus an optional note; reports go to the feedback sheet (kind “report”) with question, expected and given answer and game title |
 | App + Website | Answer check: lists count as the same regardless of separators – “Zehntel Hundertstel Tausendstel” = “Zehntel, Hundertstel und Tausendstel” (order still matters) |
 | Website · Tech | Game generation: questions whose answer is a list must say exactly what and how many to name, and accept the list with commas and with “und” (tester saw an unclear decimal-places question) |
+| App | Matching tasks (“zuordnen”) in worksheets/tests can now be solved: pick the matching value for each line from a list, then Check – one retry, then the solution with wrong lines marked (before, there was only “Show solution”) |
 | Website · Tech | New /api/report (IP limit 10 per minute) |
 | Website · Tech | New /api/edit-game (one question or one level, Claude via the existing structured-output helper, options shuffled); doesn't count towards the weekly limit, IP limit 15 per minute; GA4 events edit_open, edit_link, edit_question_replaced, edit_level_replaced, edit_question_deleted |
 

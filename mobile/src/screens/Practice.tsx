@@ -14,7 +14,14 @@ const isChoice = (task: Task) => (task.type === "multiple-choice" || task.type =
 
 /** Aufgabe automatisch prüfbar? Offene Antworten und Zuordnungen vergleicht man selbst mit der Lösung. */
 function autoCheck(task: Task) {
-  return task.type === "multiple-choice" || task.type === "unterstreichen" || task.type === "lueckentext";
+  return task.type === "multiple-choice" || task.type === "unterstreichen" || task.type === "lueckentext" || (task.type === "zuordnen" && !!task.pairs?.length);
+}
+
+/** Rechte Seite einer Zuordnung gemischt (fest je Aufgabe), damit die Reihenfolge nichts verrät. */
+function shuffledRights(task: Task): string[] {
+  const rights = (task.pairs ?? []).map((p) => p.right);
+  const seed = task.question.length + task.number * 7;
+  return rights.map((v, i) => ({ v, k: (i * 9301 + seed * 49297) % 233280 })).sort((a, b) => a.k - b.k).map((x) => x.v);
 }
 
 /**
@@ -51,9 +58,13 @@ export function Practice({
   const [hint, setHint] = useState("");
   const [checkFailedOnce, setCheckFailedOnce] = useState(false);
   const [finished, setFinished] = useState(false);
+  // Zuordnen: gewählte rechte Seite je Zeile
+  const [match, setMatch] = useState<Record<number, string>>({});
 
   const task = list[index];
   const last = index === list.length - 1;
+  const rights = useMemo(() => shuffledRights(task), [task]);
+  const allMatched = !!task.pairs?.length && task.pairs.every((_, i) => !!match[i]);
   const auto = autoCheck(task);
   const answered = results.length > index;
   const ok = results[index];
@@ -117,7 +128,27 @@ export function Practice({
     }
   }
 
+  /** Zuordnung prüfen: alle Paare richtig → richtig; sonst einmal nochmal versuchen, dann Lösung. */
+  function checkMatch() {
+    if (answered || !task.pairs || !allMatched) return;
+    const right = task.pairs.every((p, i) => normalize(match[i] ?? "") === normalize(p.right));
+    if (right) {
+      record(true, false, status === "retry");
+      setStatus("open");
+      return;
+    }
+    if (status === "retry") {
+      setRevealed(true);
+      record(false);
+      setStatus("open");
+    } else {
+      setStatus("retry");
+      hapticWrong();
+    }
+  }
+
   function giveUp() {
+    if (task.type === "zuordnen") setRevealed(true);
     if (auto) record(false);
     else setRevealed(true);
     setStatus("open");
@@ -132,6 +163,7 @@ export function Practice({
     }
     setIndex((i) => i + 1);
     setTyped("");
+    setMatch({});
     setPicked(null);
     setRevealed(false);
     setStatus("open");
@@ -218,13 +250,29 @@ export function Practice({
           </div>
         ) : task.type === "zuordnen" && task.pairs ? (
           <div className="stack" style={{ gap: 8 }}>
-            {task.pairs.map((p, i) => (
-              <div key={i} className="pair">
-                <span>{p.left}</span>
-                <span className="muted">→</span>
-                <span>{revealed ? p.right : "?"}</span>
-              </div>
-            ))}
+            {task.pairs.map((p, i) => {
+              const done = answered || revealed;
+              const okRow = normalize(match[i] ?? "") === normalize(p.right);
+              return (
+                <div key={i} className={done ? (okRow ? "pair match ok" : "pair match no") : "pair match"}>
+                  <span><MathText text={p.left} /></span>
+                  <span className="muted">→</span>
+                  {done ? (
+                    <span>{okRow ? <MathText text={p.right} /> : <><s className="muted">{match[i] ?? "–"}</s> <MathText text={p.right} /></>}</span>
+                  ) : (
+                    <select className="match-select" value={match[i] ?? ""} onChange={(e) => setMatch((m) => ({ ...m, [i]: e.target.value }))} aria-label={p.left}>
+                      <option value="">{t.matchPick}</option>
+                      {rights.map((rv, ri) => <option key={ri} value={rv}>{rv}</option>)}
+                    </select>
+                  )}
+                </div>
+              );
+            })}
+            {!answered && !revealed && (
+              <button type="button" className="btn dark block" disabled={!allMatched} onClick={checkMatch}>
+                {status === "retry" ? t.checkAgain : t.check}
+              </button>
+            )}
           </div>
         ) : (
           <form
@@ -265,9 +313,6 @@ export function Practice({
           <button type="button" className="btn ghost giveup-btn" onClick={giveUp}>{t.dontKnow}</button>
         )}
 
-        {task.type === "zuordnen" && !revealed && (
-          <button type="button" className="btn dark block" onClick={() => setRevealed(true)}>{t.showSolution}</button>
-        )}
 
         {/* Selbsteinschätzung bei offenen Aufgaben und Zuordnungen */}
         {!auto && revealed && !answered && (

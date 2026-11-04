@@ -1064,3 +1064,11 @@ h1 .beta { position: relative; top: -3px; }
 .report-box { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 18px; background: var(--row-bg, #151518); border: 1px solid var(--row-line, #26262b); }
 .report-box .pill { font-size: 13px; min-height: 38px; }
 .report-thanks { text-align: center; font-size: 13px; font-weight: 800; color: var(--teal-text, var(--teal)); margin: 4px 0 0; }
+
+/* Zuordnen: rechte Seite per Auswahlliste */
+.pair.match { grid-template-columns: minmax(0,1fr) auto minmax(0,1.2fr); color: #111214; }
+.match-select { width: 100%; min-height: 44px; border-radius: 12px; border: 2px solid #d4d4d8; background: #fff; color: #111214; font: inherit; font-weight: 700; padding: 0 10px; }
+.match-select:focus { border-color: var(--teal-dark); outline: none; }
+.pair.match.ok { border-color: #65a30d; background: #f0fdf4; }
+.pair.match.no { border-color: #ea580c; background: #fff7ed; }
+.pair.match s { margin-right: 4px; }
