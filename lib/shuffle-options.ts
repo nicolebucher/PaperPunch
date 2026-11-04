@@ -13,10 +13,21 @@ export function shuffleArray<T>(items: T[]): T[] {
   return result;
 }
 
+/** Doppelte Antwortoptionen entfernen (Groß/klein und Leerzeichen egal) – die KI liefert sie gelegentlich. */
+export function uniqueOptions(options: string[]): string[] {
+  const seen = new Set<string>();
+  return options.filter((o) => {
+    const k = o.trim().replace(/\s+/g, " ").toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 export function shuffleTaskOptions(tasks: Task[]): Task[] {
   return tasks.map((task) =>
     (task.type === "multiple-choice" || task.type === "unterstreichen") && task.options
-      ? { ...task, options: shuffleArray(task.options) }
+      ? { ...task, options: shuffleArray(uniqueOptions(task.options)) }
       : task
   );
 }
@@ -27,7 +38,8 @@ export function shuffleQuestionOptions(questions: Question[]): Question[] {
       return question;
     }
     const correctValue = question.options[question.correctIndex];
-    const options = shuffleArray(question.options);
-    return { ...question, options, correctIndex: options.indexOf(correctValue) };
+    const options = shuffleArray(uniqueOptions(question.options));
+    const key = (o: string) => o.trim().replace(/\s+/g, " ").toLowerCase();
+    return { ...question, options, correctIndex: options.findIndex((o) => key(o) === key(correctValue)) };
   });
 }

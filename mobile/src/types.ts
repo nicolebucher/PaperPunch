@@ -45,6 +45,8 @@ export interface GameResult {
     gameTitle: string;
     subject: string;
     levels: { id: number; title: string; difficulty: string; questions: Question[] }[];
+    /** Neue, schwerere Fragen für die Boss-Runde (ältere Spiele haben keine). */
+    boss?: Question[];
   };
 }
 

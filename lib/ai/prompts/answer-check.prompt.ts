@@ -11,10 +11,17 @@ equivalent wording, an abbreviation, an equivalent number or unit, minor spellin
 more precise answer. Count it as wrong if it names a different concept, is only related, is too
 vague to show understanding, or contains a factual error.
 
+Fill-in-the-gap questions: if the question contains "___", the student only types what goes into
+the gap. Words that already stand right before or after the gap do not need to be repeated - e.g.
+for "… is called a ___ fraction." with the expected answer "proper fraction", "proper" is correct.
+Put the student's answer into the gap and judge whether the completed sentence is correct.
+If the expected answer itself looks wrong for the question, judge by the facts, not by the key.
+
 Return "feedback": one short, friendly sentence (max. 20 words) in the language of the question
 (if unclear, ${LANGUAGE_NAMES[locale]}).
 - If correct: confirm it, and if the usual term differs, mention it briefly, e.g.
   "Right - 'largest' works too; the usual term is 'greatest common factor'."
 - If wrong: give a helpful hint that points the student in the right direction WITHOUT revealing
-  the expected answer, because the student may try again.`;
+  the expected answer, because the student may try again. Never quote the expected answer or the
+  student's own answer as the solution in the hint.`;
 }

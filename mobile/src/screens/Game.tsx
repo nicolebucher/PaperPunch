@@ -18,6 +18,16 @@ const BOSS_SIZE = 8;
 function answerOf(q: Question): string {
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
 }
+/** Doppelte Antwortoptionen (kommt bei KI-Fragen vor) nur einmal zeigen – sonst leuchten zwei gleiche Knöpfe auf. */
+function uniqueOptions(options: string[] = []): string[] {
+  const seen = new Set<string>();
+  return options.filter((o) => {
+    const k = o.trim().replace(/\s+/g, " ").toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
 const comboFactor = (streak: number) => (streak >= 9 ? 4 : streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
 /**
  * Sterne nach Trefferquote: im ersten Versuch richtig = 1 Punkt, im zweiten = ½, in der Nachschlag-Runde = ¾, aufgelöst = 0.
@@ -51,8 +61,9 @@ export function GameScreen({
   onExit: (o: GameOutcome & { finished: boolean }) => void;
 }) {
   const { t } = useT();
-  // Boss: die schwersten Fragen aus allen Leveln, gemischt
+  // Boss: eigene, schwerere Fragen aus der Generierung; bei älteren Spielen die schwersten Fragen aus allen Leveln.
   const boss = useMemo<Q[]>(() => {
+    if (game.boss?.length) return game.boss.map((q) => ({ ...q, difficulty: "schwer" }));
     const all = game.levels.flatMap((l) => l.questions.map((q) => ({ ...q, difficulty: l.difficulty })));
     const rank: Record<string, number> = { schwer: 0, mittel: 1, leicht: 2 };
     return [...all].sort((a, b) => (rank[a.difficulty] ?? 1) - (rank[b.difficulty] ?? 1)).slice(0, BOSS_SIZE).sort(() => Math.random() - 0.5);
@@ -184,6 +195,7 @@ function LevelPlay({
   const [status, setStatus] = useState<"open" | "checking" | "retry" | "right" | "revealed">("open");
   const [wrongPicks, setWrongPicks] = useState<string[]>([]);
   const [hint, setHint] = useState("");
+  const [gaveUp, setGaveUp] = useState(false);
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
   const [end, setEnd] = useState(false);
@@ -294,6 +306,7 @@ function LevelPlay({
     setHidden([]);
     setWrongPicks([]);
     setHint("");
+    setGaveUp(false);
     setStatus("open");
     setFx(null);
   }
@@ -301,8 +314,9 @@ function LevelPlay({
   function joker() {
     if (answered || q.type !== "multiple-choice" || !q.options || q.options.length < 3 || hidden.length) return;
     if (!spend(POINTS.joker5050, gameKey)) return;
-    const wrong = q.options.filter((o) => o !== answer && !wrongPicks.includes(o)).sort(() => Math.random() - 0.5);
-    setHidden(wrong.slice(0, Math.max(1, q.options.length - 2 - wrongPicks.length)));
+    const opts = uniqueOptions(q.options);
+    const wrong = opts.filter((o) => o !== answer && !wrongPicks.includes(o)).sort(() => Math.random() - 0.5);
+    setHidden(wrong.slice(0, Math.max(1, opts.length - 2 - wrongPicks.length)));
   }
 
   function score(firstTry: boolean) {
@@ -319,6 +333,7 @@ function LevelPlay({
     setHidden([]);
     setWrongPicks([]);
     setHint("");
+    setGaveUp(false);
     setStatus("open");
     setFx(null);
     setEnd(false);
@@ -400,12 +415,12 @@ function LevelPlay({
 
         {q.type === "multiple-choice" ? (
           <div className="stack">
-            {(q.options ?? []).map((opt) => {
-              if (hidden.includes(opt)) return <div key={opt} className="option gone" aria-hidden="true" />;
+            {uniqueOptions(q.options).map((opt, oi) => {
+              if (hidden.includes(opt)) return <div key={`${qi}-${oi}`} className="option gone" aria-hidden="true" />;
               const tried = wrongPicks.includes(opt);
               const cls = answered && opt === answer ? "option right" : tried ? "option wrong" : "option";
               return (
-                <button key={opt} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => void submit(opt)} disabled={answered || tried}>
+                <button key={`${qi}-${oi}`} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => void submit(opt)} disabled={answered || tried}>
                   <MathText text={opt} />
                 </button>
               );
@@ -434,7 +449,7 @@ function LevelPlay({
 
         {/* Immer gleich: wer nicht weiterweiß, kann jederzeit die Lösung ansehen (zählt 0 Punkte, kommt in der Nachschlag-Runde wieder). */}
         {!answered && status !== "checking" && (
-          <button type="button" className="btn ghost block giveup-btn" onClick={reveal}>{t.dontKnow}</button>
+          <button type="button" className="btn ghost giveup-btn" onClick={() => { setGaveUp(true); reveal(); }}>{t.dontKnow}</button>
         )}
 
         {/* Joker kostet Punches – Preis als eigener Chip mit Minus, damit klar ist, dass etwas abgezogen wird. */}
@@ -454,7 +469,7 @@ function LevelPlay({
 
         {answered && (
           <div className={ok ? "feedback ok" : "feedback no"} role="status">
-            <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : t.wrong(answer)}</span>
+            <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : gaveUp ? t.solutionIs(answer) : t.wrong(answer)}</span>
             {ok && hint && <span style={{ fontWeight: 700 }}>{hint}</span>}
             <span>{q.explanation}</span>
           </div>

@@ -41,7 +41,7 @@ async function handleCheck(request: NextRequest) {
   }
   const locale = body.locale ?? "en";
 
-  if (answerMatches(body.given, body.expected, body.accepted)) {
+  if (answerMatches(body.given, body.expected, body.accepted, body.question)) {
     return NextResponse.json({ correct: true, feedback: "" });
   }
 

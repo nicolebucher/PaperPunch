@@ -33,7 +33,7 @@ export function Quiz({ game, checkpoint, inPlan, onClose, onFinish }: { game: Ga
   const answer = answerOf(q);
   const answered = picked !== null;
   // Zwischentest: ein Versuch, aber getippte Antworten werden tolerant verglichen (Synonyme, Tippfehler, Zahlformate)
-  const isRight = (v: string) => (q.type === "multiple-choice" ? normalize(v) === normalize(answer) : answerMatches(v, answer, q.acceptedAnswers));
+  const isRight = (v: string) => (q.type === "multiple-choice" ? normalize(v) === normalize(answer) : answerMatches(v, answer, q.acceptedAnswers, q.prompt));
   const ok = answered && isRight(picked);
   const last = index === questions.length - 1;
 

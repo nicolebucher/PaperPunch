@@ -164,7 +164,7 @@ export interface CheckResult {
  * Ohne Verbindung zählt das Ergebnis des Vergleichs auf dem Gerät.
  */
 export async function checkTypedAnswer(opts: { question: string; expected: string; accepted?: string[]; given: string; lang: string }): Promise<CheckResult> {
-  if (answerMatches(opts.given, opts.expected, opts.accepted)) return { correct: true, feedback: "" };
+  if (answerMatches(opts.given, opts.expected, opts.accepted, opts.question)) return { correct: true, feedback: "" };
   try {
     const res = await fetch(`${API_BASE}/api/check`, {
       method: "POST",

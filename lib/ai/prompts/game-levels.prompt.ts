@@ -39,6 +39,12 @@ For every level:
 - a short, clear explanation per question of why the answer is correct
 - questions within a level should vary in wording and example, not repeat each other
 
+Also fill "boss": the final boss round, 6 NEW questions on the same material that are clearly
+harder than the levels - multi-step problems, applying a rule to an unfamiliar example, combining
+two sub-topics, or spotting a typical mistake. They must NOT repeat, rephrase or reuse the numbers of
+any level question. Same two question types and the same fields as above, still matching the
+target audience (hard for this grade, not beyond it).
+
 Questions should be age-appropriate, unambiguous, and factually correct. A wrong or mismatched
 answer key is a serious failure - before finalizing each question, re-read it together with its
 answer ("correctIndex" for multiple-choice, "correctAnswer" for lueckentext) and verify they
@@ -59,7 +65,7 @@ ${contentLanguage(hasMaterial, locale, "titles, questions, options, explanations
 
 Language consistency is critical: mixing two languages in one response - even a single stray
 word or option ending up in a different language than everything else - is a serious failure, not
-a minor slip. Before finalizing, re-read every level and question end to end and confirm every
+a minor slip. Before finalizing, re-read every level, the boss round and every question end to end and confirm every
 single field uses that one same language throughout.
 The "difficulty" field itself must still use exactly one of these literal values: "leicht" (easy), "mittel" (medium), "schwer" (hard) - regardless of the response language.
 

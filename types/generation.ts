@@ -168,6 +168,9 @@ export const gameSchema = z.object({
   gameTitle: z.string(),
   subject: z.string(),
   levels: z.array(levelSchema).min(2).max(4),
+  // Boss-Runde der App: neue, schwerere Fragen zum selben Thema (keine Wiederholung aus den Leveln).
+  // Optional, damit ältere Spiele und Challenges weiter gültig sind.
+  boss: z.array(questionSchema).min(4).max(8).optional(),
 });
 export type GameData = z.infer<typeof gameSchema>;
 

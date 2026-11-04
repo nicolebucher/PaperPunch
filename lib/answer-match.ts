@@ -53,11 +53,36 @@ function variants(expected: string): string[] {
   return [...out].map(fold).filter(Boolean);
 }
 
-/** true, wenn `given` als richtig gilt. */
-export function answerMatches(given: string, expected: string, accepted: string[] = []): boolean {
+/**
+ * Lückentext: Wörter, die direkt vor/nach "___" schon im Satz stehen, muss niemand mittippen.
+ * "… is called a ___ fraction." mit Lösung "proper fraction" → auch "proper" ist richtig.
+ */
+function gapVariants(prompt: string, answers: string[]): string[] {
+  const at = prompt.indexOf("___");
+  if (at < 0) return [];
+  const before = fold(prompt.slice(0, at)).split(" ").filter(Boolean).slice(-3);
+  const after = fold(prompt.slice(at).replace(/^_+/, "")).split(" ").filter(Boolean).slice(0, 3);
+  const out: string[] = [];
+  for (const a of answers) {
+    let words = fold(a).split(" ").filter(Boolean);
+    for (let n = Math.min(after.length, words.length - 1); n > 0; n--) {
+      if (words.slice(-n).join(" ") === after.slice(0, n).join(" ")) { words = words.slice(0, -n); break; }
+    }
+    for (let n = Math.min(before.length, words.length - 1); n > 0; n--) {
+      if (words.slice(0, n).join(" ") === before.slice(-n).join(" ")) { words = words.slice(n); break; }
+    }
+    const v = words.join(" ");
+    if (v && v !== fold(a)) out.push(v);
+  }
+  return out;
+}
+
+/** true, wenn `given` als richtig gilt. `prompt` (optional) = Aufgabentext mit "___" für Lückentexte. */
+export function answerMatches(given: string, expected: string, accepted: string[] = [], prompt = ""): boolean {
   const g = fold(given).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "");
   if (!g) return false;
-  const candidates = [expected, ...accepted].flatMap(variants);
+  const answers = [expected, ...accepted];
+  const candidates = [...answers, ...gapVariants(prompt, answers)].flatMap(variants);
   const gNum = asNumber(g);
   for (const c of candidates) {
     if (g === c) return true;

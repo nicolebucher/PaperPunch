@@ -251,7 +251,7 @@ export function Practice({
 
         {/* Immer gleich: wer nicht weiterweiß, kann jederzeit die Lösung ansehen (auch vor dem ersten Versuch). */}
         {auto && !answered && !revealed && status !== "checking" && (
-          <button type="button" className="btn ghost block giveup-btn" onClick={giveUp}>{t.dontKnow}</button>
+          <button type="button" className="btn ghost giveup-btn" onClick={giveUp}>{t.dontKnow}</button>
         )}
 
         {task.type === "zuordnen" && !revealed && (

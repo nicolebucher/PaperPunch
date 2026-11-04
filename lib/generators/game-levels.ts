@@ -26,5 +26,6 @@ export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFil
   return {
     ...data,
     levels: data.levels.map((level) => ({ ...level, questions: shuffleQuestionOptions(level.questions) })),
+    ...(data.boss?.length ? { boss: shuffleQuestionOptions(data.boss) } : {}),
   };
 }

@@ -7,6 +7,18 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.8.0 – 4 November 2026
+
+Fixes from tester feedback (English-speaking tester): tap targets, language of the reward card, boss round, fill-in answers.
+
+| Area | Change |
+| --- | --- |
+| App | “I don't know – show answer” is no longer a full-width button right under the answers (it looked like another answer and was tapped by mistake): smaller, centred, with more space above; after giving up the box says “The answer is: …” instead of “Almost!” |
+| App + Website · AI | Duplicate answer options (e.g. “3/4” twice) are removed – in new materials on the server and in already saved games in the app; before, two identical buttons lit up |
+| App | The “Punches earned” card and its lines (correct answers, boss level, daily bonus, “Continue”) now use the app language; before they were always German |
+| App + Website · AI | New boss round: the AI now writes 6 new, harder questions (multi-step, transfer, combining sub-topics) instead of repeating questions from the levels; older games keep the old boss round |
+| App + Website | Fill-in-the-gap answers: words that are already in the sentence don't have to be typed (“… is called a ___ fraction”: “proper” counts as well as “proper fraction”); the AI check knows this too and no longer gives away the answer in its hint |
+
 ## v0.7.0 – 3 November 2026
 
 Website /app: Punches & levels like in the app, app logo; the joker's price is clearly marked.

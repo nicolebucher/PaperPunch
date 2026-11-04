@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useT } from "./i18n";
+import { deviceLang, LangProvider, useT } from "./i18n";
+import { loadProfile } from "./storage";
 import { BrandMark, PIXEL_COLORS } from "./brand";
 import { Icon } from "./ui";
 import { LEVELS, levelFor, recentEntries, totalPunches, weekPunches, type Reward } from "./punches";
@@ -136,16 +137,19 @@ export function RewardProvider({ children }: { children: ReactNode }) {
   return (
     <RewardContext.Provider value={(reward, then) => setQueue({ reward, then })}>
       {children}
+      {/* Der Provider liegt außerhalb der App-Sprache – deshalb die Sprache hier aus dem Profil holen. */}
       {queue && (
-        <RewardOverlay
-          key={queue.reward.after}
-          reward={queue.reward}
-          onClose={() => {
-            const then = queue.then;
-            setQueue(null);
-            then?.();
-          }}
-        />
+        <LangProvider lang={loadProfile()?.lang ?? deviceLang()}>
+          <RewardOverlay
+            key={queue.reward.after}
+            reward={queue.reward}
+            onClose={() => {
+              const then = queue.then;
+              setQueue(null);
+              then?.();
+            }}
+          />
+        </LangProvider>
       )}
     </RewardContext.Provider>
   );
