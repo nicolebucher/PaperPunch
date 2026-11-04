@@ -7,7 +7,18 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.11.0 – 4 November 2026
+## v0.12.0 – 4 November 2026 (Android: version code 11)
+
+Testers find out about new app versions inside the app.
+
+| Area | Change |
+| --- | --- |
+| App | Update notice via Google Play in-app updates: on start (and when returning to the app), if Play has a newer version, a banner “New version available · Later / Update” appears on the home, materials and study plan screens (never during a game or test) |
+| App | “Update” downloads in the background while you keep learning (progress in %), then “Update ready · Restart” installs it in seconds; if a background update isn't possible, the Play Store page opens |
+| App | “Later” hides the notice for 3 days per version; a newer version is shown right away |
+| App · Tech | New dependency @capawesome/capacitor-app-update (run npm install + npx cap sync android); only works for installs from Google Play – sideloaded/USB builds simply show nothing |
+
+## v0.11.0 – 4 November 2026 (Android: version code 10)
 
 Teachers can adjust a learning game before sharing it with their class (feedback from a teacher).
 

@@ -24,6 +24,7 @@ import { awardRun, materialKey, POINTS, type RewardLine } from "./punches";
 import { PlanSetup } from "./screens/PlanSetup";
 import { PlanView } from "./screens/PlanView";
 import { GoHomeContext, Toast } from "./ui";
+import { UpdateBanner } from "./appUpdate";
 
 /** Wenn Material aus einer Plan-Einheit stammt, merkt sich die App die Einheit. */
 export interface SessionRef {
@@ -578,6 +579,7 @@ function AppInner() {
       ) : (
         toast && <Toast text={toast} />
       )}
+      <UpdateBanner visible={!splash && !undoItem && !toast && (view.name === "home" || view.name === "materials" || view.name === "plan")} />
       {splash && <Splash onDone={endSplash} />}
     </LangProvider>
   );

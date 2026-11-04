@@ -1080,3 +1080,20 @@ h1 .beta { position: relative; top: -3px; }
 .menu-item.danger { color: #f97316; }
 .toast.undo { display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; }
 .toast.undo button { border: none; background: none; color: var(--teal-dark, #0891b2); font: inherit; font-weight: 900; padding: 6px 4px; cursor: pointer; }
+
+/* ---------- Update-Hinweis (Google Play In-App-Update) ---------- */
+.update-banner {
+  position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 11;
+  max-width: 520px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: #fafafa; color: var(--sheet-fg); border-radius: 20px; padding: 14px 14px 14px 16px;
+  box-shadow: 0 12px 34px rgba(0,0,0,0.45); animation: update-in 0.25s ease-out;
+}
+.update-text { flex: 1 1 180px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.update-text b { font-size: 15px; font-weight: 900; }
+.update-text span { font-size: 13px; font-weight: 700; color: #52525b; }
+.update-actions { display: flex; gap: 8px; margin-left: auto; }
+.update-actions button { min-height: 42px; border: none; border-radius: 14px; padding: 0 14px; font: inherit; font-size: 14px; font-weight: 900; cursor: pointer; }
+.update-later { background: transparent; color: #52525b; }
+.update-go { background: var(--green); color: #111214; }
+@keyframes update-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .update-banner { animation: none; } }
