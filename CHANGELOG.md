@@ -7,7 +7,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.10.0 – 4 November 2026
+## v0.10.0 – 4 November 2026 (Android: version code 9)
 
 Beta limit of 10 new materials per week, name filter for study groups and challenges, final imprint and privacy policy.
 
@@ -22,6 +22,7 @@ Beta limit of 10 new materials per week, name filter for study groups and challe
 | App + Website | Create screen shows “Beta · 7 of 10 left this week” with bars; when the week is used up, the create button is replaced by a note (“new ones arrive on Monday”) and a link to write to us |
 | Website | Privacy policy: weekly counter (hashed device key, Upstash in Frankfurt, deleted after 8 days) |
 | Website · Tech | New /api/quota; /api/generate checks and counts per device (random ID, stored only as a hash; IP as fallback for older app versions); counter in Upstash Redis via the Vercel Marketplace, limit configurable with QUOTA_PER_WEEK; without Redis nothing is limited |
+| Website · Tech | Upstash Redis database “paperpunch-quota” (free plan, Frankfurt) connected to snap-it-new – the weekly limit is active |
 
 ## v0.9.0 – 4 November 2026
 
