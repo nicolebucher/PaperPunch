@@ -1,35 +1,29 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
-
-function DraftNotice({ children }: { children: ReactNode }) {
-  return <p className="mb-6 rounded-lg bg-brand-400/10 p-4 text-sm text-brand-300">{children}</p>;
-}
 
 function ImprintEn() {
   return (
     <>
-      <h1 className="mb-2 text-2xl font-bold">Imprint</h1>
-      <DraftNotice>
-        This is a draft template, not legal advice. Replace the bracketed placeholders with your actual details
-        and have it reviewed before publishing (requirements vary by country).
-      </DraftNotice>
+      <h1 className="mb-6 text-2xl font-bold">Imprint</h1>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
           <h2 className="mb-1 font-semibold text-white">Service provider</h2>
-          <p>[Your name or company name]</p>
-          <p>[Street address]</p>
-          <p>[Postal code, city, country]</p>
+          <p>Nicole Bucher</p>
+          <p>Dorfstraße 64</p>
+          <p>01737 Pohrsdorf</p>
+          <p>Germany</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Contact</h2>
           <p>Email: hello@paper-punch.com</p>
-          <p>Phone: [optional]</p>
+          <p>
+            Contact form: <a href="/feedback" className="text-brand-400 underline hover:text-brand-300">paper-punch.com/feedback</a>
+          </p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Responsible for content</h2>
-          <p>[Name and address of the person responsible, if required in your jurisdiction]</p>
+          <p>Nicole Bucher, Dorfstraße 64, 01737 Pohrsdorf, Germany</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">AI-generated content</h2>
@@ -37,6 +31,10 @@ function ImprintEn() {
             Worksheets, tests, and learning games on this site are generated automatically using AI based on the
             material you upload. Please review generated content for accuracy before relying on it.
           </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">Consumer dispute resolution</h2>
+          <p>We are neither willing nor obliged to take part in dispute resolution proceedings before a consumer arbitration board.</p>
         </section>
       </div>
     </>
@@ -46,26 +44,25 @@ function ImprintEn() {
 function ImprintDe() {
   return (
     <>
-      <h1 className="mb-2 text-2xl font-bold">Impressum</h1>
-      <DraftNotice>
-        Dies ist eine Vorlage, keine Rechtsberatung. Ersetze die Platzhalter durch deine tatsächlichen Angaben
-        und lasse den Text vor Veröffentlichung rechtlich prüfen (Angaben nach § 5 TMG / § 5 DDG).
-      </DraftNotice>
+      <h1 className="mb-6 text-2xl font-bold">Impressum</h1>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
-          <h2 className="mb-1 font-semibold text-white">Diensteanbieter</h2>
-          <p>[Name oder Firma]</p>
-          <p>[Straße, Hausnummer]</p>
-          <p>[PLZ, Ort, Land]</p>
+          <h2 className="mb-1 font-semibold text-white">Angaben gemäß § 5 DDG</h2>
+          <p>Nicole Bucher</p>
+          <p>Dorfstraße 64</p>
+          <p>01737 Pohrsdorf</p>
+          <p>Deutschland</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Kontakt</h2>
           <p>E-Mail: hello@paper-punch.com</p>
-          <p>Telefon: [optional]</p>
+          <p>
+            Kontaktformular: <a href="/feedback" className="text-brand-400 underline hover:text-brand-300">paper-punch.com/feedback</a>
+          </p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
-          <p>[Name und Anschrift der verantwortlichen Person]</p>
+          <p>Nicole Bucher, Dorfstraße 64, 01737 Pohrsdorf</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">Hinweis zu KI-generierten Inhalten</h2>
@@ -73,6 +70,10 @@ function ImprintDe() {
             Arbeitsblätter, Testarbeiten und Lernspiele auf dieser Seite werden automatisiert per KI aus deinem
             hochgeladenen Material erstellt. Bitte prüfe die erzeugten Inhalte vor Gebrauch auf Richtigkeit.
           </p>
+        </section>
+        <section>
+          <h2 className="mb-1 font-semibold text-white">Verbraucherstreitbeilegung</h2>
+          <p>Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
         </section>
       </div>
     </>

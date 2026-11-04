@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.10.0 – 4 November 2026
+
+Name filter for study groups and challenges, final imprint and privacy policy.
+
+| Area | Change |
+| --- | --- |
+| App + Website | Name filter: group names and nicknames that everyone with the link can see are checked against a list of swear words, slurs and Nazi terms (German and English, also with tricks like “f.i.c.k”, “fuuuck” or “H1tl3r”); the field shows “Please pick a different name – everyone can see it.” and the button stays off; harmless words like “Marschall”, “Mathe-Ass” or “Nudel” are not blocked |
+| Website · Tech | The server applies the same filter as a safety net (also for older app versions): a blocked name is replaced by the neutral default (“Player”, “Someone”, or the game title for the group name) |
+| Website | Imprint: operator name and address (Nicole Bucher, Pohrsdorf), contact form, consumer dispute resolution note; draft notice removed |
+| Website | Privacy policy: controller name and address, responsible supervisory authority (Saxony), consistent section numbering; draft notice removed |
+
 ## v0.9.0 – 4 November 2026
 
 Study groups: everyone plays the same learning game via a link, with a shared leaderboard – no sign-up.

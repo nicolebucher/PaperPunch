@@ -14,6 +14,7 @@ import type { WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
 import { RatingCard } from "./RatingCard";
 import { GroupCreate } from "./GroupCreate";
+import { isBlockedName } from "@/lib/name-filter";
 
 function base64ToBlob(base64: string, type: string): Blob {
   const bin = atob(base64);
@@ -167,8 +168,9 @@ export function ResultView({ material }: { material: WebMaterial }) {
             <label className="flex flex-col gap-1.5 text-xs font-extrabold text-zinc-400">
               {tx.nickname}
               <input value={nick} maxLength={20} placeholder={tx.nicknamePh} onChange={(e) => setNick(e.target.value)} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold text-zinc-100 outline-none focus:border-[#1fd6ea]" />
+              {isBlockedName(nick) && <span className="text-xs font-semibold text-[#ff8a80]">{tx.nameBlocked}</span>}
             </label>
-            <button type="button" disabled={busy} onClick={() => void challenge()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-60">{tx.challengeSend}</button>
+            <button type="button" disabled={busy || isBlockedName(nick)} onClick={() => void challenge()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-60">{tx.challengeSend}</button>
           </div>
         )}
         {material.game && option("group", tx.groupStart, tx.groupStartSub, () => { track("group_open_create"); setGroupOpen((v) => !v); })}

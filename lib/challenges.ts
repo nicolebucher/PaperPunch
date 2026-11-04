@@ -4,6 +4,7 @@ import { del, list, put } from "@vercel/blob";
 // verbunden (BLOB_STORE_ID + OIDC) – ohne explizites Token könnte das SDK den falschen Store nehmen.
 const PUBLIC_TOKEN = () => process.env.BLOB_READ_WRITE_TOKEN;
 import type { GameData } from "@/types/generation";
+import { isBlockedName } from "@/lib/name-filter";
 
 // Challenges per Link: Ein Lernspiel wird mit Spitzname und Ergebnis der Person gespeichert, die
 // herausfordert. Der Link paper-punch.com/c/CODE öffnet dasselbe Spiel im Browser – ohne Konto.
@@ -32,9 +33,11 @@ function newCode(): string {
   return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join("");
 }
 
-/** Spitznamen säubern: nur Buchstaben, Ziffern, Leerzeichen und ein paar Satzzeichen, max. 20 Zeichen. */
+/** Spitznamen säubern (Schimpfwörter → ""): nur Buchstaben, Ziffern, Leerzeichen und ein paar Satzzeichen, max. 20 Zeichen. */
 export function cleanName(name: string): string {
-  return name.replace(/[^\p{L}\p{N} ._-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);
+  const clean = name.replace(/[^\p{L}\p{N} ._-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);
+  // Schimpfwörter o. Ä. → leer, dann greift der neutrale Ersatzname des Aufrufers
+  return isBlockedName(clean) || isBlockedName(name) ? "" : clean;
 }
 
 export async function saveChallenge(data: Omit<ChallengeRecord, "v" | "code" | "createdAt">): Promise<ChallengeRecord> {

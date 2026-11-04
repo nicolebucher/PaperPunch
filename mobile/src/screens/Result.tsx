@@ -9,6 +9,7 @@ import { savedNickname, sendChallenge as sendChallengeLink } from "../challenge"
 import type { SessionRef } from "../App";
 import { RatingCard } from "./RatingCard";
 import { POINTS } from "../punches";
+import { isBlockedName } from "../nameFilter";
 
 function slug(s: string) {
   return s.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 50) || "paperpunch";
@@ -232,7 +233,8 @@ export function Result({
             <div className="result-e-challenge">
               <span className="result-e-label">{t.nickname}</span>
               <input className="input set" value={nickname} maxLength={20} placeholder={t.nicknamePh} onChange={(e) => setNickname(e.target.value)} />
-              <button type="button" className="btn primary block" disabled={challengeBusy} onClick={() => void sendChallenge()}>
+              {isBlockedName(nickname) && <span className="name-blocked">{t.nameBlocked}</span>}
+              <button type="button" className="btn primary block" disabled={challengeBusy || isBlockedName(nickname)} onClick={() => void sendChallenge()}>
                 <Icon name="share" size={20} /> {challengeBusy ? t.challengeBusy : t.challengeSend}
               </button>
               <span className="result-e-opt-sub">{t.challengeHint}</span>

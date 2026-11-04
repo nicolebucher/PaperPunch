@@ -12,13 +12,12 @@ function PrivacyEn() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Privacy Policy</h1>
       <DraftNotice>
-        Version of 4 November 2026. This draft describes how PaperPunch handles data today; it is not legal
-        advice and will be reviewed before the public launch.
+        Version of 4 November 2026.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
           <h2 className="mb-1 font-semibold text-white">1. Controller</h2>
-          <p>[Your name], [postal address], hello@paper-punch.com - see the Imprint page for full details.</p>
+          <p>Nicole Bucher, Dorfstraße 64, 01737 Pohrsdorf, Germany. Email: hello@paper-punch.com</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">2. Uploaded study material (PDF, JPG, PNG)</h2>
@@ -94,7 +93,7 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">Android app</h2>
+          <h2 className="mb-1 font-semibold text-white">9. Android app</h2>
           <p>
             The PaperPunch Android app works without an account. Your profile (language, country, school type,
             grade, appearance), study plans, punches, your last 20 study materials and the photos/PDFs you used
@@ -109,7 +108,7 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">Challenges</h2>
+          <h2 className="mb-1 font-semibold text-white">10. Challenges</h2>
           <p>
             If you send a challenge for a learning game, we store the game (questions and answers), the nickname
             you enter and your share of correct answers under a random six-character code in our hosting
@@ -120,7 +119,7 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">Study groups</h2>
+          <h2 className="mb-1 font-semibold text-white">11. Study groups</h2>
           <p>
             If you start a study group, we store the learning game (questions and answers), the group name, your
             nickname and the end date under a random six-character code in our hosting provider&apos;s storage
@@ -132,7 +131,7 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">9. Legal bases</h2>
+          <h2 className="mb-1 font-semibold text-white">12. Legal bases</h2>
           <p>
             Creating the material you ask for and running the website and app: Art. 6(1)(b) GDPR (providing the
             service you use). Security logs, rate limiting and evaluating ratings to improve quality: Art. 6(1)(f)
@@ -141,7 +140,7 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">10. Children and teenagers</h2>
+          <h2 className="mb-1 font-semibold text-white">13. Children and teenagers</h2>
           <p>
             PaperPunch is made for students and is often used by minors, so we collect as little as possible: no
             account, no names, no tracking in the app. Under 16, consent-based processing (Google Analytics on the
@@ -151,15 +150,17 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">11. Your rights</h2>
+          <h2 className="mb-1 font-semibold text-white">14. Your rights</h2>
           <p>
             Depending on your jurisdiction, you may have the right to access, correct, delete, or object to the
             processing of your personal data, to withdraw consent at any time, and to lodge a complaint with a
             data protection supervisory authority. Contact us at hello@paper-punch.com to exercise these rights.
+            The supervisory authority responsible for us is the Saxon Data Protection and Transparency Commissioner
+            (Sächsische Datenschutz- und Transparenzbeauftragte, Devrientstraße 5, 01067 Dresden, Germany).
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">12. Changes to this policy</h2>
+          <h2 className="mb-1 font-semibold text-white">15. Changes to this policy</h2>
           <p>We may update this policy as the service changes; the current version always applies.</p>
         </section>
       </div>
@@ -172,13 +173,12 @@ function PrivacyDe() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Datenschutzerklärung</h1>
       <DraftNotice>
-        Stand: 4. November 2026. Dieser Entwurf beschreibt, wie PaperPunch heute mit Daten umgeht; er ist
-        keine Rechtsberatung und wird vor dem öffentlichen Start geprüft.
+        Stand: 4. November 2026.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
           <h2 className="mb-1 font-semibold text-white">1. Verantwortlicher</h2>
-          <p>[Name], [Anschrift], hello@paper-punch.com - vollständige Angaben siehe Impressum.</p>
+          <p>Nicole Bucher, Dorfstraße 64, 01737 Pohrsdorf, Deutschland. E-Mail: hello@paper-punch.com</p>
         </section>
         <section>
           <h2 className="mb-1 font-semibold text-white">2. Hochgeladenes Lernmaterial (PDF, JPG, PNG)</h2>
@@ -260,7 +260,7 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">Android-App</h2>
+          <h2 className="mb-1 font-semibold text-white">9. Android-App</h2>
           <p>
             Die PaperPunch-App für Android funktioniert ohne Konto. Dein Profil (Sprache, Land, Schulart, Klasse,
             Darstellung), Lernpläne, Punches, deine letzten 20 Lernmaterialien und die dafür verwendeten
@@ -276,7 +276,7 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">Challenges</h2>
+          <h2 className="mb-1 font-semibold text-white">10. Challenges</h2>
           <p>
             Wenn du eine Challenge zu einem Lernspiel verschickst, speichern wir das Spiel (Fragen und Antworten),
             den Spitznamen, den du eingibst, und deinen Anteil richtiger Antworten unter einem zufälligen
@@ -288,7 +288,7 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">Lerngruppen</h2>
+          <h2 className="mb-1 font-semibold text-white">11. Lerngruppen</h2>
           <p>
             Wenn du eine Lerngruppe startest, speichern wir das Lernspiel (Fragen und Antworten), den Gruppennamen,
             deinen Spitznamen und das Enddatum unter einem zufälligen sechsstelligen Code im Speicher unseres
@@ -301,7 +301,7 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">9. Rechtsgrundlagen</h2>
+          <h2 className="mb-1 font-semibold text-white">12. Rechtsgrundlagen</h2>
           <p>
             Erstellen des gewünschten Materials und Betrieb von Website und App: Art. 6 Abs. 1 lit. b DSGVO
             (Bereitstellung des Dienstes, den du nutzt). Sicherheits-Logs, Begrenzung von Anfragen und Auswertung
@@ -311,7 +311,7 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">10. Kinder und Jugendliche</h2>
+          <h2 className="mb-1 font-semibold text-white">13. Kinder und Jugendliche</h2>
           <p>
             PaperPunch ist für Schülerinnen und Schüler gemacht und wird oft von Minderjährigen genutzt. Deshalb
             erheben wir so wenig wie möglich: kein Konto, keine Namen, kein Tracking in der App. Unter 16 Jahren
@@ -322,16 +322,17 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">11. Deine Rechte</h2>
+          <h2 className="mb-1 font-semibold text-white">14. Deine Rechte</h2>
           <p>
             Je nach Rechtsordnung hast du das Recht auf Auskunft, Berichtigung, Löschung oder Widerspruch
             gegen die Verarbeitung deiner personenbezogenen Daten, das Recht, eine Einwilligung jederzeit zu
             widerrufen, sowie das Recht auf Beschwerde bei einer Datenschutz-Aufsichtsbehörde. Schreib uns dazu an
-            hello@paper-punch.com.
+            hello@paper-punch.com. Für uns zuständig ist die Sächsische Datenschutz- und Transparenzbeauftragte,
+            Devrientstraße 5, 01067 Dresden.
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">12. Änderungen dieser Erklärung</h2>
+          <h2 className="mb-1 font-semibold text-white">15. Änderungen dieser Erklärung</h2>
           <p>Wir können diese Erklärung bei Änderungen am Dienst aktualisieren; es gilt jeweils die aktuelle Fassung.</p>
         </section>
       </div>

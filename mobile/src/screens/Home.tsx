@@ -10,6 +10,7 @@ import { isResumable, materialDate, materialTitle } from "./materialInfo";
 import { challengePctOf, savedNickname, sendChallenge } from "../challenge";
 import { endOptions, loadBoard, myGroups, startGroup, submitPending, timeLeft, updateGroup, type MyGroup } from "../groups";
 import type { GroupBoard } from "../api";
+import { isBlockedName } from "../nameFilter";
 
 /**
  * Startseite S1: oben Datum/Begrüßung, rechts Level + Punches und Profil. Darunter drei große Wege
@@ -337,8 +338,9 @@ function ChallengeSheet({ games, onClose, onNewGame, say }: { games: StoredMater
             <label className="field">
               {t.nickname}
               <input className="input set" value={name} maxLength={20} placeholder={t.nicknamePh} onChange={(e) => setName(e.target.value)} />
+              {isBlockedName(name) && <span className="name-blocked">{t.nameBlocked}</span>}
             </label>
-            <button type="button" className="btn primary block" disabled={!chosen || busy} onClick={() => void share()}>
+            <button type="button" className="btn primary block" disabled={!chosen || busy || isBlockedName(name)} onClick={() => void share()}>
               <Icon name="share" size={20} /> {busy ? t.challengeBusy : t.challengeSend}
             </button>
           </>
@@ -412,12 +414,14 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
             <label className="field">
               {t.groupName}
               <input className="input set" value={name} maxLength={40} placeholder={t.groupNamePh} onChange={(e) => setName(e.target.value)} />
+              {isBlockedName(name) && <span className="name-blocked">{t.nameBlocked}</span>}
             </label>
             <label className="field">
               {t.nickname}
               <input className="input set" value={nick} maxLength={20} placeholder={t.nicknamePh} onChange={(e) => setNick(e.target.value)} />
+              {isBlockedName(nick) && <span className="name-blocked">{t.nameBlocked}</span>}
             </label>
-            <button type="button" className="btn primary block" disabled={!chosen || busy} onClick={() => void create()}>
+            <button type="button" className="btn primary block" disabled={!chosen || busy || isBlockedName(name) || isBlockedName(nick)} onClick={() => void create()}>
               <Icon name="share" size={20} /> {busy ? t.groupBusy : t.groupSend}
             </button>
             <p className="muted" style={{ fontSize: 12, fontWeight: 600, textAlign: "center" }}>{t.groupHint}</p>

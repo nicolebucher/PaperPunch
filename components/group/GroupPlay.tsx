@@ -7,6 +7,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 import { LevelPlayer } from "@/components/game/LevelPlayer";
 import { track } from "@/lib/analytics";
 import { fetchBoard, fmtTime, saveGroup, submitToGroup, timeLeft, type Board, type BoardEntry } from "@/lib/webapp/groups";
+import { isBlockedName } from "@/lib/name-filter";
 
 const NAME_KEY = "paperpunch-nickname";
 
@@ -20,6 +21,7 @@ const TEXT = {
     noEnd: "ohne Enddatum",
     nick: "Dein Spitzname",
     nickPh: "z. B. Ben",
+    nameBlocked: "Bitte wähle einen anderen Namen – der ist für alle sichtbar.",
     play: "Mitspielen",
     foot: "Läuft im Browser oder in der App – keine Anmeldung · Nur der erste Versuch zählt",
     level: (i: number, n: number) => `Level ${i} von ${n}`,
@@ -57,6 +59,7 @@ const TEXT = {
     noEnd: "no end date",
     nick: "Your nickname",
     nickPh: "e.g. Ben",
+    nameBlocked: "Please pick a different name – everyone can see it.",
     play: "Join in",
     foot: "Runs in the browser or the app – no sign-up · Only your first try counts",
     level: (i: number, n: number) => `Level ${i} of ${n}`,
@@ -201,8 +204,9 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
         <label className="flex flex-col gap-2 rounded-[20px] bg-[#15171b] p-4 ring-1 ring-white/[0.06]">
           <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{t.nick}</span>
           <input value={nick} maxLength={20} placeholder={t.nickPh} onChange={(e) => setNick(e.target.value.slice(0, 20))} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold outline-none focus:border-[#1fd6ea]" />
+          {isBlockedName(nick) && <span className="text-xs font-semibold normal-case tracking-normal text-[#ff8a80]">{t.nameBlocked}</span>}
         </label>
-        <button type="button" onClick={start} className="rounded-2xl bg-[#1fd6ea] px-6 py-4 text-lg font-extrabold text-black">{t.play}</button>
+        <button type="button" disabled={isBlockedName(nick)} onClick={start} className="rounded-2xl bg-[#1fd6ea] px-6 py-4 text-lg font-extrabold text-black disabled:opacity-50">{t.play}</button>
         <p className="text-center text-xs font-semibold text-zinc-500">{t.foot}</p>
       </div>
     );

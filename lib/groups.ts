@@ -1,6 +1,7 @@
 import { del, list, put } from "@vercel/blob";
 import type { GameData } from "@/types/generation";
 import { cleanName } from "@/lib/challenges";
+import { isBlockedName } from "@/lib/name-filter";
 
 // Lerngruppen per Link (paper-punch.com/g/CODE): alle spielen dasselbe Lernspiel, eine gemeinsame Rangliste.
 // Ohne Konto: Spitznamen, ein Eintrag pro Gerät (zufällige Geräte-ID), nur der erste Versuch zählt.
@@ -60,7 +61,8 @@ async function deviceTag(device: string): Promise<string> {
 }
 
 export function cleanGroupName(name: string): string {
-  return name.replace(/[^\p{L}\p{N} ._–\-/&+]/gu, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  const clean = name.replace(/[^\p{L}\p{N} ._–\-/&+]/gu, "").replace(/\s+/g, " ").trim().slice(0, 40);
+  return isBlockedName(clean) || isBlockedName(name) ? "" : clean;
 }
 
 export function rank(entries: GroupEntry[]): GroupEntry[] {

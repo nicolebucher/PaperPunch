@@ -7,6 +7,7 @@ import { track } from "@/lib/analytics";
 import { createGroupWeb, endOptions, saveGroup } from "@/lib/webapp/groups";
 import { listMaterials, type WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
+import { isBlockedName } from "@/lib/name-filter";
 
 const NAME_KEY = "paperpunch-nickname";
 
@@ -129,12 +130,14 @@ export function GroupCreate({ material, initialName = "", exclude }: { material?
       <label className="flex flex-col gap-1.5 text-xs font-extrabold uppercase tracking-wide text-zinc-500">
         {tx.groupName}
         <input value={name} maxLength={40} placeholder={tx.groupNamePh} onChange={(e) => setName(e.target.value)} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold normal-case tracking-normal text-zinc-100 outline-none focus:border-[#1fd6ea]" />
+        {isBlockedName(name) && <span className="text-xs font-semibold normal-case tracking-normal text-[#ff8a80]">{tx.nameBlocked}</span>}
       </label>
       <label className="flex flex-col gap-1.5 text-xs font-extrabold uppercase tracking-wide text-zinc-500">
         {tx.nickname}
         <input value={nick} maxLength={20} placeholder={tx.nicknamePh} onChange={(e) => setNick(e.target.value)} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold normal-case tracking-normal text-zinc-100 outline-none focus:border-[#1fd6ea]" />
+        {isBlockedName(nick) && <span className="text-xs font-semibold normal-case tracking-normal text-[#ff8a80]">{tx.nameBlocked}</span>}
       </label>
-      <button type="button" disabled={!chosen || busy} onClick={() => void create()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-50">{busy ? tx.groupBusy : `↗ ${tx.groupShare}`}</button>
+      <button type="button" disabled={!chosen || busy || isBlockedName(name) || isBlockedName(nick)} onClick={() => void create()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-50">{busy ? tx.groupBusy : `↗ ${tx.groupShare}`}</button>
       <span className="text-center text-xs font-semibold text-zinc-500">{tx.groupHint}</span>
       {note && <p className="text-center text-sm font-semibold text-zinc-400">{note}</p>}
     </div>
