@@ -15,7 +15,7 @@ const NAME_KEY = "paperpunch-nickname";
  * "Lerngruppe starten" (Entwurf G1): Lernspiel wählen oder neu erstellen, Ende, Gruppenname, Spitzname → Link teilen.
  * `material` setzt das Spiel fest (aus dem Ergebnis eines Lernspiels); `exclude` blendet ein Spiel aus (neue Runde).
  */
-export function GroupCreate({ material, initialName = "", exclude }: { material?: WebMaterial; initialName?: string; exclude?: string }) {
+export function GroupCreate({ material, initialName = "", exclude, preselect }: { material?: WebMaterial; initialName?: string; exclude?: string; preselect?: string }) {
   const tx = useAppText();
   const { locale } = useLanguage();
   const lang = locale === "en" ? "en" : "de";
@@ -39,10 +39,10 @@ export function GroupCreate({ material, initialName = "", exclude }: { material?
     if (!material) {
       const list = listMaterials().filter((m) => m.game && m.title !== exclude);
       setGames(list);
-      setPicked(list[0]?.id ?? "");
+      setPicked(list.find((g) => g.id === preselect)?.id ?? list[0]?.id ?? "");
     }
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [material, exclude]);
+  }, [material, exclude, preselect]);
 
   const chosen = games.find((g) => g.id === picked);
 
@@ -120,6 +120,13 @@ export function GroupCreate({ material, initialName = "", exclude }: { material?
             {games.length === 0 && <p className="text-sm font-semibold text-zinc-400">{tx.groupNoGames}</p>}
           </div>
         </>
+      )}
+      {chosen?.game && (
+        <Link href={`/app/edit?id=${chosen.id}&next=group`} onClick={() => track("edit_link")} className="flex items-center gap-3 rounded-[18px] p-3 ring-1 ring-[#1fd6ea]/60">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#0f2a2e] text-[#1fd6ea]"><AppIcon name="edit" size={18} /></span>
+          <span className="flex min-w-0 flex-1 flex-col"><b className="text-[15px] text-[#1fd6ea]">{tx.editLink}</b><span className="text-xs font-semibold text-zinc-400">{tx.editOptional} · {chosen.title}</span></span>
+          <AppIcon name="chevron" size={16} stroke={2.6} />
+        </Link>
       )}
       <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{tx.groupEnds}</span>
       <div className="flex flex-wrap gap-2">

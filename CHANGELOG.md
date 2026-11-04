@@ -7,6 +7,18 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.11.0 – 4 November 2026
+
+Teachers can adjust a learning game before sharing it with their class (feedback from a teacher).
+
+| Area | Change |
+| --- | --- |
+| Website | “Review & adjust questions” when starting a study group (optional): all questions by level with the correct answer; per question “↻ Replace” and delete (with undo, at least 3 questions per level) |
+| Website | Replace a question: tap what should be different (easier, harder, different example, everyday context, as a gap, as multiple choice) and/or write your own request – also corrections like “answer B is wrong, the right one is 3/4”; before/after view with Apply, Again or Discard |
+| Website | Replace a whole level: new sub-topic (e.g. “comparing fractions” instead of “recognising fractions”), difficulty (easier/same/harder) and number of questions (6/8/10); all new questions at a glance, then Apply level, Whole level again or Discard |
+| Website | Changes go into a copy “… (edited)” saved in the browser, the original stays; “Continue to name & share” goes back to the study group with the edited game preselected |
+| Website · Tech | New /api/edit-game (one question or one level, Claude via the existing structured-output helper, options shuffled); doesn't count towards the weekly limit, IP limit 15 per minute; GA4 events edit_open, edit_link, edit_question_replaced, edit_level_replaced, edit_question_deleted |
+
 ## v0.10.0 – 4 November 2026 (Android: version code 9)
 
 Beta limit of 10 new materials per week, name filter for study groups and challenges, final imprint and privacy policy.

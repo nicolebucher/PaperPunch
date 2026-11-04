@@ -7,7 +7,7 @@ export default async function AppGroupNewPage({ searchParams }: PageProps<"/app/
   const sp = await searchParams;
   return (
     <div className="mx-auto w-full max-w-xl pt-4 lg:pt-0">
-      <GroupCreate initialName={one(sp.name)?.slice(0, 40) ?? ""} exclude={one(sp.not)?.slice(0, 120)} />
+      <GroupCreate initialName={one(sp.name)?.slice(0, 40) ?? ""} exclude={one(sp.not)?.slice(0, 120)} preselect={one(sp.game)} />
     </div>
   );
 }

@@ -17,6 +17,8 @@ export interface WebMaterial {
   game?: GameData;
   /** Eigene Bewertung (1–5), damit die Frage danach nur einmal kommt. */
   rating?: number;
+  /** Angepasste Kopie eines Lernspiels (Fragen ersetzt/gelöscht) – id des Originals. */
+  editedFrom?: string;
 }
 
 export interface WebPlan {
