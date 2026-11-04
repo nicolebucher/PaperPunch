@@ -11,6 +11,7 @@ import { shareOrDownloadFile } from "@/lib/share";
 import { slugify } from "@/lib/slugify";
 import type { WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
+import { RatingCard } from "./RatingCard";
 
 function base64ToBlob(base64: string, type: string): Blob {
   const bin = atob(base64);
@@ -168,6 +169,8 @@ export function ResultView({ material }: { material: WebMaterial }) {
         {option("share", tx.share, material.game ? tx.shareGameSub : tx.shareSub, () => void share())}
         {note && <p className="text-center text-sm font-semibold text-zinc-400">{note}</p>}
       </div>
+
+      <RatingCard material={material} />
 
       <div className="mt-6 flex items-center justify-between px-1 text-xs font-semibold text-zinc-500">
         <span>{tx.aiShort}</span>

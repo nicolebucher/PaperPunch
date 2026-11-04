@@ -15,6 +15,8 @@ export interface WebMaterial {
   subject?: string;
   sheet?: { data: WorksheetData; pdfBase64: string; filename: string };
   game?: GameData;
+  /** Eigene Bewertung (1–5), damit die Frage danach nur einmal kommt. */
+  rating?: number;
 }
 
 export interface WebPlan {

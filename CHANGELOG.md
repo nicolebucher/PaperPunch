@@ -13,6 +13,8 @@ Fixes from tester feedback (English-speaking tester): tap targets, language of t
 
 | Area | Change |
 | --- | --- |
+| Website | Rating on the web like in the app: “How was this material?” with 5 stars and an optional comment under each result in /app (once per material); goes to the feedback Sheet and the private store, marked as source “web” |
+| Website · Tech | Feedback pipeline live: Google Sheet “PaperPunch – Feedback” connected via Apps Script (RATINGS_WEBHOOK_URL), private Blob store connected via OIDC (BLOB_STORE_ID); challenges and jobs explicitly use the public store; weekly feedback review every Monday morning |
 | Website | Privacy policy, section 5 “Feedback and ratings”: which rating data is received (stars, comment, format, title, subject, language, country, school type, grade, score – no photos, no names), stored in a non-public Vercel storage area in Frankfurt and in a Google Sheet (Google Ireland), reviewed weekly, deleted after 24 months at the latest |
 | Website · Tech | Ratings (app/web) and the feedback form are now kept permanently: backup in a separate private Vercel Blob store in Frankfurt (paperpunch-feedback-private, not publicly readable) and forwarded to the Google Sheet once it is connected; before, they were lost after about an hour |
 | App | “I don't know – show answer” is no longer a full-width button right under the answers (it looked like another answer and was tapped by mistake): smaller, centred, with more space above; after giving up the box says “The answer is: …” instead of “Almost!” |
