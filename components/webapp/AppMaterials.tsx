@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -58,6 +59,7 @@ export function AppMaterials({ id }: { id?: string }) {
               aria-label={`${m.title} ${tx.delete}`}
               onClick={() => {
                 deleteMaterial(m.id);
+                track("material_deleted", { format: m.format });
                 setList(listMaterials());
               }}
               className="grid h-10 w-10 place-items-center rounded-full text-zinc-500 hover:text-zinc-100"

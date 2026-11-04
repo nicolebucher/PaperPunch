@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useMemo, useState } from "react";
 import type { GameData, Level } from "@/types/generation";
 import { buildStandaloneGameHtml } from "@/lib/game/build-standalone-game-html";
@@ -66,6 +67,7 @@ export function GameShell({ game }: { game: GameData }) {
         onSnap={handleSnap}
         joker
         onComplete={(result) => {
+          track("level_complete", { level: activeLevel.id === -1 ? "mixed" : String(activeLevel.id), difficulty: activeLevel.difficulty, stars: result.stars, correct: result.score, total: activeLevel.questions.length, replay: results[activeLevel.id] !== undefined });
           if (activeLevel.id !== -1) {
             setResults((prev) => ({ ...prev, [activeLevel.id]: result }));
           }
@@ -114,7 +116,7 @@ export function GameShell({ game }: { game: GameData }) {
             <li key={level.id}>
               <button
                 type="button"
-                onClick={() => setActiveLevelId(level.id)}
+                onClick={() => { track("level_start", { level: level.id === -1 ? "mixed" : String(level.id), difficulty: level.difficulty }); setActiveLevelId(level.id); }}
                 className={`flex w-full items-center gap-4 rounded-[24px] p-3.5 text-left transition active:scale-[0.98] ${
                   isMixed ? "bg-zinc-100 text-zinc-950" : "bg-[#15171b] ring-1 ring-white/[0.06]"
                 }`}

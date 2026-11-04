@@ -66,6 +66,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   async function addFiles(list: File[]) {
     setFileError("");
     if (!list.length) return;
+    track("files_added", { count: list.length, pdf: list.some((f) => f.type === "application/pdf") });
     if (list.some((f) => !ACCEPTED.includes(f.type))) return setFileError(tx.errType);
     if (files.length + list.length > MAX_FILES) return setFileError(tx.errCount);
     setBusy(true);
@@ -90,6 +91,8 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   }
 
   async function create() {
+    track("create_submit", { format, mode, files: files.length, has_notes: !!notes.trim(), grade: grade || undefined, school_type: schoolType || undefined });
+    const started = Date.now();
     setStep("loading");
     setBuildStep(0);
     setError("");
@@ -116,7 +119,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
           ? { id, createdAt: Date.now(), format, title: json.game.gameTitle, subject: json.game.subject, game: json.game }
           : { id, createdAt: Date.now(), format, title: json.data.title, subject: subject.trim() || undefined, sheet: { data: json.data, pdfBase64: json.pdfBase64, filename: json.filename } };
       saveMaterial(material);
-      track("material_created", { format, mode, from_plan: !!planId });
+      track("material_created", { format, mode, from_plan: !!planId, seconds: Math.round((Date.now() - started) / 1000) });
       if (planId && session !== undefined) {
         const p = getPlan(planId);
         if (p && !p.done.includes(session)) savePlan({ ...p, done: [...p.done, session] });
@@ -124,6 +127,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
       router.replace(`/app/materials?id=${id}&new=1`);
     } catch (e) {
       setError(e instanceof Error ? e.message : t.serverErrors.unexpected);
+      track("material_failed", { format, mode, error: (e instanceof Error ? e.message : "unexpected").slice(0, 90) });
       setStep("error");
     }
   }

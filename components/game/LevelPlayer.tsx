@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useEffect, useRef, useState } from "react";
 import type { Level } from "@/types/generation";
 import { JOKER_PUNCHES, PUNCHES_EVENT, spendPunches, totalPunches } from "@/lib/webapp/punches";
@@ -81,6 +82,7 @@ export function LevelPlayer({
 
   function applyJoker() {
     if (!canJoker || !spendPunches(JOKER_PUNCHES)) return;
+    track("joker_used");
     const wrong = (question.options ?? []).map((_, i) => i).filter((i) => i !== question.correctIndex).sort(() => Math.random() - 0.5);
     setHidden(wrong.slice(0, Math.max(1, (question.options?.length ?? 0) - 2)));
   }

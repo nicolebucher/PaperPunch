@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useMemo, useState } from "react";
 import type { Task, WorksheetData } from "@/types/generation";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -156,6 +157,7 @@ export function InteractiveWorksheet({ data }: { data: WorksheetData }) {
       const correct = data.tasks.filter((task) => isTaskCorrect(task, answers[task.number] ?? "")).length;
       // Pro Blatt nur einmal – auch nach Neuladen der Seite (Merker im Browser).
       const amount = alreadyAwarded(data) ? 0 : correct * SHEET_ANSWER_PUNCHES;
+      track("answers_checked", { correct, total: data.tasks.length, answered: Object.keys(answers).length });
       if (amount > 0) {
         addPunches(amount);
         markAwarded(data);

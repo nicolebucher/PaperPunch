@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ChallengeRecord } from "@/lib/challenges";
@@ -90,6 +91,7 @@ export function ChallengePlay({ challenge }: { challenge: ChallengeRecord }) {
   }, [lang, setLocale]);
 
   function start() {
+    track("challenge_accepted", { questions: total, has_target: challenge.from.pct !== undefined });
     try {
       if (name.trim()) localStorage.setItem(NAME_KEY, name.trim());
     } catch {
@@ -102,6 +104,7 @@ export function ChallengePlay({ challenge }: { challenge: ChallengeRecord }) {
   const target = challenge.from.pct;
 
   async function challengeBack() {
+    track("challenge_back");
     setBusy(true);
     setNote("");
     try {
@@ -144,7 +147,12 @@ export function ChallengePlay({ challenge }: { challenge: ChallengeRecord }) {
           onComplete={(result) => {
             setCorrect((c) => c + result.score);
             if (levelIndex + 1 < levels.length) setLevelIndex((i) => i + 1);
-            else setStage("result");
+            else {
+              const finalPct = total ? Math.round(((correct + result.score) / total) * 100) : 0;
+              const target = challenge.from.pct;
+              track("challenge_finished", { pct: finalPct, outcome: target === undefined ? "none" : finalPct > target ? "won" : finalPct < target ? "lost" : "tie" });
+              setStage("result");
+            }
           }}
         />
       </div>

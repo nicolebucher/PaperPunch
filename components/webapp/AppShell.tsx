@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -64,7 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const langSwitch = (
     <div className="flex gap-1 rounded-full bg-[#15171b] p-1 ring-1 ring-white/[0.06]">
       {(["de", "en"] as const).map((l) => (
-        <button key={l} type="button" onClick={() => setLocale(l)} className={`h-8 rounded-full px-3 text-xs font-extrabold uppercase ${locale === l ? "bg-zinc-100 text-zinc-950" : "text-zinc-400"}`}>
+        <button key={l} type="button" onClick={() => { track("language_switch", { to: l }); setLocale(l); }} className={`h-8 rounded-full px-3 text-xs font-extrabold uppercase ${locale === l ? "bg-zinc-100 text-zinc-950" : "text-zinc-400"}`}>
           {l}
         </button>
       ))}

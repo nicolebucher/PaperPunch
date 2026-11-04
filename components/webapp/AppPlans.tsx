@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -87,8 +88,10 @@ function NewPlan() {
       if (!res.ok || !json?.plan) throw new Error(json?.error ?? tx.planError);
       const plan: WebPlan = { id: newId(), createdAt: Date.now(), startDate: todayISO(), testDate: date, subject: subject.trim(), plan: json.plan, done: [] };
       savePlan(plan);
+      track("plan_created", { days: daysBetween(todayISO(), date), sessions: json.plan.sessions?.length });
       router.push(`/app/plans?id=${plan.id}`);
     } catch (e) {
+      track("plan_failed");
       setError(e instanceof Error ? e.message : tx.planError);
       setBusy(false);
     }
@@ -134,7 +137,11 @@ function PlanView({ plan, onChange }: { plan: WebPlan; onChange: (p: WebPlan) =>
   const days = daysBetween(today, plan.testDate);
   const next = todaysSession(plan);
   const testLabel = new Date(`${plan.testDate}T12:00:00`).toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
-  const toggle = (i: number) => onChange({ ...plan, done: plan.done.includes(i) ? plan.done.filter((d) => d !== i) : [...plan.done, i] });
+  const toggle = (i: number) => {
+    track(plan.done.includes(i) ? "plan_session_unticked" : "plan_session_ticked");
+    tick(i);
+  };
+  const tick = (i: number) => onChange({ ...plan, done: plan.done.includes(i) ? plan.done.filter((d) => d !== i) : [...plan.done, i] });
 
   return (
     <div className="flex max-w-2xl flex-1 flex-col">
@@ -169,7 +176,7 @@ function PlanView({ plan, onChange }: { plan: WebPlan; onChange: (p: WebPlan) =>
         })}
       </div>
       {next && (
-        <Link href={sessionHref(plan, next.index)} className="mt-6 rounded-2xl bg-[#1fd6ea] px-6 py-4 text-center text-lg font-extrabold text-black">
+        <Link href={sessionHref(plan, next.index)} onClick={() => track("plan_session_start")} className="mt-6 rounded-2xl bg-[#1fd6ea] px-6 py-4 text-center text-lg font-extrabold text-black">
           {next.dayIndex === todayIndex ? tx.startToday : tx.startSession}
         </Link>
       )}

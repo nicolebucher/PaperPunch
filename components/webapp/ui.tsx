@@ -84,7 +84,7 @@ export function WayButton({ href, icon, color, title, sub, main, badge, card }: 
   const base = main ? "bg-zinc-100 text-zinc-950" : "bg-[#15171b] text-zinc-100 ring-1 ring-white/[0.06]";
   if (card) {
     return (
-      <Link href={href} className={`flex min-h-[220px] flex-col justify-between rounded-[28px] p-6 transition active:scale-[0.98] hover:brightness-110 ${base}`}>
+      <Link href={href} onClick={() => track("home_way_click", { target: href })} className={`flex min-h-[220px] flex-col justify-between rounded-[28px] p-6 transition active:scale-[0.98] hover:brightness-110 ${base}`}>
         <span className={`grid h-14 w-14 place-items-center rounded-2xl ${COLORS[color]}`}><AppIcon name={icon} size={28} stroke={2.2} /></span>
         <span className="flex flex-col gap-2">
           <b className="flex items-center gap-2 text-[22px] leading-tight tracking-tight">{title}{badge && <Badge>{badge}</Badge>}</b>
@@ -94,7 +94,7 @@ export function WayButton({ href, icon, color, title, sub, main, badge, card }: 
     );
   }
   return (
-    <Link href={href} className={`flex min-h-[86px] items-center gap-3.5 rounded-3xl p-4 transition active:scale-[0.98] ${base} ${main ? "min-h-[98px]" : ""}`}>
+    <Link href={href} onClick={() => track("home_way_click", { target: href })} className={`flex min-h-[86px] items-center gap-3.5 rounded-3xl p-4 transition active:scale-[0.98] ${base} ${main ? "min-h-[98px]" : ""}`}>
       <span className={`grid h-[52px] w-[52px] flex-none place-items-center rounded-2xl ${COLORS[color]}`}><AppIcon name={icon} size={24} stroke={2.2} /></span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <b className="flex items-center gap-2 text-lg leading-tight tracking-tight">{title}{badge && <Badge>{badge}</Badge>}</b>
