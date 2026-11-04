@@ -128,6 +128,12 @@ export function PlanView({
 
         {!over && remindersSupported() && <ReminderRow onChange={onRemindersChange} />}
 
+        {!over && (
+          <button type="button" className="btn ghost block" onClick={onNew}>
+            <Icon name="plus" size={18} /> {t.planAnother}
+          </button>
+        )}
+
         {confirming ? (
           <div className="card">
             <p>{t.deleteConfirm}</p>

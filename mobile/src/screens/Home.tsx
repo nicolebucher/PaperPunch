@@ -202,6 +202,11 @@ export function Home({
         <button type="button" onClick={() => setGroupSheet({})}>
           <Icon name="group" size={16} stroke={2} /> {t.groupShort}
         </button>
+        {plan && (
+          <button type="button" onClick={onNewPlan}>
+            <Icon name="plus" size={16} stroke={2} /> {t.planShort}
+          </button>
+        )}
       </div>
 
       {groupSheet && (
