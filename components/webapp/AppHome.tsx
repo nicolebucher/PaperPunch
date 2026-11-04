@@ -37,11 +37,8 @@ export function AppHome() {
     ).then((list) => setGroups(list.filter((x): x is NonNullable<typeof x> => !!x)));
   }, []);
 
-  const plan = plans[0];
-  const session = plan ? todaysSession(plan) : undefined;
-  const planWay = plan
-    ? { href: `/app/plans?id=${plan.id}`, title: plan.plan.title, sub: tx.planActive(daysBetween(todayISO(), plan.testDate), session?.title) }
-    : { href: "/app/plans?new=1", title: tx.plan, sub: tx.planSub, badge: tx.beta };
+  // Der dritte Weg legt immer einen neuen Lernplan an; laufende Pläne stehen unter "Weitermachen".
+  const planWay = { href: "/app/plans?new=1", title: tx.plan, sub: tx.planSub, badge: tx.beta };
   const dateLabel = new Date().toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" });
 
   const ways = (card: boolean) => (
@@ -67,7 +64,7 @@ export function AppHome() {
           <AppIcon name="chevron" size={16} stroke={2.6} />
         </Link>
       ))}
-      {plans.slice(1).map((p) => (
+      {plans.map((p) => (
         <Link key={p.id} href={`/app/plans?id=${p.id}`} className="flex items-center gap-3 py-2.5">
           <span className="flex h-[34px] w-[34px] flex-col items-center justify-center rounded-[10px] leading-none ring-1 ring-inset ring-zinc-700">
             <b className="text-sm text-[#1fd6ea]">{daysBetween(todayISO(), p.testDate)}</b>
@@ -76,7 +73,7 @@ export function AppHome() {
           <span className="flex min-w-0 flex-1 flex-col"><b className="truncate text-[15px]">{p.plan.title}</b><span className="text-xs font-semibold text-[#1fd6ea]">{todaysSession(p)?.title ?? ""}</span></span>
         </Link>
       ))}
-      {materials.slice(0, 4).map((m) => (
+      {materials.slice(0, Math.max(1, 4 - plans.length)).map((m) => (
         <Link key={m.id} href={`/app/materials?id=${m.id}`} className="flex items-center gap-3 py-2.5">
           <span className="flex w-[34px] justify-center"><span className="h-[34px] w-1.5 rounded-sm bg-[#1fd6ea]" /></span>
           <span className="flex min-w-0 flex-1 flex-col">
@@ -88,7 +85,7 @@ export function AppHome() {
       ))}
     </div>
   );
-  const hasList = materials.length > 0 || plans.length > 1 || groups.length > 0;
+  const hasList = materials.length > 0 || plans.length > 0 || groups.length > 0;
 
   return (
     <div className="flex flex-1 flex-col">
