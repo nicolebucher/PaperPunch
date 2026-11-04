@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
+import { storeFeedback } from "@/lib/feedback-store";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
@@ -29,8 +30,8 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Bewertung eines Lernmaterials (Sterne + optionaler Text). Wird an ein Google Sheet weitergereicht
- * (Apps-Script-Webhook in RATINGS_WEBHOOK_URL). Ohne Webhook landet sie nur in den Vercel-Logs.
+ * Bewertung eines Lernmaterials (Sterne + optionaler Text). Wird im Blob Store gesichert und an ein
+ * Google Sheet weitergereicht (lib/feedback-store.ts).
  * Es werden keine Fotos und keine Namen übertragen.
  */
 async function handleRating(request: NextRequest) {
@@ -47,29 +48,10 @@ async function handleRating(request: NextRequest) {
   }
 
   const row = {
-    submittedAt: new Date().toISOString(),
     ...body,
     text: body.text.trim(),
     score: body.score ? `${body.score.correct}/${body.score.total}` : "",
   };
-
-  const webhook = process.env.RATINGS_WEBHOOK_URL;
-  if (!webhook) {
-    console.log("[rating]", JSON.stringify(row));
-    return NextResponse.json({ ok: true, stored: false });
-  }
-
-  try {
-    const res = await fetch(webhook, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(row),
-      redirect: "follow",
-    });
-    if (!res.ok) throw new Error(`webhook ${res.status}`);
-  } catch (error) {
-    console.error("[rating] webhook failed:", error instanceof Error ? error.message : error, JSON.stringify(row));
-    return NextResponse.json({ ok: true, stored: false });
-  }
-  return NextResponse.json({ ok: true, stored: true });
+  const { stored } = await storeFeedback("rating", row);
+  return NextResponse.json({ ok: true, stored });
 }
