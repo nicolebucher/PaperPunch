@@ -1,4 +1,4 @@
-import { gameSchema, type Profile, type GameData } from "@/types/generation";
+import { gameSchema, questionSchema, type Profile, type GameData } from "@/types/generation";
 import { generateStructuredOutput } from "@/lib/ai/structured-output";
 import { buildGameLevelsSystemPrompt } from "@/lib/ai/prompts/game-levels.prompt";
 import { isMockMode } from "@/lib/env";
@@ -23,9 +23,16 @@ export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFil
         // Antwort mitten im JSON abschneiden - großzügig bemessen, um Trunkierung zu vermeiden.
         maxTokens: 32000,
       });
+  const { boss, ...rest } = data;
   return {
-    ...data,
+    ...rest,
     levels: data.levels.map((level) => ({ ...level, questions: shuffleQuestionOptions(level.questions) })),
-    ...(data.boss?.length ? { boss: shuffleQuestionOptions(data.boss) } : {}),
+    ...bossRound(boss),
   };
+}
+
+/** Nur gültige Boss-Fragen behalten (höchstens 8); unter 4 gibt es keine eigene Boss-Runde (die App nimmt dann Level-Fragen). */
+function bossRound(boss: GameData["boss"]): Pick<GameData, "boss"> {
+  const valid = (boss ?? []).filter((q) => questionSchema.safeParse(q).success).slice(0, 8);
+  return valid.length >= 4 ? { boss: shuffleQuestionOptions(valid) } : {};
 }

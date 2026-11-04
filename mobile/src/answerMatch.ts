@@ -60,8 +60,10 @@ function variants(expected: string): string[] {
 function gapVariants(prompt: string, answers: string[]): string[] {
   const at = prompt.indexOf("___");
   if (at < 0) return [];
-  const before = fold(prompt.slice(0, at)).split(" ").filter(Boolean).slice(-3);
-  const after = fold(prompt.slice(at).replace(/^_+/, "")).split(" ").filter(Boolean).slice(0, 3);
+  // Satzzeichen an jedem Wort weg ("fraction," → "fraction")
+  const words = (t: string) => fold(t).split(" ").map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "")).filter(Boolean);
+  const before = words(prompt.slice(0, at)).slice(-3);
+  const after = words(prompt.slice(at).replace(/^_+/, "")).slice(0, 3);
   const out: string[] = [];
   for (const a of answers) {
     let words = fold(a).split(" ").filter(Boolean);

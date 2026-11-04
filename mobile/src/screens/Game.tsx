@@ -20,10 +20,11 @@ function answerOf(q: Question): string {
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
 }
 /** Doppelte Antwortoptionen (kommt bei KI-Fragen vor) nur einmal zeigen – sonst leuchten zwei gleiche Knöpfe auf. */
+const optKey = (o: string) => o.trim().replace(/\s+/g, " ").toLowerCase();
 function uniqueOptions(options: string[] = []): string[] {
   const seen = new Set<string>();
   return options.filter((o) => {
-    const k = o.trim().replace(/\s+/g, " ").toLowerCase();
+    const k = optKey(o);
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
@@ -70,7 +71,7 @@ export function GameScreen({
   const boss = useMemo<Q[]>(() => {
     const all: Q[] = game.levels.flatMap((l) => l.questions.map((q) => ({ ...q, difficulty: l.difficulty })));
     const revanche = all
-      .filter((q) => shaky.includes(q.prompt))
+      .filter((q, i) => shaky.includes(q.prompt) && all.findIndex((x) => x.prompt === q.prompt) === i)
       .sort(() => Math.random() - 0.5)
       .slice(0, BOSS_REVANCHE)
       .map((q) => ({ ...q, revanche: true }));
@@ -121,7 +122,10 @@ export function GameScreen({
           e.missed.push(...r.missed);
           // Level erneut gespielt: alte Einträge dieses Levels durch die neuen ersetzen.
           const levelPrompts = isBoss ? [] : game.levels[playing].questions.map((q) => q.prompt);
-          const nextShaky = isBoss ? shaky : [...shaky.filter((p) => !levelPrompts.includes(p)), ...r.shaky];
+          // Boss: Revanche-Fragen, die jetzt im ersten Versuch saßen, fliegen raus.
+          const nextShaky = isBoss
+            ? shaky.filter((p) => !boss.some((b) => b.revanche && b.prompt === p) || r.shaky.includes(p))
+            : [...shaky.filter((p) => !levelPrompts.includes(p)), ...r.shaky];
           setShaky(nextShaky);
           const nextStars = !isBoss ? stars.map((v, i) => (i === playing ? Math.max(v, r.stars) : v)) : stars;
           const nextBoss = bossDone || isBoss;
@@ -269,7 +273,7 @@ function LevelPlay({
   async function submit(value: string) {
     if (answered || status === "checking" || !value.trim()) return;
     if (q.type === "multiple-choice") {
-      if (value === answer) handle(true);
+      if (optKey(value) === optKey(answer)) handle(true);
       else {
         setWrongPicks((w) => [...w, value]);
         handle(false);
@@ -281,6 +285,11 @@ function LevelPlay({
     const result = await checkTypedAnswer({ question: q.prompt, expected: answer, accepted: q.acceptedAnswers, given: value, lang });
     // Status vor dem Prüfen wiederherstellen, damit handle() den richtigen Versuch erkennt
     setStatus(prev);
+    if (result.error) {
+      // Prüfung ging nicht (offline, Limit) – zählt nicht als Versuch.
+      setHint(t.checkFailed);
+      return;
+    }
     if (result.correct) handleAfterCheck(true, result.feedback, prev);
     else handleAfterCheck(false, result.feedback, prev);
   }
@@ -330,12 +339,15 @@ function LevelPlay({
     setFx(null);
   }
 
+  // Joker: so viele noch nicht probierte falsche Antworten ausblenden, dass genau 2 Optionen übrig bleiben.
+  // Sichtbar bleiben die richtige und eine falsche – ausgeblendet werden also alle übrigen noch nicht probierten falschen.
+  const untriedWrong = (q.type === "multiple-choice" ? uniqueOptions(q.options) : []).filter((o) => optKey(o) !== optKey(answer) && !wrongPicks.includes(o));
+  const jokerHide = untriedWrong.length - 1;
+
   function joker() {
-    if (answered || q.type !== "multiple-choice" || !q.options || q.options.length < 3 || hidden.length) return;
+    if (answered || hidden.length || jokerHide < 1) return;
     if (!spend(POINTS.joker5050, gameKey)) return;
-    const opts = uniqueOptions(q.options);
-    const wrong = opts.filter((o) => o !== answer && !wrongPicks.includes(o)).sort(() => Math.random() - 0.5);
-    setHidden(wrong.slice(0, Math.max(1, opts.length - 2 - wrongPicks.length)));
+    setHidden([...untriedWrong].sort(() => Math.random() - 0.5).slice(0, jokerHide));
   }
 
   function score(firstTry: boolean) {
@@ -391,7 +403,7 @@ function LevelPlay({
           <button
             type="button"
             className={canReplay ? "btn ghost block" : "btn primary block"}
-            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: correctCount, total: questions.length, missed: stats.missed, shaky: questions.filter((_, i) => scores[i] < 1).map((q) => q.prompt) })}
+            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: correctCount, total: questions.length, missed: questions.filter((_, i) => scores[i] === 0).map((q) => q.prompt), shaky: questions.filter((_, i) => scores[i] < 1).map((q) => q.prompt) })}
           >
             {t.backToMap}
           </button>
@@ -400,7 +412,7 @@ function LevelPlay({
     );
   }
 
-  const canJoker = q.type === "multiple-choice" && (q.options?.length ?? 0) >= 3 && !answered && !hidden.length;
+  const canJoker = q.type === "multiple-choice" && jokerHide >= 1 && !answered && !hidden.length;
   return (
     <div className={`screen light play ${isBoss ? "boss-play" : ""}`}>
       <div className="inner" style={{ gap: 18, padding: "16px 0 28px" }}>
@@ -438,7 +450,7 @@ function LevelPlay({
             {uniqueOptions(q.options).map((opt, oi) => {
               if (hidden.includes(opt)) return <div key={`${qi}-${oi}`} className="option gone" aria-hidden="true" />;
               const tried = wrongPicks.includes(opt);
-              const cls = answered && opt === answer ? "option right" : tried ? "option wrong" : "option";
+              const cls = answered && optKey(opt) === optKey(answer) ? "option right" : tried ? "option wrong" : "option";
               return (
                 <button key={`${qi}-${oi}`} type="button" className={cls} style={{ fontSize: 18 }} onClick={() => void submit(opt)} disabled={answered || tried}>
                   <MathText text={opt} />
@@ -460,6 +472,8 @@ function LevelPlay({
           </form>
         )}
 
+        {status === "open" && hint && <p className="check-failed" role="status">{hint}</p>}
+
         {secondTry && (
           <div className="feedback retry" role="status">
             <span style={{ fontSize: 18, fontWeight: 900 }}>{t.tryAgain2}</span>
@@ -469,7 +483,7 @@ function LevelPlay({
 
         {/* Immer gleich: wer nicht weiterweiß, kann jederzeit die Lösung ansehen (zählt 0 Punkte, kommt in der Nachschlag-Runde wieder). */}
         {!answered && status !== "checking" && (
-          <button type="button" className="btn ghost giveup-btn" onClick={() => { setGaveUp(true); reveal(); }}>{t.dontKnow}</button>
+          <button type="button" className="btn ghost giveup-btn" onClick={() => { setGaveUp(true); setStreak(0); reveal(); }}>{t.dontKnow}</button>
         )}
 
         {/* Joker kostet Punches – Preis als eigener Chip mit Minus, damit klar ist, dass etwas abgezogen wird. */}
@@ -497,7 +511,7 @@ function LevelPlay({
 
         {answered && (
           <button type="button" className="btn dark block" style={{ marginTop: "auto" }} onClick={next}>
-            {index === questions.length - 1 ? t.finish : t.next}
+            {index === round.length - 1 ? t.finish : t.next}
           </button>
         )}
       </div>

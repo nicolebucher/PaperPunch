@@ -126,8 +126,7 @@ export const testSchema = z.object({
   labels: pdfLabelsSchema,
 });
 
-export const questionSchema = z
-  .object({
+const questionBaseSchema = z.object({
     type: z.enum(["multiple-choice", "lueckentext"]),
     prompt: z.string(),
     // nur "multiple-choice":
@@ -138,7 +137,9 @@ export const questionSchema = z
     // nur "lueckentext": weitere richtige Schreibweisen/Synonyme/Abkürzungen.
     acceptedAnswers: z.array(z.string()).max(8).optional(),
     explanation: z.string(),
-  })
+  });
+
+export const questionSchema = questionBaseSchema
   // Verhindert eine Lösung, die nicht zur Aufgabe passt (fehlende/inkonsistente Felder je Typ).
   .refine(
     (q) => {
@@ -170,7 +171,9 @@ export const gameSchema = z.object({
   levels: z.array(levelSchema).min(2).max(4),
   // Boss-Runde der App: neue, schwerere Fragen zum selben Thema (keine Wiederholung aus den Leveln).
   // Optional, damit ältere Spiele und Challenges weiter gültig sind.
-  boss: z.array(questionSchema).min(4).max(8).optional(),
+  // Bewusst ohne Einzelprüfung: eine fehlerhafte Boss-Frage soll nicht das ganze Spiel scheitern lassen –
+  // der Generator behält nur gültige Fragen (lib/generators/game-levels.ts).
+  boss: z.array(questionBaseSchema).max(10).optional(),
 });
 export type GameData = z.infer<typeof gameSchema>;
 

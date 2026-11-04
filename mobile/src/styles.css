@@ -1004,3 +1004,4 @@ h1 .beta { position: relative; top: -3px; }
 
 /* Boss-Runde: Frage aus den eigenen Fehlern */
 .revanche-tag { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(242,58,142,0.14); color: var(--pink); font-size: 12px; font-weight: 800; }
+.check-failed { margin: 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--sheet-muted); }

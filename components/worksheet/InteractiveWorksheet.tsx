@@ -14,6 +14,24 @@ function shuffle<T>(items: T[]): T[] {
   return copy;
 }
 
+const AWARDED_KEY = "paperpunch-web-sheets-awarded";
+const sheetKey = (d: WorksheetData) => `${d.title}|${d.tasks[0]?.question ?? ""}`.slice(0, 200);
+function alreadyAwarded(d: WorksheetData): boolean {
+  try {
+    return (JSON.parse(localStorage.getItem(AWARDED_KEY) ?? "[]") as string[]).includes(sheetKey(d));
+  } catch {
+    return false;
+  }
+}
+function markAwarded(d: WorksheetData) {
+  try {
+    const list = JSON.parse(localStorage.getItem(AWARDED_KEY) ?? "[]") as string[];
+    localStorage.setItem(AWARDED_KEY, JSON.stringify([...list, sheetKey(d)].slice(-200)));
+  } catch {
+    // ohne Speicher egal
+  }
+}
+
 const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
 
 /** Automatisch prüfbare Aufgaben, die richtig gelöst sind (offene Aufgaben zählen nicht). */
@@ -136,8 +154,12 @@ export function InteractiveWorksheet({ data }: { data: WorksheetData }) {
   function toggleReveal() {
     if (!revealed && earned === null) {
       const correct = data.tasks.filter((task) => isTaskCorrect(task, answers[task.number] ?? "")).length;
-      const amount = correct * SHEET_ANSWER_PUNCHES;
-      addPunches(amount);
+      // Pro Blatt nur einmal – auch nach Neuladen der Seite (Merker im Browser).
+      const amount = alreadyAwarded(data) ? 0 : correct * SHEET_ANSWER_PUNCHES;
+      if (amount > 0) {
+        addPunches(amount);
+        markAwarded(data);
+      }
       setEarned(amount);
     }
     setRevealed((r) => !r);

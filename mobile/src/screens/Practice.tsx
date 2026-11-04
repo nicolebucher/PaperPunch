@@ -92,6 +92,11 @@ export function Practice({
     setStatus("checking");
     const result = await checkTypedAnswer({ question: task.question, expected: task.answer, accepted: task.acceptedAnswers, given: value, lang });
     setStatus(prev);
+    if (result.error) {
+      // Prüfung ging nicht (offline, Limit) – zählt nicht als Versuch.
+      setHint(t.checkFailed);
+      return;
+    }
     if (result.correct) {
       setHint(result.feedback);
       record(true, false, prev === "retry");
@@ -241,6 +246,8 @@ export function Practice({
             )}
           </form>
         )}
+
+        {status === "open" && hint && !answered && !revealed && <p className="check-failed" role="status">{hint}</p>}
 
         {status === "retry" && !answered && !revealed && (
           <div className="feedback retry" role="status">

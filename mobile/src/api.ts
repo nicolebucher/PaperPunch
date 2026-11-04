@@ -157,6 +157,8 @@ export async function adjustPlan(opts: {
 export interface CheckResult {
   correct: boolean;
   feedback: string;
+  /** Prüfung nicht möglich (offline, Limit, Serverfehler) – nicht als falsch werten. */
+  error?: boolean;
 }
 
 /**
@@ -172,16 +174,16 @@ export async function checkTypedAnswer(opts: { question: string; expected: strin
       body: JSON.stringify({
         question: opts.question.slice(0, 600),
         expected: opts.expected.slice(0, 300),
-        accepted: opts.accepted?.slice(0, 8),
+        accepted: opts.accepted?.slice(0, 8).map((a) => a.slice(0, 120)),
         given: opts.given.slice(0, 300),
         locale: opts.lang,
       }),
     });
-    if (!res.ok) return { correct: false, feedback: "" };
+    if (!res.ok) return { correct: false, feedback: "", error: true };
     const json = (await res.json()) as CheckResult;
     return { correct: !!json.correct, feedback: json.feedback ?? "" };
   } catch {
-    return { correct: false, feedback: "" };
+    return { correct: false, feedback: "", error: true };
   }
 }
 

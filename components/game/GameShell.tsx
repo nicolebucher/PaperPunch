@@ -37,7 +37,8 @@ export function GameShell({ game }: { game: GameData }) {
 
   function handleSnap(amount: number) {
     setTotalSnaps((prev) => prev + amount);
-    addPunches(amount);
+    // Punches wie in der App nur beim ersten Durchgang eines Levels, nicht im Mix-Level (Wiederholung).
+    if (activeLevelId !== null && activeLevelId !== -1 && results[activeLevelId] === undefined) addPunches(amount);
     setSnapBump((n) => n + 1);
   }
 

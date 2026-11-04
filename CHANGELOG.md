@@ -18,6 +18,12 @@ Fixes from tester feedback (English-speaking tester): tap targets, language of t
 | App | The “Punches earned” card and its lines (correct answers, boss level, daily bonus, “Continue”) now use the app language; before they were always German |
 | App + Website · AI | New boss round as a mix: up to 3 “Rematch” questions the player missed or only got on the second try in the levels (marked “Rematch – you missed this one earlier”), the rest are new, harder questions written by the AI (multi-step, transfer, combining sub-topics); without mistakes only new questions; remembered across sessions; older games keep the old boss round plus rematch questions |
 | App + Website | Fill-in-the-gap answers: words that are already in the sentence don't have to be typed (“… is called a ___ fraction”: “proper” counts as well as “proper fraction”); the AI check knows this too and no longer gives away the answer in its hint |
+| App | Game QA: the 50:50 joker always leaves exactly 2 tappable options (also after a wrong first try) and is not offered when there is nothing left to remove; “I don't know” ends a combo; the last question of the bonus round says “See results”; correct answers are recognised even if an older game has slightly different spellings of the same option |
+| App | If the answer check is not reachable (offline, limit), a typed answer is no longer counted as wrong: “Couldn't check right now – tap Check again.” |
+| App | Boss round: rematch questions are never duplicated; a rematch solved on the first try is removed from the list; “missed” in the result only counts questions that were never solved |
+| Website · AI | A single faulty boss question no longer makes game creation fail – invalid ones are dropped (boss round only with at least 4 valid questions) |
+| Website | Punches can't be farmed: in learning games only the first run of a level earns Punches (not the Mixed level or replays); a worksheet pays once, also after reloading the page |
+| App | Joker text “Wrong answers disappear, 2 are left”; rematch label “Rematch – this one was tricky earlier” (it also covers questions solved on the second try) |
 
 ## v0.7.0 – 3 November 2026
 
