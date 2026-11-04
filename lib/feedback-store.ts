@@ -1,7 +1,7 @@
 import { put } from "@vercel/blob";
 
 // Rückmeldungen (Bewertungen aus App/Web und das Feedback-Formular) gehen an zwei Stellen:
-// 1. als Sicherung in den Vercel Blob Store (Frankfurt) unter feedback/JJJJ-MM-TT/…json – damit nichts verloren geht,
+// 1. als Sicherung in einen privaten Vercel Blob Store (Frankfurt) unter feedback/JJJJ-MM-TT/…json – damit nichts verloren geht,
 // 2. an das Google Sheet (Apps-Script-Webhook in RATINGS_WEBHOOK_URL), das einmal pro Woche durchgegangen wird.
 
 export type FeedbackKind = "rating" | "feedback";
@@ -10,13 +10,17 @@ export async function storeFeedback(kind: FeedbackKind, row: Record<string, unkn
   const record = { kind, submittedAt: new Date().toISOString(), ...row };
   let stored = false;
 
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  // Eigener, PRIVATER Blob Store (paperpunch-feedback-private, Frankfurt) – Feedback kann Name/E-Mail enthalten,
+  // deshalb nie in den öffentlichen Store der Challenges/Jobs. Token: FEEDBACK_BLOB_READ_WRITE_TOKEN.
+  const token = process.env.FEEDBACK_BLOB_READ_WRITE_TOKEN;
+  if (token) {
     try {
       const day = record.submittedAt.slice(0, 10);
       await put(`feedback/${day}/${kind}.json`, JSON.stringify(record), {
-        access: "public",
+        access: "private",
         addRandomSuffix: true,
         contentType: "application/json",
+        token,
       });
       stored = true;
     } catch (error) {
