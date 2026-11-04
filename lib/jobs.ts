@@ -1,5 +1,9 @@
 import { del, list, put } from "@vercel/blob";
 
+// Ausdrücklich der öffentliche Store (paperpunch-jobs): im Projekt ist zusätzlich der private Feedback-Store
+// verbunden (BLOB_STORE_ID + OIDC) – ohne explizites Token könnte das SDK den falschen Store nehmen.
+const PUBLIC_TOKEN = () => process.env.BLOB_READ_WRITE_TOKEN;
+
 // Hintergrund-Jobs für /api/generate: Das Ergebnis landet als JSON im Vercel-Blob-Store
 // "paperpunch-jobs" (Frankfurt), bis die App es abholt. Der Pfad enthält eine zufällige UUID plus
 // ein zufälliges Suffix, ist also nicht erratbar. Abgeholte Ergebnisse löscht die App per DELETE;
@@ -21,12 +25,13 @@ export async function saveJob(id: string, record: JobRecord): Promise<void> {
     access: "public",
     addRandomSuffix: true,
     contentType: "application/json",
+    token: PUBLIC_TOKEN(),
   });
 }
 
 /** null = noch nicht fertig (oder unbekannt). */
 export async function readJob(id: string): Promise<JobRecord | null> {
-  const { blobs } = await list({ prefix: `${PREFIX}${id}` });
+  const { blobs } = await list({ prefix: `${PREFIX}${id}`, token: PUBLIC_TOKEN() });
   if (!blobs.length) return null;
   const latest = blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
   const res = await fetch(latest.url, { cache: "no-store" });
@@ -35,15 +40,15 @@ export async function readJob(id: string): Promise<JobRecord | null> {
 }
 
 export async function deleteJob(id: string): Promise<void> {
-  const { blobs } = await list({ prefix: `${PREFIX}${id}` });
-  if (blobs.length) await del(blobs.map((b) => b.url));
+  const { blobs } = await list({ prefix: `${PREFIX}${id}`, token: PUBLIC_TOKEN() });
+  if (blobs.length) await del(blobs.map((b) => b.url), { token: PUBLIC_TOKEN() });
 }
 
 export async function cleanupOldJobs(): Promise<void> {
   try {
-    const { blobs } = await list({ prefix: PREFIX, limit: 200 });
+    const { blobs } = await list({ prefix: PREFIX, limit: 200, token: PUBLIC_TOKEN() });
     const old = blobs.filter((b) => Date.now() - new Date(b.uploadedAt).getTime() > MAX_AGE_MS);
-    if (old.length) await del(old.map((b) => b.url));
+    if (old.length) await del(old.map((b) => b.url), { token: PUBLIC_TOKEN() });
   } catch (error) {
     console.error("[jobs] cleanup failed:", error instanceof Error ? error.message : error);
   }

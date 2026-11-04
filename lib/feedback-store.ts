@@ -11,16 +11,17 @@ export async function storeFeedback(kind: FeedbackKind, row: Record<string, unkn
   let stored = false;
 
   // Eigener, PRIVATER Blob Store (paperpunch-feedback-private, Frankfurt) – Feedback kann Name/E-Mail enthalten,
-  // deshalb nie in den öffentlichen Store der Challenges/Jobs. Token: FEEDBACK_BLOB_READ_WRITE_TOKEN.
-  const token = process.env.FEEDBACK_BLOB_READ_WRITE_TOKEN;
-  if (token) {
+  // deshalb nie in den öffentlichen Store der Challenges/Jobs. Der private Store ist mit dem Projekt verbunden
+  // (BLOB_STORE_ID) und meldet sich per OIDC an; der öffentliche Store nutzt BLOB_READ_WRITE_TOKEN explizit.
+  const storeId = process.env.BLOB_STORE_ID;
+  if (storeId) {
     try {
       const day = record.submittedAt.slice(0, 10);
       await put(`feedback/${day}/${kind}.json`, JSON.stringify(record), {
         access: "private",
         addRandomSuffix: true,
         contentType: "application/json",
-        token,
+        storeId,
       });
       stored = true;
     } catch (error) {

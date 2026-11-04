@@ -1,4 +1,8 @@
 import { del, list, put } from "@vercel/blob";
+
+// Ausdrücklich der öffentliche Store (paperpunch-jobs): im Projekt ist zusätzlich der private Feedback-Store
+// verbunden (BLOB_STORE_ID + OIDC) – ohne explizites Token könnte das SDK den falschen Store nehmen.
+const PUBLIC_TOKEN = () => process.env.BLOB_READ_WRITE_TOKEN;
 import type { GameData } from "@/types/generation";
 
 // Challenges per Link: Ein Lernspiel wird mit Spitzname und Ergebnis der Person gespeichert, die
@@ -39,13 +43,14 @@ export async function saveChallenge(data: Omit<ChallengeRecord, "v" | "code" | "
     access: "public",
     addRandomSuffix: true,
     contentType: "application/json",
+    token: PUBLIC_TOKEN(),
   });
   return record;
 }
 
 export async function readChallenge(code: string): Promise<ChallengeRecord | null> {
   if (!isChallengeCode(code)) return null;
-  const { blobs } = await list({ prefix: `${PREFIX}${code}` });
+  const { blobs } = await list({ prefix: `${PREFIX}${code}`, token: PUBLIC_TOKEN() });
   if (!blobs.length) return null;
   const blob = blobs[0];
   if (Date.now() - new Date(blob.uploadedAt).getTime() > MAX_AGE_MS) return null;
@@ -56,9 +61,9 @@ export async function readChallenge(code: string): Promise<ChallengeRecord | nul
 
 export async function cleanupOldChallenges(): Promise<void> {
   try {
-    const { blobs } = await list({ prefix: PREFIX, limit: 200 });
+    const { blobs } = await list({ prefix: PREFIX, limit: 200, token: PUBLIC_TOKEN() });
     const old = blobs.filter((b) => Date.now() - new Date(b.uploadedAt).getTime() > MAX_AGE_MS);
-    if (old.length) await del(old.map((b) => b.url));
+    if (old.length) await del(old.map((b) => b.url), { token: PUBLIC_TOKEN() });
   } catch (error) {
     console.error("[challenges] cleanup failed:", error instanceof Error ? error.message : error);
   }
