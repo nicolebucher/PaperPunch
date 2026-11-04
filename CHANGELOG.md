@@ -13,6 +13,7 @@ Fixes from tester feedback (English-speaking tester): tap targets, language of t
 
 | Area | Change |
 | --- | --- |
+| Website | Privacy policy, section 5 “Feedback and ratings”: which rating data is received (stars, comment, format, title, subject, language, country, school type, grade, score – no photos, no names), stored in a non-public Vercel storage area in Frankfurt and in a Google Sheet (Google Ireland), reviewed weekly, deleted after 24 months at the latest |
 | Website · Tech | Ratings (app/web) and the feedback form are now kept permanently: backup in a separate private Vercel Blob store in Frankfurt (paperpunch-feedback-private, not publicly readable) and forwarded to the Google Sheet once it is connected; before, they were lost after about an hour |
 | App | “I don't know – show answer” is no longer a full-width button right under the answers (it looked like another answer and was tapped by mistake): smaller, centred, with more space above; after giving up the box says “The answer is: …” instead of “Almost!” |
 | App + Website · AI | Duplicate answer options (e.g. “3/4” twice) are removed – in new materials on the server and in already saved games in the app; before, two identical buttons lit up |

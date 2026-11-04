@@ -12,7 +12,7 @@ function PrivacyEn() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Privacy Policy</h1>
       <DraftNotice>
-        Version of 3 November 2026. This draft describes how PaperPunch handles data today; it is not legal
+        Version of 4 November 2026. This draft describes how PaperPunch handles data today; it is not legal
         advice and will be reviewed before the public launch.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
@@ -47,12 +47,16 @@ function PrivacyEn() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">5. Feedback form</h2>
+          <h2 className="mb-1 font-semibold text-white">5. Feedback and ratings</h2>
           <p>
-            If you use the feedback page, the message you write (and name/email if you choose to provide them)
-            and ratings from the app reach us by email or in a spreadsheet in our Google Workspace (Google Ireland
-            Limited) so we can read them, respond if you left an email, and improve PaperPunch. We delete them when
-            they are no longer needed for that, at the latest after 24 months.
+            If you use the feedback page, we receive the message you write (and name/email if you choose to provide
+            them). If you rate a study material in the app or on the website, we receive the stars, your optional
+            comment and context about the material: format, title, subject, language, country, school type, grade
+            and, if available, the score (e.g. “6/8”) – no photos, no names. Both are stored in a non-public storage
+            area of our hosting provider (Vercel, data centre in Frankfurt, Germany) and in a spreadsheet in our
+            Google account (Google Sheets; Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Ireland),
+            so we can read them, reply if you left an email, and improve PaperPunch. We review them about once a
+            week. We delete them when they are no longer needed for that, at the latest after 24 months.
           </p>
         </section>
         <section>
@@ -156,7 +160,7 @@ function PrivacyDe() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Datenschutzerklärung</h1>
       <DraftNotice>
-        Stand: 3. November 2026. Dieser Entwurf beschreibt, wie PaperPunch heute mit Daten umgeht; er ist
+        Stand: 4. November 2026. Dieser Entwurf beschreibt, wie PaperPunch heute mit Daten umgeht; er ist
         keine Rechtsberatung und wird vor dem öffentlichen Start geprüft.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
@@ -193,12 +197,17 @@ function PrivacyDe() {
           </p>
         </section>
         <section>
-          <h2 className="mb-1 font-semibold text-white">5. Feedback-Formular</h2>
+          <h2 className="mb-1 font-semibold text-white">5. Feedback und Bewertungen</h2>
           <p>
-            Wenn du die Feedback-Seite nutzt, wird deine Nachricht (sowie Name/E-Mail, falls angegeben)
-            sowie Bewertungen aus der App erreichen uns per E-Mail bzw. in einer Tabelle in unserem Google Workspace
-            (Google Ireland Limited), damit wir sie lesen, ggf. beantworten und PaperPunch verbessern können. Wir
-            löschen sie, sobald sie dafür nicht mehr nötig sind, spätestens nach 24 Monaten.
+            Wenn du die Feedback-Seite nutzt, erhalten wir deine Nachricht (sowie Name/E-Mail, falls du sie
+            angibst). Wenn du ein Lernmaterial in der App oder auf der Website bewertest, erhalten wir die Sterne,
+            deinen optionalen Kommentar und Angaben zum Material: Format, Titel, Fach, Sprache, Land, Schulart,
+            Klasse und, falls vorhanden, das Ergebnis (z. B. „6/8“) – keine Fotos, keine Namen. Beides wird in einem
+            nicht öffentlichen Speicherbereich unseres Hosting-Anbieters (Vercel, Rechenzentrum in Frankfurt) und in
+            einer Tabelle in unserem Google-Konto gespeichert (Google Sheets; Google Ireland Limited, Gordon House,
+            Barrow Street, Dublin 4, Irland), damit wir es lesen, ggf. beantworten und PaperPunch verbessern können.
+            Wir sehen es etwa einmal pro Woche durch. Wir löschen es, sobald es dafür nicht mehr nötig ist,
+            spätestens nach 24 Monaten.
           </p>
         </section>
         <section>
