@@ -1001,3 +1001,6 @@ h1 .beta { position: relative; top: -3px; }
 .home-c-foot { margin-top: auto; padding-top: 22px; display: flex; justify-content: center; gap: 24px; }
 .home-c-foot button { display: inline-flex; align-items: center; gap: 6px; border: none; background: none; padding: 10px 4px; color: var(--muted); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
 :root[data-theme="light"] .home-c-way.main { color: #ffffff; }
+
+/* Boss-Runde: Frage aus den eigenen Fehlern */
+.revanche-tag { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin-bottom: 8px; padding: 4px 10px; border-radius: 999px; background: rgba(242,58,142,0.14); color: var(--pink); font-size: 12px; font-weight: 800; }

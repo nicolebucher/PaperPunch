@@ -11,9 +11,10 @@ import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 
 type Game = GameResult["game"];
-type Q = Question & { difficulty: string };
+type Q = Question & { difficulty: string; revanche?: boolean };
 
 const BOSS_SIZE = 8;
+const BOSS_REVANCHE = 3;
 
 function answerOf(q: Question): string {
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
@@ -61,13 +62,27 @@ export function GameScreen({
   onExit: (o: GameOutcome & { finished: boolean }) => void;
 }) {
   const { t } = useT();
-  // Boss: eigene, schwerere Fragen aus der Generierung; bei älteren Spielen die schwersten Fragen aus allen Leveln.
+  // Fragen, die in den Leveln nicht im ersten Versuch saßen (über Sitzungen hinweg gespeichert).
+  const [shaky, setShaky] = useState<string[]>(() => initial?.shaky ?? []);
+
+  // Boss-Runde als Mix: bis zu 3 "Revanche"-Fragen aus den eigenen Fehlern, Rest neue, schwerere Fragen
+  // aus der Generierung. Ohne Fehler nur neue Fragen. Ältere Spiele ohne eigene Boss-Fragen: die schwersten aus den Leveln.
   const boss = useMemo<Q[]>(() => {
-    if (game.boss?.length) return game.boss.map((q) => ({ ...q, difficulty: "schwer" }));
-    const all = game.levels.flatMap((l) => l.questions.map((q) => ({ ...q, difficulty: l.difficulty })));
-    const rank: Record<string, number> = { schwer: 0, mittel: 1, leicht: 2 };
-    return [...all].sort((a, b) => (rank[a.difficulty] ?? 1) - (rank[b.difficulty] ?? 1)).slice(0, BOSS_SIZE).sort(() => Math.random() - 0.5);
-  }, [game]);
+    const all: Q[] = game.levels.flatMap((l) => l.questions.map((q) => ({ ...q, difficulty: l.difficulty })));
+    const revanche = all
+      .filter((q) => shaky.includes(q.prompt))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, BOSS_REVANCHE)
+      .map((q) => ({ ...q, revanche: true }));
+    let fresh: Q[];
+    if (game.boss?.length) {
+      fresh = game.boss.map((q) => ({ ...q, difficulty: "schwer" }));
+    } else {
+      const rank: Record<string, number> = { schwer: 0, mittel: 1, leicht: 2 };
+      fresh = all.filter((q) => !revanche.some((r) => r.prompt === q.prompt)).sort((a, b) => (rank[a.difficulty] ?? 1) - (rank[b.difficulty] ?? 1));
+    }
+    return [...revanche, ...fresh.slice(0, Math.max(0, BOSS_SIZE - revanche.length))].sort(() => Math.random() - 0.5);
+  }, [game, shaky]);
 
   const [stars, setStars] = useState<number[]>(() => (initial?.stars.length === game.levels.length ? initial.stars : game.levels.map(() => 0)));
   const [bossDone, setBossDone] = useState(initial?.bossDone ?? false);
@@ -104,11 +119,15 @@ export function GameScreen({
           e.correct += r.correct;
           e.total += r.total;
           e.missed.push(...r.missed);
+          // Level erneut gespielt: alte Einträge dieses Levels durch die neuen ersetzen.
+          const levelPrompts = isBoss ? [] : game.levels[playing].questions.map((q) => q.prompt);
+          const nextShaky = isBoss ? shaky : [...shaky.filter((p) => !levelPrompts.includes(p)), ...r.shaky];
+          setShaky(nextShaky);
           const nextStars = !isBoss ? stars.map((v, i) => (i === playing ? Math.max(v, r.stars) : v)) : stars;
           const nextBoss = bossDone || isBoss;
           setStars(nextStars);
           setBossDone(nextBoss);
-          onProgress?.({ kind: "game", stars: nextStars, bossDone: nextBoss, earned: { ...e, missed: [...e.missed] } });
+          onProgress?.({ kind: "game", stars: nextStars, bossDone: nextBoss, earned: { ...e, missed: [...e.missed] }, shaky: nextShaky });
           setPlaying(null);
         }}
       />
@@ -183,7 +202,7 @@ function LevelPlay({
   questions: Q[];
   gameKey: string;
   onQuit: () => void;
-  onDone: (r: { stars: number; mistakes: number; points: number; correct: number; total: number; missed: string[] }) => void;
+  onDone: (r: { stars: number; mistakes: number; points: number; correct: number; total: number; missed: string[]; shaky: string[] }) => void;
 }) {
   const { t, lang } = useT();
   const [index, setIndex] = useState(0);
@@ -372,7 +391,7 @@ function LevelPlay({
           <button
             type="button"
             className={canReplay ? "btn ghost block" : "btn primary block"}
-            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: correctCount, total: questions.length, missed: stats.missed })}
+            onClick={() => onDone({ stars: s, mistakes: stats.mistakes, points, correct: correctCount, total: questions.length, missed: stats.missed, shaky: questions.filter((_, i) => scores[i] < 1).map((q) => q.prompt) })}
           >
             {t.backToMap}
           </button>
@@ -402,6 +421,7 @@ function LevelPlay({
         </div>
 
         <div className={`qcard ${fx?.kind === "wrong" ? "shake" : ""}`} key={`q${replay ? "r" : ""}${index}-${fx?.id ?? 0}`}>
+          {q.revanche && <span className="revanche-tag"><Icon name="punch" size={14} stroke={2.2} /> {t.revanche}</span>}
           <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={q.type === "lueckentext" ? q.prompt.replace("___", "______") : q.prompt} /></h1>
           {fx?.kind === "right" && (
             <>

@@ -108,6 +108,8 @@ export interface GameProgress {
   stars: number[];
   bossDone: boolean;
   earned: { answer: number; boss: number; correct: number; total: number; missed: string[] };
+  /** Fragen (Prompt), die in den Leveln nicht im ersten Versuch saßen – kommen als "Revanche" in die Boss-Runde. */
+  shaky?: string[];
 }
 export interface PracticeProgress {
   kind: "practice";
