@@ -30,7 +30,8 @@ function uniqueOptions(options: string[] = []): string[] {
     return true;
   });
 }
-const comboFactor = (streak: number) => (streak >= 9 ? 4 : streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
+// Combo: ab 3 richtigen in Folge ×2, ab 6 ×3 (vorher bis ×4). In der Boss-Runde höchstens ×2, sonst explodieren die Punches.
+const comboFactor = (streak: number, boss = false) => Math.min(boss ? 2 : 3, streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
 /**
  * Sterne nach Trefferquote: im ersten Versuch richtig = 1 Punkt, im zweiten = ½, in der Nachschlag-Runde = ¾, aufgelöst = 0.
  * ab 85 % drei Sterne, ab 60 % zwei, sonst einer – wer ein Level zu Ende spielt, bekommt immer mindestens einen.
@@ -234,7 +235,7 @@ function LevelPlay({
   const answered = status === "right" || status === "revealed";
   const ok = status === "right";
   const secondTry = status === "retry";
-  const factor = comboFactor(streak);
+  const factor = comboFactor(streak, isBoss);
 
   function handle(right: boolean, feedback = "") {
     setHint(feedback);
@@ -242,7 +243,7 @@ function LevelPlay({
       const base = POINTS.answer[q.difficulty] ?? 10;
       const firstTry = wrongPicks.length === 0 && status !== "retry";
       const newStreak = firstTry ? streak + 1 : 0;
-      const f = firstTry ? comboFactor(newStreak) : 1;
+      const f = firstTry ? comboFactor(newStreak, isBoss) : 1;
       // im zweiten Versuch halbe Punches, keine Combo
       const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5) * (replay ? 0.5 : 1));
       score(firstTry);
@@ -303,7 +304,7 @@ function LevelPlay({
       const base = POINTS.answer[q.difficulty] ?? 10;
       const firstTry = prev !== "retry";
       const newStreak = firstTry ? streak + 1 : 0;
-      const f = firstTry ? comboFactor(newStreak) : 1;
+      const f = firstTry ? comboFactor(newStreak, isBoss) : 1;
       const gain = Math.round(base * f * (isBoss ? POINTS.boss : 1) * (firstTry ? 1 : 0.5) * (replay ? 0.5 : 1));
       score(firstTry);
       setHint(feedback);

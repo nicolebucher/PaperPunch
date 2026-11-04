@@ -30,7 +30,7 @@ export const POINTS = {
   checkpoint: 50,
   checkpointBonus: 25,
   daily: 10,
-  boss: 2, // Faktor für Boss-Fragen
+  boss: 1.5, // Faktor für Boss-Fragen (vorher 2 – ein Spiel brachte sonst ~950 Punches)
   joker5050: 30,
   jokerSkip: 40,
   invite: 50, // einmalig fürs erste Einladen
