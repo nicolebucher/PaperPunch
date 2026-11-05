@@ -3,7 +3,7 @@ import { z } from "zod";
 import { gameSchema } from "@/types/generation";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
-import { cleanupOldGroups, createGroup, groupUrl, groupsEnabled, isDeviceId, submitResult } from "@/lib/groups";
+import { cleanupOldGroups, createGroup, groupUrl, groupsEnabled, isDeviceId, submitResult, teacherUrl } from "@/lib/groups";
 
 export const runtime = "nodejs";
 export const maxDuration = 15;
@@ -51,7 +51,8 @@ async function create(request: NextRequest) {
       await submitResult(meta.code, body.device, { name: meta.by, ...body.result });
     }
     void cleanupOldGroups();
-    return NextResponse.json({ code: meta.code, url: groupUrl(meta.code), name: meta.name, endsAt: meta.endsAt });
+    // teacherUrl nur an die Person, die die Gruppe anlegt – der Schlüssel steht nirgends sonst im Klartext.
+    return NextResponse.json({ code: meta.code, url: groupUrl(meta.code), name: meta.name, endsAt: meta.endsAt, teacherKey: meta.teacherKey, teacherUrl: teacherUrl(meta.code, meta.teacherKey) });
   } catch (error) {
     console.error("[groups] create failed:", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "save failed" }, { status: 500 });

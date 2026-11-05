@@ -11,7 +11,11 @@ export interface Profile {
   schoolType: string;
   grade: number;
   theme?: "dark" | "light";
+  /** Wer die App nutzt (ab v0.13; ältere Profile ohne Angabe = Schüler:in). */
+  role?: Role;
 }
+
+export type Role = "student" | "parent" | "teacher";
 
 export interface Task {
   number: number;

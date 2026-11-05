@@ -6,7 +6,7 @@ import { useLanguage } from "@/lib/i18n/language-context";
 import { daysBetween, listMaterials, listPlans, todayISO, type WebMaterial, type WebPlan } from "@/lib/webapp/store";
 import { AppIcon, RecommendButton, SectionLabel, useAppText, WayButton } from "./ui";
 import { relDate, todaysSession } from "./util";
-import { fetchBoard, saveGroup, savedGroups, timeLeft, type SavedGroup } from "@/lib/webapp/groups";
+import { fetchBoard, saveGroup, savedGroups, teacherLink, timeLeft, type SavedGroup } from "@/lib/webapp/groups";
 
 /** Übersicht /app: drei Wege (am Handy untereinander, am Computer als Karten), darunter Weitermachen. */
 export function AppHome() {
@@ -55,11 +55,11 @@ export function AppHome() {
         {tx.continue}
       </SectionLabel>
       {groups.map((g) => (
-        <Link key={g.code} href={`/g/${g.code}`} className="my-1 flex items-center gap-3 rounded-[18px] bg-gradient-to-br from-pink-500/20 to-[#1fd6ea]/15 p-3 ring-1 ring-white/[0.08]">
+        <Link key={g.code} href={g.teacherKey ? teacherLink(g.code, g.teacherKey) : `/g/${g.code}`} className="my-1 flex items-center gap-3 rounded-[18px] bg-gradient-to-br from-pink-500/20 to-[#1fd6ea]/15 p-3 ring-1 ring-white/[0.08]">
           <span className="grid h-[38px] w-[38px] place-items-center rounded-xl bg-black text-[#f23a8e]"><AppIcon name="group" size={20} /></span>
           <span className="flex min-w-0 flex-1 flex-col">
             <b className="truncate text-[15px]">{g.name} · {tx.groupRow(g.rank, g.count ?? 0)}</b>
-            <span className="text-xs font-bold text-pink-300">{g.passed ? tx.groupPassed(g.passed) : g.title}{g.endsAt ? ` · ${timeLeft(g.endsAt, locale === "en" ? "en" : "de")}` : ""}</span>
+            <span className="text-xs font-bold text-pink-300">{g.teacherKey ? tx.teacherRow : g.passed ? tx.groupPassed(g.passed) : g.title}{g.endsAt ? ` · ${timeLeft(g.endsAt, locale === "en" ? "en" : "de")}` : ""}</span>
           </span>
           <AppIcon name="chevron" size={16} stroke={2.6} />
         </Link>

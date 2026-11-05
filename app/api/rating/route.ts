@@ -17,6 +17,7 @@ const bodySchema = z.object({
   country: z.string().max(5).optional(),
   schoolType: z.string().max(80).optional(),
   grade: z.number().int().min(0).max(20).optional(),
+  role: z.enum(["student", "parent", "teacher"]).optional(),
   score: z.object({ correct: z.number().int().min(0), total: z.number().int().min(0) }).optional(),
   source: z.enum(["app", "web"]).optional().default("web"),
 });

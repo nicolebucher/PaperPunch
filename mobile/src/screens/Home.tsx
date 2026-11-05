@@ -31,7 +31,10 @@ export function Home({
   onSettings,
   onLevels,
   onInvite,
+  role,
 }: {
+  /** Rolle aus dem Profil: Lehrkräfte sehen statt "Lernplan" die Lerngruppe für die Klasse. */
+  role?: "student" | "parent" | "teacher";
   plans: ActivePlan[];
   materials?: StoredMaterial[];
   onOpenMaterial?: (m: StoredMaterial) => void;
@@ -129,7 +132,11 @@ export function Home({
       <div className="home-c-ways">
         <WayButton icon="camera" color="c1" title={t.homeCta} sub={t.wayPhotoSub} main onClick={onQuick} />
         <WayButton icon="edit" color="c2" title={t.wayTopic} sub={t.wayTopicSub} onClick={() => onTopic?.("")} />
-        <WayButton icon="calendar" color="c3" title={t.createPlan} sub={t.wayPlanSub} beta onClick={onNewPlan} />
+        {role === "teacher" ? (
+          <WayButton icon="group" color="c3" title={t.wayGroupTeacher} sub={t.wayGroupTeacherSub} onClick={() => setGroupSheet({})} />
+        ) : (
+          <WayButton icon="calendar" color="c3" title={t.createPlan} sub={t.wayPlanSub} beta onClick={onNewPlan} />
+        )}
       </div>
 
       {(morePlans.length > 0 || items.length > 0 || groups.length > 0) && (
@@ -476,6 +483,9 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
             {meIdx < 0 && onPlay && <button type="button" className="btn primary block" onClick={onPlay}><Icon name="play" size={20} /> {t.groupPlayNow}</button>}
             <button type="button" className={meIdx < 0 && onPlay ? "btn ghost block" : "btn primary block"} onClick={() => void share()}><Icon name="share" size={20} /> {t.groupShareAgain}</button>
           </>
+        )}
+        {group.teacherUrl && (
+          <button type="button" className="btn ghost block" onClick={() => window.open(group.teacherUrl, "_blank")}><Icon name="eye" size={20} /> {t.groupTeacher}</button>
         )}
         <button type="button" className="link-btn" onClick={() => window.open(group.url, "_blank")}>{t.groupOpenWeb}</button>
       </div>

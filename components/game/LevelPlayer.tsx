@@ -27,7 +27,10 @@ export function LevelPlayer({
   onSnap,
   joker = false,
   report,
+  onAnswer,
 }: {
+  /** Jede beantwortete Frage melden (Lerngruppe: Auswertung für die Lehrkraft). */
+  onAnswer?: (index: number, ok: boolean, given: string) => void;
   /** Herkunft für "Fehler melden" (z. B. "web-group") plus Spieltitel/Fach. */
   report?: { source: string; title?: string; subject?: string };
   /** Joker 50:50 gegen Punches anbieten (nicht in Challenges, damit es fair bleibt). */
@@ -104,13 +107,16 @@ export function LevelPlayer({
     answeredRef.current = true;
     setSelected(optionIndex);
     awardIfCorrect(optionIndex === question.correctIndex);
+    onAnswer?.(index, optionIndex === question.correctIndex, question.options?.[optionIndex] ?? "");
   }
 
   function handleCheckTyped() {
     if (answeredRef.current || Date.now() < readyAtRef.current || typedValue.trim() === "") return;
     answeredRef.current = true;
     setChecked(true);
-    awardIfCorrect(answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt));
+    const ok = answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt);
+    awardIfCorrect(ok);
+    onAnswer?.(index, ok, typedValue.trim());
   }
 
   function handleNext() {

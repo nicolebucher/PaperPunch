@@ -25,7 +25,12 @@ export interface GroupMeta {
   lang: "de" | "en";
   by: string;
   game: GameData;
+  /** SHA-256 des Lehrkraft-Schlüssels (Auswertung). Fehlt bei Gruppen von vor v0.13. Nie an Spieler:innen ausliefern. */
+  teacherHash?: string;
 }
+
+/** Antwort auf eine Frage: [Level-ID, Frage-Index, richtig 1/0, gegebene Antwort (gekürzt)]. */
+export type GroupAnswer = [number, number, 0 | 1, string];
 
 export interface GroupEntry {
   name: string;
@@ -37,10 +42,12 @@ export interface GroupEntry {
   at: string;
   /** Kurzer, nicht umkehrbarer Teil der Geräte-ID – damit ein Gerät sich in der Liste wiederfindet. */
   me: string;
+  /** Antworten pro Frage (nur für die Lehrkraft-Auswertung, nie in der öffentlichen Rangliste). */
+  qs?: GroupAnswer[];
 }
 
 export interface GroupBoard {
-  meta: Omit<GroupMeta, "game">;
+  meta: Omit<GroupMeta, "game" | "teacherHash">;
   entries: GroupEntry[];
   ended: boolean;
 }
@@ -110,12 +117,33 @@ export async function readBoard(code: string, fresh = false): Promise<GroupBoard
   if (!isGroupCode(code)) return null;
   const data = await load(code, fresh);
   if (!data) return null;
-  const { game: _game, ...meta } = data.meta;
+  const { game: _game, teacherHash: _hash, ...meta } = data.meta;
   void _game;
-  return { meta, entries: rank(data.entries), ended: isEnded(data.meta) };
+  void _hash;
+  // Antworten pro Frage bleiben privat (nur Lehrkraft-Auswertung)
+  const entries = rank(data.entries).map(({ qs: _qs, ...e }) => (void _qs, e));
+  return { meta, entries, ended: isEnded(data.meta) };
 }
 
-export async function createGroup(input: { name: string; by: string; lang: "de" | "en"; endsAt: string | null; game: GameData }): Promise<GroupMeta> {
+async function sha256(text: string): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function newTeacherKey(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(18));
+  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join("");
+}
+
+export const teacherUrl = (code: string, key: string) => `https://paper-punch.com/g/${code}/auswertung#k=${key}`;
+
+/** Lehrkraft-Schlüssel prüfen (konstante Laufzeit beim Vergleich ist hier unkritisch: Hash gegen Hash). */
+export async function checkTeacherKey(meta: GroupMeta, key: string): Promise<boolean> {
+  if (!meta.teacherHash || !/^[A-HJ-NP-Z2-9]{18}$/.test(key)) return false;
+  return (await sha256(`pp-teacher:${meta.code}:${key}`)) === meta.teacherHash;
+}
+
+export async function createGroup(input: { name: string; by: string; lang: "de" | "en"; endsAt: string | null; game: GameData }): Promise<GroupMeta & { teacherKey: string }> {
   let endsAt = input.endsAt;
   if (endsAt) {
     const t = new Date(endsAt).getTime();
@@ -131,19 +159,21 @@ export async function createGroup(input: { name: string; by: string; lang: "de" 
     by: cleanName(input.by) || (input.lang === "en" ? "Someone" : "Jemand"),
     game: input.game,
   };
+  const teacherKey = newTeacherKey();
+  meta.teacherHash = await sha256(`pp-teacher:${meta.code}:${teacherKey}`);
   await put(`${PREFIX}${meta.code}/meta.json`, JSON.stringify(meta), {
     access: "public",
     addRandomSuffix: false,
     contentType: "application/json",
     token: PUBLIC_TOKEN(),
   });
-  return meta;
+  return { ...meta, teacherKey };
 }
 
 export type SubmitOutcome = "ok" | "already" | "ended" | "missing";
 
 /** Ergebnis eintragen – pro Gerät genau einmal (die Datei darf nicht überschrieben werden). */
-export async function submitResult(code: string, device: string, r: { name: string; pct: number; correct: number; total: number; ms: number }): Promise<SubmitOutcome> {
+export async function submitResult(code: string, device: string, r: { name: string; pct: number; correct: number; total: number; ms: number; answers?: { l: number; i: number; ok: boolean; a?: string }[] }): Promise<SubmitOutcome> {
   const data = await load(code, true);
   if (!data) return "missing";
   if (isEnded(data.meta)) return "ended";
@@ -158,6 +188,9 @@ export async function submitResult(code: string, device: string, r: { name: stri
     at: new Date().toISOString(),
     me,
   };
+  if (r.answers?.length) {
+    entry.qs = r.answers.slice(0, 200).map((x) => [Math.round(x.l), Math.round(x.i), x.ok ? 1 : 0, (x.a ?? "").replace(/\s+/g, " ").trim().slice(0, 60)]);
+  }
   try {
     await put(`${PREFIX}${code}/p-${me}.json`, JSON.stringify(entry), {
       access: "public",
@@ -184,4 +217,95 @@ export async function cleanupOldGroups(): Promise<void> {
   } catch (error) {
     console.error("[groups] cleanup failed:", error instanceof Error ? error.message : error);
   }
+}
+
+export interface TeacherQuestion {
+  level: number;
+  levelTitle: string;
+  index: number;
+  prompt: string;
+  correct: string;
+  answered: number;
+  wrong: number;
+  /** häufigste falsche Antworten mit Anzahl */
+  topWrong: { answer: string; n: number }[];
+}
+
+export interface TeacherReport {
+  meta: { code: string; name: string; title: string; subject: string; createdAt: string; endsAt: string | null; ended: boolean; lang: "de" | "en" };
+  players: number;
+  avgPct: number | null;
+  avgMs: number | null;
+  levels: { id: number; title: string; pct: number | null }[];
+  questions: TeacherQuestion[];
+  /** Ergebnisse pro Kind – bewusst ohne Schwächen-Auswertung pro Kind. */
+  entries: { name: string; pct: number; correct: number; total: number; ms: number; at: string }[];
+  /** Anzahl Einträge mit Antworten pro Frage (ältere Apps senden nur die Summe). */
+  detailed: number;
+}
+
+/** Auswertung für die Lehrkraft: Fragen mit den meisten Fehlern, Level-Quoten, Ergebnisse. */
+export async function teacherReport(code: string, key: string): Promise<TeacherReport | "denied" | null> {
+  if (!isGroupCode(code)) return null;
+  const data = await load(code, true);
+  if (!data) return null;
+  if (!(await checkTeacherKey(data.meta, key))) return "denied";
+  const { meta, entries } = data;
+  const levels = [...meta.game.levels].sort((a, b) => a.id - b.id);
+  const qmap = new Map<string, { answered: number; wrong: number; wrongAnswers: Map<string, number> }>();
+  const levelAgg = new Map<number, { ok: number; n: number }>();
+  let detailed = 0;
+  for (const e of entries) {
+    if (!e.qs?.length) continue;
+    detailed++;
+    for (const [l, i, ok, a] of e.qs) {
+      const k = `${l}:${i}`;
+      const q = qmap.get(k) ?? { answered: 0, wrong: 0, wrongAnswers: new Map<string, number>() };
+      q.answered++;
+      if (!ok) {
+        q.wrong++;
+        const key2 = a.toLowerCase();
+        if (key2) q.wrongAnswers.set(key2, (q.wrongAnswers.get(key2) ?? 0) + 1);
+      }
+      qmap.set(k, q);
+      const la = levelAgg.get(l) ?? { ok: 0, n: 0 };
+      la.n++;
+      la.ok += ok;
+      levelAgg.set(l, la);
+    }
+  }
+  const questions: TeacherQuestion[] = [];
+  for (const level of levels) {
+    level.questions.forEach((q, i) => {
+      const agg = qmap.get(`${level.id}:${i}`);
+      if (!agg) return;
+      const correct = q.type === "multiple-choice" ? (q.options ?? [])[q.correctIndex ?? 0] ?? "" : q.correctAnswer ?? "";
+      questions.push({
+        level: level.id,
+        levelTitle: level.title,
+        index: i,
+        prompt: q.prompt,
+        correct,
+        answered: agg.answered,
+        wrong: agg.wrong,
+        topWrong: [...agg.wrongAnswers.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([answer, n]) => ({ answer, n })),
+      });
+    });
+  }
+  questions.sort((a, b) => b.wrong / Math.max(1, b.answered) - a.wrong / Math.max(1, a.answered) || b.answered - a.answered);
+  const ranked = rank(entries);
+  const avg = (xs: number[]) => (xs.length ? Math.round(xs.reduce((s, x) => s + x, 0) / xs.length) : null);
+  return {
+    meta: { code: meta.code, name: meta.name, title: meta.game.gameTitle, subject: meta.game.subject, createdAt: meta.createdAt, endsAt: meta.endsAt, ended: isEnded(meta), lang: meta.lang },
+    players: entries.length,
+    avgPct: avg(entries.map((e) => e.pct)),
+    avgMs: avg(entries.filter((e) => e.ms > 0).map((e) => e.ms)),
+    levels: levels.map((l) => {
+      const a = levelAgg.get(l.id);
+      return { id: l.id, title: l.title, pct: a && a.n ? Math.round((a.ok / a.n) * 100) : null };
+    }),
+    questions,
+    entries: ranked.map((e) => ({ name: e.name, pct: e.pct, correct: e.correct, total: e.total, ms: e.ms, at: e.at })),
+    detailed,
+  };
 }

@@ -9,7 +9,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.13.0 – 5 November 2026 (Android: version code 11, includes v0.12.0)
 
-Levels last longer: 15 levels with growing steps instead of 10 levels up to 5,000 Punches (reachable in about two weeks).
+Levels last longer, the app asks who is using it, and teachers get a results view for their study groups.
 
 | Area | Change |
 | --- | --- |
@@ -17,6 +17,14 @@ Levels last longer: 15 levels with growing steps instead of 10 levels up to 5,00
 | App + Website | Short note “New: 15 levels instead of 10 … you keep all your Punches” in the Punches section (app level page, website Punches popover) for everyone who already has Punches, shown until end of 2026 |
 | App + Website | Punches earned stay the same; only the thresholds changed, so existing testers may show a lower level |
 | Website | Landing page feature list: “Punches and 15 levels” |
+| App | Onboarding asks “Who's using PaperPunch?” – Student / Parent / Teacher (new step after the language, 7 steps); school and grade questions adapt (“What kind of school does your child go to?”, “Which grade do you teach most?”); the role can be changed in Settings; existing profiles count as students |
+| App | Teachers see “Study group for your class” as the third button on the home screen instead of “Create study plan” |
+| Website + App | Teacher results view for study groups: whoever creates a group gets a private results link (paper-punch.com/g/CODE/auswertung#k=…, key only after the #, never shared with players) – players, average correct, average time, weakest level, correct rate per level, the hardest questions with % wrong, the correct answer and the most common wrong answers, results per nickname (score, points, time) and CSV download; deliberately no per-child weaknesses |
+| Website | Group created: “Your results view” box with the link; groups you created open the results view from “Continue”; the link is also saved in the browser when opened |
+| App | Group sheet: “View results” opens the results view in the browser (groups created from v0.13 on) |
+| Website · Tech | Players' answers per question are now sent with the group result (level, question, correct, given answer ≤ 60 chars) and stored in the entry; the public leaderboard never returns them; new GET /api/groups/CODE/report (header x-teacher-key, only a SHA-256 hash of the key is stored in the group); older groups and app results without single answers only count in the results |
+| App + Website · Tech | Ratings also send the role (student/parent/teacher) so the feedback sheet shows who uses PaperPunch |
+| Website | Privacy policy section 11 (study groups): answers per question and the private results link |
 
 ## v0.12.0 – 4 November 2026 (Android: shipped with v0.13.0, version code 11)
 

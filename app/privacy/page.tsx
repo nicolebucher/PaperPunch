@@ -134,7 +134,11 @@ function PrivacyEn() {
             (Vercel, Frankfurt). Everyone who plays via the link adds an entry with their nickname, share of correct
             answers, number of correct answers, playing time and a pseudonymous device key (derived from a random ID
             stored on the device, so that only the first try counts). Anyone with the link sees the leaderboard with
-            nicknames and results. Please use a nickname, not your full name. Groups and entries are deleted after
+            nicknames and results. In addition, each entry stores which questions were answered correctly and the
+            answer given (shortened to 60 characters). Only the person who started the group sees this, via a private
+            results link with a secret key that only they receive; it shows which questions the group found hard and
+            each nickname&apos;s overall result, but no per-child analysis of weaknesses. Please use a nickname, not
+            your full name. Groups and entries are deleted after
             at most 44 days (30 days plus a maximum running time of 14 days). There is no chat and no sign-up.
           </p>
         </section>
@@ -312,7 +316,11 @@ function PrivacyDe() {
             Hosting-Anbieters (Vercel, Frankfurt). Wer über den Link mitspielt, legt einen Eintrag mit Spitzname,
             Anteil und Zahl richtiger Antworten, Spielzeit und einem pseudonymen Geräteschlüssel an (abgeleitet aus
             einer zufälligen, auf dem Gerät gespeicherten Kennung, damit nur der erste Versuch zählt). Wer den Link
-            hat, sieht die Rangliste mit Spitznamen und Ergebnissen. Bitte nutze einen Spitznamen, nicht deinen
+            hat, sieht die Rangliste mit Spitznamen und Ergebnissen. Zusätzlich speichert jeder Eintrag, welche
+            Fragen richtig beantwortet wurden, und die gegebene Antwort (auf 60 Zeichen gekürzt). Das sieht nur, wer
+            die Gruppe gestartet hat – über einen privaten Auswertungs-Link mit geheimem Schlüssel, den nur diese
+            Person erhält. Er zeigt, welche Fragen der Gruppe schwerfielen, und das Gesamtergebnis pro Spitzname,
+            aber keine Auswertung von Schwächen einzelner Kinder. Bitte nutze einen Spitznamen, nicht deinen
             vollen Namen. Gruppen und Einträge werden nach spätestens 44 Tagen gelöscht (30 Tage plus höchstens
             14 Tage Laufzeit). Es gibt keinen Chat und keine Anmeldung.
           </p>

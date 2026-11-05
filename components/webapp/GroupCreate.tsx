@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { track } from "@/lib/analytics";
-import { createGroupWeb, endOptions, saveGroup } from "@/lib/webapp/groups";
+import { createGroupWeb, endOptions, saveGroup, teacherLink } from "@/lib/webapp/groups";
 import { listMaterials, type WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
 import { isBlockedName } from "@/lib/name-filter";
@@ -71,7 +71,7 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
     try {
       const endsAt = ends.find((e) => e.id === end)?.endsAt ?? null;
       const res = await createGroupWeb({ game: chosen.game, name: name.trim(), by: nick.trim(), lang, endsAt });
-      saveGroup({ code: res.code, name: res.name, title: chosen.game.gameTitle, endsAt: res.endsAt });
+      saveGroup({ code: res.code, name: res.name, title: chosen.game.gameTitle, endsAt: res.endsAt, teacherKey: res.teacherKey });
       track("group_created", { end, has_name: !!name.trim() });
       setCreated(res);
       await share(res.url, res.name, chosen.game.gameTitle);
@@ -91,6 +91,13 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
         <span className="break-all rounded-xl bg-black px-3 py-2.5 text-sm font-bold text-[#1fd6ea]">{created.url}</span>
         <button type="button" onClick={() => void share(created.url, name.trim() || chosen.game!.gameTitle, chosen.game!.gameTitle)} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black">↗ {tx.groupShare}</button>
         <Link href={`/g/${created.code}`} className="rounded-2xl bg-zinc-100 px-5 py-3.5 text-center font-extrabold text-zinc-950">{tx.groupPlaySelf}</Link>
+        {created.teacherKey && (
+          <div className="flex flex-col gap-2 rounded-[18px] bg-[#1b1d22] p-3.5">
+            <b className="text-[15px]">{tx.teacherTitle}</b>
+            <span className="text-xs font-semibold leading-snug text-zinc-400">{tx.teacherHint}</span>
+            <Link href={teacherLink(created.code, created.teacherKey)} onClick={() => track("teacher_report_open", { from: "create" })} className="rounded-xl bg-[#22252b] px-4 py-3 text-center text-sm font-extrabold text-[#1fd6ea]">{tx.teacherOpen}</Link>
+          </div>
+        )}
         {note && <p className="text-center text-sm font-semibold text-zinc-400">{note}</p>}
       </div>
     );

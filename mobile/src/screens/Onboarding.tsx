@@ -3,13 +3,15 @@ import { COUNTRIES, getCountry, guessCountry, type CountryCode } from "../countr
 import { DICTS, deviceLang, LangProvider, type Lang } from "../i18n";
 import { BrandMark } from "../brand";
 import { Icon, ProfileSelects, TopBar } from "../ui";
-import type { Profile } from "../types";
+import type { Profile, Role } from "../types";
 
 /**
- * Erster Start: animierter Willkommensbildschirm, dann eine Frage pro Screen (Sprache, Land, Schulart,
+ * Erster Start: animierter Willkommensbildschirm, dann eine Frage pro Screen (Sprache, Rolle, Land, Schulart,
  * Klasse, Darstellung) mit automatischem Weiter nach dem Antippen, zum Schluss "So funktioniert's".
  * Als Einstellungen: alles auf einer Seite.
  */
+const ROLES: Role[] = ["student", "parent", "teacher"];
+
 export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: Profile | null; isSettings: boolean; onSave: (p: Profile) => void; onBack: () => void }) {
   const [profile, setProfile] = useState<Profile>(
     () => initial ?? { lang: deviceLang(), country: guessCountry(), schoolType: "", grade: 0 }
@@ -50,6 +52,16 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
                 {(["de", "en"] as Lang[]).map((l) => (
                   <button key={l} type="button" className={profile.lang === l ? "pill on" : "pill"} aria-pressed={profile.lang === l} onClick={() => setProfile({ ...profile, lang: l })}>
                     {l === "de" ? "Deutsch" : "English"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="stack" style={{ gap: 8 }}>
+              <span className="field-label">{t.roleLabel}</span>
+              <div className="row" style={{ flexWrap: "wrap" }}>
+                {ROLES.map((r) => (
+                  <button key={r} type="button" className={(profile.role ?? "student") === r ? "pill on" : "pill"} aria-pressed={(profile.role ?? "student") === r} onClick={() => setProfile({ ...profile, role: r })}>
+                    {t.roles[r]}
                   </button>
                 ))}
               </div>
@@ -116,7 +128,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   }
 
   // ---------- Einrichtung: eine Frage pro Screen, zum Schluss "So funktioniert's" ----------
-  const TOTAL = 6;
+  const TOTAL = 7;
   const country = getCountry(profile.country);
   const theme = profile.theme ?? "dark";
   // Erkanntes Land zuerst, dann die übrigen; "Anderes Land" steht immer am Ende.
@@ -135,7 +147,8 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     setShowAll(false);
   }
 
-  const answered = step === 3 ? !!profile.schoolType : step === 4 ? profile.grade > 0 : true;
+  const answered = step === 2 ? !!profile.role : step === 4 ? !!profile.schoolType : step === 5 ? profile.grade > 0 : true;
+  const role = profile.role ?? "student";
 
   const option = (key: string, label: string, on: boolean, onClick: () => void, sub?: string) => (
     <button key={key} type="button" className={on ? "ob-opt on" : "ob-opt"} aria-pressed={on} onClick={onClick}>
@@ -148,7 +161,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   );
 
   let content: ReactNode;
-  if (step === 6) {
+  if (step === 7) {
     content = (
       <>
         <div className="ob-q">
@@ -195,6 +208,15 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   } else if (step === 2) {
     content = (
       <>
+        <div className="ob-q"><h1>{t.obQRole}</h1><p>{t.obQRoleSub}</p></div>
+        <div className="ob-opts">
+          {ROLES.map((r) => option(r, t.roles[r], profile.role === r, () => { setProfile((p) => ({ ...p, role: r })); advance(); }, t.roleSubs[r]))}
+        </div>
+      </>
+    );
+  } else if (step === 3) {
+    content = (
+      <>
         <div className="ob-q"><h1>{t.obQCountry}</h1><p>{t.obQCountrySub}</p></div>
         <div className="ob-opts">
           {shownCountries.map((c) =>
@@ -207,10 +229,10 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 3) {
+  } else if (step === 4) {
     content = (
       <>
-        <div className="ob-q"><h1>{t.obQSchool}</h1><p>{country.name[profile.lang]}</p></div>
+        <div className="ob-q"><h1>{t.obQSchoolBy[role]}</h1><p>{country.name[profile.lang]}</p></div>
         <div className="ob-opts">
           {shownSchools.map((sc) =>
             option(sc.value, sc.label[profile.lang], profile.schoolType === sc.value, () => { setProfile((p) => ({ ...p, schoolType: sc.value })); advance(); })
@@ -221,11 +243,11 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 4) {
+  } else if (step === 5) {
     const school = country.schoolTypes.find((x) => x.value === profile.schoolType);
     content = (
       <>
-        <div className="ob-q"><h1>{t.obQGrade}</h1><p>{[school?.label[profile.lang], country.name[profile.lang]].filter(Boolean).join(" · ")}</p></div>
+        <div className="ob-q"><h1>{t.obQGradeBy[role]}</h1><p>{[school?.label[profile.lang], country.name[profile.lang]].filter(Boolean).join(" · ")}</p></div>
         <div className="ob-grades">
           {country.grades.map((g) => (
             <button
@@ -287,7 +309,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
           >
             {last ? t.obLetsGo : t.next}
           </button>
-          {step !== 5 && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
+          {step !== 6 && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
         </div>
       </div>
     </LangProvider>

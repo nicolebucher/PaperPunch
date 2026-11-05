@@ -268,6 +268,7 @@ export async function sendRating(r: {
         country: r.profile.country,
         schoolType: r.profile.schoolType,
         grade: r.profile.grade,
+        role: r.profile.role,
         score: r.score,
         source: "app",
       }),
@@ -304,7 +305,7 @@ export interface GroupBoard {
 }
 
 /** Lerngruppe anlegen; mit `result` steht die eigene Punktzahl gleich in der Rangliste. */
-export async function createGroup(input: { game: GameResult["game"]; name: string; by: string; lang: string; endsAt: string | null; device: string; result?: { pct: number; correct: number; total: number } }): Promise<{ code: string; url: string; name: string; endsAt: string | null }> {
+export async function createGroup(input: { game: GameResult["game"]; name: string; by: string; lang: string; endsAt: string | null; device: string; result?: { pct: number; correct: number; total: number } }): Promise<{ code: string; url: string; name: string; endsAt: string | null; teacherUrl?: string }> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}/api/groups`, {
@@ -316,7 +317,7 @@ export async function createGroup(input: { game: GameResult["game"]; name: strin
     throw new ApiError("network", true);
   }
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`);
-  return (await res.json()) as { code: string; url: string; name: string; endsAt: string | null };
+  return (await res.json()) as { code: string; url: string; name: string; endsAt: string | null; teacherUrl?: string };
 }
 
 export async function fetchGroupBoard(code: string, device: string): Promise<GroupBoard | null> {

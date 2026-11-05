@@ -102,6 +102,8 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
   const [correct, setCorrect] = useState(0);
   const [note, setNote] = useState("");
   const startedAt = useRef(0);
+  // Antworten pro Frage – nur für die Auswertung der Lehrkraft, nie in der Rangliste
+  const answers = useRef<{ l: number; i: number; ok: boolean; a: string }[]>([]);
 
   useEffect(() => {
     setLocale(lang);
@@ -127,6 +129,7 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
       // ignorieren
     }
     startedAt.current = Date.now();
+    answers.current = [];
     track("group_join", { questions: total });
     setStage("play");
   }
@@ -134,7 +137,7 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
   async function finish(finalCorrect: number) {
     setStage("saving");
     const pct = total ? Math.round((finalCorrect / total) * 100) : 0;
-    const res = await submitToGroup(code, { name: nick.trim() || t.you, pct, correct: finalCorrect, total, ms: Date.now() - startedAt.current }).catch(() => null);
+    const res = await submitToGroup(code, { name: nick.trim() || t.you, pct, correct: finalCorrect, total, ms: Date.now() - startedAt.current, answers: answers.current }).catch(() => null);
     if (res) {
       setBoard(res);
       const idx = res.me ? res.entries.findIndex((e) => e.me === res.me) : -1;
@@ -173,6 +176,9 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
           onSnap={() => undefined}
           onExit={() => setStage("intro")}
           report={{ source: "web-group", title: game.gameTitle, subject: game.subject }}
+          onAnswer={(i, ok, a) => {
+            if (!answers.current.some((x) => x.l === level.id && x.i === i)) answers.current.push({ l: level.id, i, ok, a: a.slice(0, 60) });
+          }}
           onComplete={(result) => {
             const next = correct + result.score;
             setCorrect(next);

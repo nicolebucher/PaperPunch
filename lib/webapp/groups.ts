@@ -12,7 +12,9 @@ export interface Board {
   ended: boolean;
   me?: string;
 }
-export interface SavedGroup { code: string; name: string; title: string; endsAt: string | null; savedAt: number; lastRank?: number }
+export interface SavedGroup { code: string; name: string; title: string; endsAt: string | null; savedAt: number; lastRank?: number; /** Lehrkraft-Schlüssel (nur bei selbst angelegten Gruppen) */ teacherKey?: string }
+
+export const teacherLink = (code: string, key: string) => `/g/${code}/auswertung#k=${key}`;
 
 export function deviceId(): string {
   try {
@@ -51,7 +53,7 @@ export async function fetchBoard(code: string): Promise<Board | null> {
   return res.ok ? ((await res.json()) as Board) : null;
 }
 
-export async function submitToGroup(code: string, r: { name: string; pct: number; correct: number; total: number; ms: number }): Promise<(Board & { outcome: string }) | null> {
+export async function submitToGroup(code: string, r: { name: string; pct: number; correct: number; total: number; ms: number; answers?: { l: number; i: number; ok: boolean; a: string }[] }): Promise<(Board & { outcome: string }) | null> {
   const res = await fetch(`/api/groups/${code}/result`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -60,14 +62,16 @@ export async function submitToGroup(code: string, r: { name: string; pct: number
   return res.ok ? ((await res.json()) as Board & { outcome: string }) : null;
 }
 
-export async function createGroupWeb(input: { game: GameData; name: string; by: string; lang: "de" | "en"; endsAt: string | null }): Promise<{ code: string; url: string; name: string; endsAt: string | null }> {
+export interface CreatedGroup { code: string; url: string; name: string; endsAt: string | null; teacherKey?: string; teacherUrl?: string }
+
+export async function createGroupWeb(input: { game: GameData; name: string; by: string; lang: "de" | "en"; endsAt: string | null }): Promise<CreatedGroup> {
   const res = await fetch("/api/groups", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...input, device: deviceId() }),
   });
   if (!res.ok) throw new Error(String(res.status));
-  return (await res.json()) as { code: string; url: string; name: string; endsAt: string | null };
+  return (await res.json()) as CreatedGroup;
 }
 
 /** Ende-Optionen wie im Entwurf: ohne Ende, morgen (18 Uhr), Freitag 18 Uhr, in 1 Woche. */
@@ -105,4 +109,9 @@ export function fmtTime(ms: number): string {
   if (!(ms > 0)) return "";
   const s = Math.round(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")} Min.`;
+}
+
+export async function fetchTeacherReport(code: string, key: string): Promise<{ status: number; report?: import("@/lib/groups").TeacherReport }> {
+  const res = await fetch(`/api/groups/${code}/report`, { headers: { "x-teacher-key": key }, cache: "no-store" });
+  return res.ok ? { status: 200, report: await res.json() } : { status: res.status };
 }

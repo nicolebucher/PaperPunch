@@ -346,6 +346,7 @@ function AppInner() {
     case "home":
       screen = (
         <Home
+          role={profile?.role}
           plans={plans}
           materials={materials}
           onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}
@@ -547,6 +548,7 @@ function AppInner() {
         />
       ) : (
         <Home
+          role={profile?.role}
           plans={plans}
           materials={materials}
           onOpenMaterial={(m) => setView({ name: "result", result: m.result, from: m.from, materialId: m.id })}

@@ -24,6 +24,8 @@ export interface MyGroup {
   materialId?: string;
   submitted?: boolean;
   lastRank?: number;
+  /** Auswertung für die Person, die die Gruppe angelegt hat (Lehrkraft-Link, nicht weitergeben). */
+  teacherUrl?: string;
 }
 
 export function myGroups(): MyGroup[] {
@@ -67,7 +69,7 @@ export async function startGroup(opts: { material: StoredMaterial; game: GameRes
   }
   const result = resultOf(opts.material);
   const res = await createGroup({ game: opts.game, name: opts.name.trim(), by: nick, lang: opts.lang, endsAt: opts.endsAt, device: deviceId(), result });
-  const group: MyGroup = { code: res.code, url: res.url, name: res.name, title: opts.game.gameTitle, endsAt: res.endsAt, createdAt: Date.now(), materialId: opts.material.id, submitted: !!result };
+  const group: MyGroup = { code: res.code, url: res.url, name: res.name, title: opts.game.gameTitle, endsAt: res.endsAt, createdAt: Date.now(), materialId: opts.material.id, submitted: !!result, teacherUrl: res.teacherUrl };
   addGroup(group);
   const outcome = await shareLink(opts.t.groupShareTitle, opts.t.groupShareText(res.name, opts.game.gameTitle), res.url);
   return { outcome, group };
