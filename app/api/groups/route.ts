@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { gameSchema } from "@/types/generation";
+import { sharedGameSchema } from "@/types/generation";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
 import { cleanupOldGroups, createGroup, groupUrl, groupsEnabled, isDeviceId, submitResult, teacherUrl } from "@/lib/groups";
@@ -16,7 +16,7 @@ const resultSchema = z.object({
 });
 
 const bodySchema = z.object({
-  game: gameSchema,
+  game: sharedGameSchema,
   name: z.string().max(80).optional().default(""),
   by: z.string().max(60).optional().default(""),
   lang: z.enum(["de", "en"]).optional().default("de"),
@@ -44,7 +44,10 @@ async function create(request: NextRequest) {
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());
-  } catch {
+  } catch (error) {
+    // Grund mitloggen (nur Feldpfade, keine Inhalte), damit gemeldete Fehler nachvollziehbar sind
+    const issues = error instanceof z.ZodError ? error.issues.slice(0, 3).map((i) => `${i.path.join(".")}: ${i.code}`).join("; ") : "bad json";
+    console.warn("[groups] invalid body:", issues);
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
   try {

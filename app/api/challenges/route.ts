@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { gameSchema } from "@/types/generation";
+import { sharedGameSchema } from "@/types/generation";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
 import { challengeUrl, challengesEnabled, cleanName, cleanupOldChallenges, saveChallenge } from "@/lib/challenges";
@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export const maxDuration = 15;
 
 const bodySchema = z.object({
-  game: gameSchema,
+  game: sharedGameSchema,
   name: z.string().max(60),
   pct: z.number().int().min(0).max(100).optional(),
   lang: z.enum(["de", "en"]).optional().default("de"),

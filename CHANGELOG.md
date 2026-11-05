@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.14.1 – 5 November 2026 (website only)
+
+Bug fix after a teacher report.
+
+| Area | Change |
+| --- | --- |
+| Website | Fix: a study group (or challenge) could not be created from a game that had been adjusted beforehand (questions deleted down to 3, or a level regenerated with 6 questions) – the server rejected it as “invalid”. Sharing now accepts adjusted games (1–6 levels, 1–20 questions each); creating new games keeps the strict rules. The reason for rejected requests is now logged (field names only) |
+
 ## v0.14.0 – 5 November 2026 (Android: version code 12)
 
 Tester feedback (Jan): clearer creation, Punches explained, spelling hints, offline-friendly.

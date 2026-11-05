@@ -177,6 +177,26 @@ export const gameSchema = z.object({
 });
 export type GameData = z.infer<typeof gameSchema>;
 
+// Zum Teilen (Lerngruppe, Challenge) bewusst großzügiger als beim Erstellen: Lehrkräfte passen Spiele
+// vorher an (Fragen löschen bis auf 3, Level mit 6 Fragen neu erstellen). Mit dem strengen Erstell-Schema
+// scheiterte das Anlegen der Gruppe dann mit "invalid". Längen bleiben gedeckelt.
+export const sharedGameSchema = z.object({
+  gameTitle: z.string().max(200),
+  subject: z.string().max(100),
+  levels: z
+    .array(
+      z.object({
+        id: z.number(),
+        title: z.string().max(200),
+        difficulty: z.enum(["leicht", "mittel", "schwer"]),
+        questions: z.array(questionSchema).min(1).max(20),
+      })
+    )
+    .min(1)
+    .max(6),
+  boss: z.array(questionBaseSchema).max(12).optional(),
+});
+
 // Ein-Sprecher-Skript (bewusst kein Multi-Speaker-Dialog, damit kein Audio-Mixing/ffmpeg
 // nötig ist). "script" enthält die vollständige Erzählung, in Absätze gegliedert.
 export const podcastScriptSchema = z.object({
