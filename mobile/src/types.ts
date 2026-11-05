@@ -16,6 +16,9 @@ export interface Profile {
   /** Eltern: Kinder mit Schulart/Klasse (schoolType/grade oben = gewähltes Kind) */
   children?: Child[];
   childId?: string;
+  /** Lehrkräfte: unterrichtete Klassenstufen (grade oben = gerade gewählte) und Fächer */
+  teachGrades?: number[];
+  subjects?: string[];
 }
 
 export type Role = "student" | "parent" | "teacher";

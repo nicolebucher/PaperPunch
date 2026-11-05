@@ -32,6 +32,8 @@ export function Capture({
   const [notes, setNotes] = useState("");
   const [format, setFormat] = useState<MaterialFormat | null>(initialFormat ?? null);
   const [profile, setProfile] = useState(initialProfile);
+  // Lehrkräfte: eigene Fächer statt Beispiel-Ideen (Antippen setzt "Mathe: " – dann das Thema dahinter tippen)
+  const teacherSubjects = initialProfile.role === "teacher" ? initialProfile.subjects ?? [] : [];
   const [flash, setFlash] = useState(false);
   const [busy, setBusy] = useState<{ done: number; total: number } | null>(null);
   const quota = useQuota();
@@ -142,11 +144,11 @@ export function Capture({
               {t.topicLabel}
               <input className="input set" style={{ minHeight: 58, fontSize: 19 }} value={topic} onChange={(e) => setTopic(e.target.value)} placeholder={t.topicPlaceholder} maxLength={60} />
             </label>
-            <span className="muted" style={{ fontSize: 15, fontWeight: 700 }}>{t.topicIdeas}</span>
+            <span className="muted" style={{ fontSize: 15, fontWeight: 700 }}>{teacherSubjects.length ? t.mySubjects : t.topicIdeas}</span>
             <div className="row">
-              {t.ideas.map((idea) => (
+              {(teacherSubjects.length ? teacherSubjects.map((x) => `${x}: `) : t.ideas).map((idea) => (
                 <button key={idea} type="button" className={topic === idea ? "pill on" : "pill"} onClick={() => setTopic(idea)}>
-                  {idea}
+                  {idea.replace(/: $/, "")}
                 </button>
               ))}
             </div>
@@ -223,6 +225,18 @@ export function Capture({
                 />
               </label>
 
+              {profile.role === "teacher" && (profile.teachGrades?.length ?? 0) > 1 && (
+                <div className="stack" style={{ gap: 8 }}>
+                  <span className="field-label">{t.classFor}</span>
+                  <div className="kid-chips">
+                    {profile.teachGrades!.map((g) => (
+                      <button key={g} type="button" className={profile.grade === g ? "kid-chip on" : "kid-chip"} aria-pressed={profile.grade === g} onClick={() => setProfile({ ...profile, grade: g })}>
+                        {t.gradeShort(g)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               {isParent(profile) && kidsOf(profile).length > 1 && (
                 <div className="stack" style={{ gap: 8 }}>
                   <span className="field-label">{t.childFor}</span>

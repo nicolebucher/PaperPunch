@@ -357,12 +357,14 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
   const [nick, setNick] = useState(savedNickname);
   const [busy, setBusy] = useState(false);
   const chosen = games.find((g) => g.id === picked);
+  // Lehrkräfte: Klasse als Namensvorschlag ("Kl. 7 – Brüche"), solange kein eigener Name eingetragen ist
+  const suggested = chosen?.grade ? `${t.gradeShort(chosen.grade)} – ${materialTitle(chosen)}`.slice(0, 40) : "";
 
   async function create() {
     if (!chosen || chosen.result.format !== "game" || busy) return;
     setBusy(true);
     try {
-      const { outcome, group } = await startGroup({ material: chosen, game: chosen.result.game, name, nick, endsAt: homework ? dues.find((d) => d.id === due)?.endsAt ?? null : ends.find((e) => e.id === end)?.endsAt ?? null, homework, lang, t });
+      const { outcome, group } = await startGroup({ material: chosen, game: chosen.result.game, name: name.trim() || suggested, nick, endsAt: homework ? dues.find((d) => d.id === due)?.endsAt ?? null : ends.find((e) => e.id === end)?.endsAt ?? null, homework, lang, t });
       onCreated(group);
       if (outcome === "copied") say?.(t.inviteCopied);
       onClose();
@@ -418,7 +420,7 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
             </div>
             <label className="field">
               {t.groupName}
-              <input className="input set" value={name} maxLength={40} placeholder={t.groupNamePh} onChange={(e) => setName(e.target.value)} />
+              <input className="input set" value={name} maxLength={40} placeholder={suggested || t.groupNamePh} onChange={(e) => setName(e.target.value)} />
               {isBlockedName(name) && <span className="name-blocked">{t.nameBlocked}</span>}
             </label>
             <label className="field">

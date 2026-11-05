@@ -33,6 +33,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
       // Schulart/Klasse nur behalten, wenn es sie im neuen Land gibt.
       schoolType: country.schoolTypes.some((s) => s.value === p.schoolType) ? p.schoolType : "",
       grade: country.grades.some((g) => g.value === p.grade) ? p.grade : 0,
+      teachGrades: p.teachGrades?.filter((g) => country.grades.some((x) => x.value === g)),
     }));
   }
 
@@ -89,6 +90,23 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
                 ))}
               </select>
             </label>
+            {profile.role === "teacher" && (
+              <>
+                <div className="stack" style={{ gap: 8 }}>
+                  <span className="field-label">{t.teachGradesLabel}</span>
+                  <div className="kid-chips">
+                    {getCountry(profile.country).grades.map((g) => {
+                      const on = (profile.teachGrades ?? []).includes(g.value);
+                      return <button key={g.value} type="button" className={on ? "pill on" : "pill"} aria-pressed={on} onClick={() => setProfile(toggleTeachGrade(profile, g.value))}>{g.value}</button>;
+                    })}
+                  </div>
+                </div>
+                <div className="stack" style={{ gap: 8 }}>
+                  <span className="field-label">{t.subjectsLabel}</span>
+                  <SubjectChips profile={profile} onChange={setProfile} />
+                </div>
+              </>
+            )}
             {isParent(profile) ? (
               <div className="stack" style={{ gap: 8 }}>
                 <span className="field-label">{t.kidsLabel}</span>
@@ -138,8 +156,9 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   }
 
   // ---------- Einrichtung: eine Frage pro Screen, zum Schluss "So funktioniert's" ----------
-  type StepKey = "lang" | "role" | "country" | "school" | "grade" | "kids" | "theme" | "how";
-  const keys: StepKey[] = ["lang", "role", "country", "school", "grade", ...(isParent(profile) ? (["kids"] as StepKey[]) : []), "theme", "how"];
+  type StepKey = "lang" | "role" | "country" | "school" | "grade" | "kids" | "subjects" | "theme" | "how";
+  const isTeacher = profile.role === "teacher";
+  const keys: StepKey[] = ["lang", "role", "country", "school", "grade", ...(isParent(profile) ? (["kids"] as StepKey[]) : []), ...(isTeacher ? (["subjects"] as StepKey[]) : []), "theme", "how"];
   const TOTAL = keys.length;
   const key = keys[Math.min(step, TOTAL) - 1];
   const country = getCountry(profile.country);
@@ -256,6 +275,30 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
+  } else if (key === "grade" && isTeacher) {
+    const school = country.schoolTypes.find((x) => x.value === profile.schoolType);
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQTeachGrades}</h1><p>{[school?.label[profile.lang], t.obQTeachGradesSub].filter(Boolean).join(" · ")}</p></div>
+        <div className="ob-grades">
+          {country.grades.map((g) => {
+            const on = (profile.teachGrades ?? []).includes(g.value);
+            return (
+              <button key={g.value} type="button" className={on ? "ob-grade on" : "ob-grade"} aria-pressed={on} aria-label={g.label[profile.lang]} onClick={() => setProfile((p) => toggleTeachGrade(p, g.value))}>
+                {g.value}
+              </button>
+            );
+          })}
+        </div>
+      </>
+    );
+  } else if (key === "subjects") {
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQSubjects}</h1><p>{t.obQSubjectsSub}</p></div>
+        <SubjectChips profile={profile} onChange={setProfile} />
+      </>
+    );
   } else if (key === "grade") {
     const school = country.schoolTypes.find((x) => x.value === profile.schoolType);
     content = (
@@ -329,7 +372,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
           >
             {last ? t.obLetsGo : t.next}
           </button>
-          {key !== "theme" && key !== "kids" && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
+          {key !== "theme" && key !== "kids" && key !== "subjects" && !(key === "grade" && isTeacher) && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
         </div>
       </div>
     </LangProvider>
@@ -364,6 +407,31 @@ function KidsEditor({ profile, onChange }: { profile: Profile; onChange: (p: Pro
         </button>
       )}
       <span className="muted" style={{ fontSize: 13, fontWeight: 600 }}>{t.childHint}</span>
+    </div>
+  );
+}
+
+/** Lehrkraft: Klassenstufe an-/abwählen; grade folgt der kleinsten gewählten (oder bleibt, wenn noch enthalten). */
+function toggleTeachGrade(p: Profile, g: number): Profile {
+  const cur = p.teachGrades ?? (p.grade ? [p.grade] : []);
+  const next = (cur.includes(g) ? cur.filter((x) => x !== g) : [...cur, g]).sort((a, b) => a - b);
+  return { ...p, teachGrades: next, grade: next.includes(p.grade) ? p.grade : next[0] ?? 0 };
+}
+
+/** Lehrkraft: Fächer als Chips (Mehrfachauswahl). */
+function SubjectChips({ profile, onChange }: { profile: Profile; onChange: (p: Profile) => void }) {
+  const t = DICTS[profile.lang];
+  const chosen = profile.subjects ?? [];
+  return (
+    <div className="kid-chips">
+      {t.subjectList.map((sub) => {
+        const on = chosen.includes(sub);
+        return (
+          <button key={sub} type="button" className={on ? "pill on" : "pill"} aria-pressed={on} onClick={() => onChange({ ...profile, subjects: on ? chosen.filter((x) => x !== sub) : [...chosen, sub] })}>
+            {sub}
+          </button>
+        );
+      })}
     </div>
   );
 }

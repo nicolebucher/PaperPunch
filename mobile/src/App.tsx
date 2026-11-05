@@ -198,8 +198,9 @@ function AppInner() {
   }
 
   /** Eltern mit mehreren Kindern: Material bekommt ein Namensschild (Kind, für das es erstellt wurde). */
-  function childTag(): { childId?: string; child?: string } {
+  function childTag(): { childId?: string; child?: string; grade?: number } {
     const p = loadProfile();
+    if (p?.role === "teacher" && p.grade) return { grade: p.grade };
     if (!p || !isParent(p) || kidsOf(p).length < 2) return {};
     const kids = kidsOf(p);
     const kid = activeChild(p);
@@ -385,7 +386,7 @@ function AppInner() {
           say={say}
           onBack={() => setView({ name: "home" })}
           onCreate={(format, files, topic, p, notes) => {
-            if (p.grade !== profile!.grade || p.schoolType !== profile!.schoolType || p.childId !== profile!.childId || JSON.stringify(p.children) !== JSON.stringify(profile!.children)) {
+            if (p.grade !== profile!.grade || p.schoolType !== profile!.schoolType || p.childId !== profile!.childId || p.grade !== profile!.grade || JSON.stringify(p.children) !== JSON.stringify(profile!.children)) {
               setProfile(p);
               saveProfile(p);
             }

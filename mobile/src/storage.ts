@@ -135,6 +135,8 @@ export interface StoredMaterial {
   /** Eltern mit mehreren Kindern: für welches Kind (ID + Anzeigename) */
   childId?: string;
   child?: string;
+  /** Lehrkräfte: Klassenstufe, für die das Material erstellt wurde (Namensvorschlag der Lerngruppe) */
+  grade?: number;
 }
 
 export interface StoredFile {
