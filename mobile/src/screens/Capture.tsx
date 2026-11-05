@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useT } from "../i18n";
 import { addFiles, formatMb, isNative, MAX_BYTES, MAX_FILES, takeNativePhoto, totalBytes, type FileError } from "../files";
 import { FileChips, FilePick, FORMATS, Icon, ProfileSelects, TopBar } from "../ui";
+import { activeChild, childLabel, isParent, kidsOf, selectChild, syncActive } from "../children";
 import type { MaterialFormat, Profile } from "../types";
 import { BetaIntro, QuotaEmpty, QuotaLine, useQuota } from "../BetaQuota";
 
@@ -222,7 +223,19 @@ export function Capture({
                 />
               </label>
 
-              <ProfileSelects profile={profile} onChange={setProfile} />
+              {isParent(profile) && kidsOf(profile).length > 1 && (
+                <div className="stack" style={{ gap: 8 }}>
+                  <span className="field-label">{t.childFor}</span>
+                  <div className="kid-chips">
+                    {kidsOf(profile).map((k, i) => (
+                      <button key={k.id} type="button" className={activeChild(profile)?.id === k.id ? "kid-chip on" : "kid-chip"} aria-pressed={activeChild(profile)?.id === k.id} onClick={() => setProfile(selectChild(profile, k.id))}>
+                        {childLabel(k, i, t.childN)}{k.grade ? ` · ${k.grade}` : ""}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <ProfileSelects profile={profile} onChange={(p) => setProfile(syncActive(p))} />
 
               <QuotaLine quota={quota} />
               {quotaGone ? (

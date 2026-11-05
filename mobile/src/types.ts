@@ -13,9 +13,20 @@ export interface Profile {
   theme?: "dark" | "light";
   /** Wer die App nutzt (ab v0.13; ältere Profile ohne Angabe = Schüler:in). */
   role?: Role;
+  /** Eltern: Kinder mit Schulart/Klasse (schoolType/grade oben = gewähltes Kind) */
+  children?: Child[];
+  childId?: string;
 }
 
 export type Role = "student" | "parent" | "teacher";
+
+export interface Child {
+  id: string;
+  /** optional, bleibt nur auf dem Gerät */
+  name: string;
+  schoolType: string;
+  grade: number;
+}
 
 export interface Task {
   number: number;

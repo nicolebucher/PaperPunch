@@ -132,6 +132,9 @@ export interface StoredMaterial {
   notes?: string;
   /** Eigene Bewertung (1–5), damit nur einmal gefragt wird */
   rating?: number;
+  /** Eltern mit mehreren Kindern: für welches Kind (ID + Anzeigename) */
+  childId?: string;
+  child?: string;
 }
 
 export interface StoredFile {

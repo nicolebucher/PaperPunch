@@ -18,6 +18,10 @@ export function Materials({
 }) {
   const { t, lang } = useT();
   const [editing, setEditing] = useState(false);
+  // Eltern mit mehreren Kindern: nach Kind filtern
+  const kids = [...new Map(materials.filter((m) => m.childId && m.child).map((m) => [m.childId!, m.child!])).entries()];
+  const [kid, setKid] = useState<string | null>(null);
+  const shown = kid ? materials.filter((m) => m.childId === kid) : materials;
 
   return (
     <div className="screen">
@@ -35,12 +39,20 @@ export function Materials({
         <h1 className="display">{t.myMaterials}</h1>
         <p className="muted" style={{ marginTop: -4 }}>{t.materialsHint}</p>
         {materials.length === 0 && <p className="muted">{t.materialsEmpty}</p>}
-        {materials.map((m) => (
+        {kids.length > 1 && (
+          <div className="kid-chips">
+            <button type="button" className={kid === null ? "group-chip on" : "group-chip"} aria-pressed={kid === null} onClick={() => setKid(null)}>{t.childAll}</button>
+            {kids.map(([id, name]) => (
+              <button key={id} type="button" className={kid === id ? "group-chip on" : "group-chip"} aria-pressed={kid === id} onClick={() => setKid(id)}>{name}</button>
+            ))}
+          </div>
+        )}
+        {shown.map((m) => (
           <div key={m.id} className="row" style={{ flexWrap: "nowrap", gap: 8 }}>
             <button type="button" className="material-row" onClick={() => onOpen(m)}>
               <span className="material-icon"><Icon name={m.result.format} size={20} stroke={2.2} /></span>
               <span className="stack" style={{ gap: 2, minWidth: 0, flex: 1 }}>
-                <span className="material-title">{materialTitle(m)}</span>
+                <span className="material-title">{materialTitle(m)}{m.child && <span className="kid-tag">{m.child}</span>}</span>
                 <span className={m.progress && !m.finished ? "material-sub active" : "material-sub"}>
                   {t.formats[m.result.format]} · {materialDate(m, t, lang)} · {materialStatus(m, t)}
                   {m.sources?.length ? ` · ${t.photosCount(m.sources.length)}` : ""}

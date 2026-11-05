@@ -9,7 +9,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.13.0 – 5 November 2026 (Android: version code 11, includes v0.12.0)
 
-Levels last longer, the app asks who is using it, and teachers get a results view and homework for their study groups.
+Levels last longer, the app asks who is using it (parents can add several children), and teachers get a results view and homework for their study groups.
 
 | Area | Change |
 | --- | --- |
@@ -28,6 +28,9 @@ Levels last longer, the app asks who is using it, and teachers get a results vie
 | Website + App | Homework: switch “As homework” when creating a study group – due date instead of an end (tomorrow 8 am, the next school days at 8 am, or – on the website – a custom date within 14 days); students only see their own result (“✓ Done · 75 % correct”), never the ranking; the ranking is only visible to the teacher in the results view (“Done” count, “Ranking (only visible to you)”); after the deadline: “The deadline has passed” |
 | Website + App | Homework share text: “📚 Homework: learning game “…” – due Thu 08:00. No sign-up, just open the link”; continue list shows “📚 name · 18 done” for the teacher and “✓ done / still open” for students; the teacher's own result isn't added to homework |
 | Website · Tech | Group meta flag homework (only with an end date); GET /api/groups/CODE and the result response return only the caller's own entry plus count for homework groups |
+| App | Parents with several children: after school and grade, onboarding shows “Your children” – each child with an optional name, school type and grade, “+ Add another child” (up to 5); also editable in Settings (“Children”); names stay on the phone |
+| App | Creating material: “For whom?” chips (e.g. Mia · 3, Ben · 7) set school type and grade automatically; the material gets a name tag (“Fractions · Ben”) in Continue and My materials, with a filter by child in My materials |
+| App | Punches, levels and study plans stay shared on the device for now (separate progress per child planned together with the weekly parent report) |
 
 ## v0.12.0 – 4 November 2026 (Android: shipped with v0.13.0, version code 11)
 

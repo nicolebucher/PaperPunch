@@ -176,7 +176,7 @@ export function Home({
               <span className="home-c-bar" aria-hidden="true" />
               <span className="home-c-row-text">
                 <b>{materialTitle(m)}</b>
-                <span>{t.formats[m.result.format]} · {materialDate(m, t, lang)}</span>
+                <span>{t.formats[m.result.format]} · {materialDate(m, t, lang)}{m.child ? ` · ${m.child}` : ""}</span>
               </span>
               <span className="home-c-row-status">{rowStatus(m)}</span>
             </button>

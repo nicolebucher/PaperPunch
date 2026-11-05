@@ -3,7 +3,8 @@ import { COUNTRIES, getCountry, guessCountry, type CountryCode } from "../countr
 import { DICTS, deviceLang, LangProvider, type Lang } from "../i18n";
 import { BrandMark } from "../brand";
 import { Icon, ProfileSelects, TopBar } from "../ui";
-import type { Profile, Role } from "../types";
+import type { Child, Profile, Role } from "../types";
+import { isParent, kidsComplete, kidsOf, MAX_CHILDREN, newChildId, setKids, syncActive } from "../children";
 
 /**
  * Erster Start: animierter Willkommensbildschirm, dann eine Frage pro Screen (Sprache, Rolle, Land, Schulart,
@@ -20,7 +21,9 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   const [showAll, setShowAll] = useState(false);
   const [detected] = useState(() => guessCountry());
   const t = DICTS[profile.lang];
-  const ready = !!profile.schoolType && profile.grade > 0;
+  const ready = !!profile.schoolType && profile.grade > 0 && (!isParent(profile) || kidsComplete(profile));
+  // Eltern: Kinder beim Speichern immer mitführen (erstes Kind aus Schulart/Klasse)
+  const finalProfile = (p: Profile): Profile => (isParent(p) ? syncActive(p) : p);
 
   function setCountry(code: CountryCode) {
     const country = getCountry(code);
@@ -86,7 +89,14 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
                 ))}
               </select>
             </label>
-            <ProfileSelects profile={profile} onChange={setProfile} />
+            {isParent(profile) ? (
+              <div className="stack" style={{ gap: 8 }}>
+                <span className="field-label">{t.kidsLabel}</span>
+                <KidsEditor profile={profile} onChange={setProfile} />
+              </div>
+            ) : (
+              <ProfileSelects profile={profile} onChange={setProfile} />
+            )}
             <div className="stack" style={{ gap: 4 }}>
               <span className="field-label">{t.contactTitle}</span>
               <span className="muted" style={{ fontSize: 15 }}>{t.contactText}</span>
@@ -97,7 +107,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
                 <a href="https://paper-punch.com/imprint" target="_blank" rel="noopener noreferrer">{t.legalImprint}</a>
               </span>
             </div>
-            <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(profile)}>
+            <button type="button" className="btn primary block" style={{ marginTop: "auto" }} disabled={!ready} onClick={() => onSave(finalProfile(profile))}>
               {t.save}
             </button>
           </div>
@@ -128,7 +138,10 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   }
 
   // ---------- Einrichtung: eine Frage pro Screen, zum Schluss "So funktioniert's" ----------
-  const TOTAL = 7;
+  type StepKey = "lang" | "role" | "country" | "school" | "grade" | "kids" | "theme" | "how";
+  const keys: StepKey[] = ["lang", "role", "country", "school", "grade", ...(isParent(profile) ? (["kids"] as StepKey[]) : []), "theme", "how"];
+  const TOTAL = keys.length;
+  const key = keys[Math.min(step, TOTAL) - 1];
   const country = getCountry(profile.country);
   const theme = profile.theme ?? "dark";
   // Erkanntes Land zuerst, dann die übrigen; "Anderes Land" steht immer am Ende.
@@ -147,7 +160,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
     setShowAll(false);
   }
 
-  const answered = step === 2 ? !!profile.role : step === 4 ? !!profile.schoolType : step === 5 ? profile.grade > 0 : true;
+  const answered = key === "role" ? !!profile.role : key === "school" ? !!profile.schoolType : key === "grade" ? profile.grade > 0 : key === "kids" ? kidsComplete(profile) : true;
   const role = profile.role ?? "student";
 
   const option = (key: string, label: string, on: boolean, onClick: () => void, sub?: string) => (
@@ -161,7 +174,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
   );
 
   let content: ReactNode;
-  if (step === 7) {
+  if (key === "how") {
     content = (
       <>
         <div className="ob-q">
@@ -194,7 +207,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 1) {
+  } else if (key === "lang") {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQLang}</h1><p>{t.obQLangSub}</p></div>
@@ -205,7 +218,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 2) {
+  } else if (key === "role") {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQRole}</h1><p>{t.obQRoleSub}</p></div>
@@ -214,7 +227,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 3) {
+  } else if (key === "country") {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQCountry}</h1><p>{t.obQCountrySub}</p></div>
@@ -229,13 +242,13 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 4) {
+  } else if (key === "school") {
     content = (
       <>
         <div className="ob-q"><h1>{t.obQSchoolBy[role]}</h1><p>{country.name[profile.lang]}</p></div>
         <div className="ob-opts">
           {shownSchools.map((sc) =>
-            option(sc.value, sc.label[profile.lang], profile.schoolType === sc.value, () => { setProfile((p) => ({ ...p, schoolType: sc.value })); advance(); })
+            option(sc.value, sc.label[profile.lang], profile.schoolType === sc.value, () => { setProfile((p) => syncActive({ ...p, schoolType: sc.value })); advance(); })
           )}
           {!showAll && country.schoolTypes.length > 5 && (
             <button type="button" className="ob-more" onClick={() => setShowAll(true)}>{t.obMoreSchools}</button>
@@ -243,7 +256,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
         </div>
       </>
     );
-  } else if (step === 5) {
+  } else if (key === "grade") {
     const school = country.schoolTypes.find((x) => x.value === profile.schoolType);
     content = (
       <>
@@ -256,12 +269,19 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
               className={profile.grade === g.value ? "ob-grade on" : "ob-grade"}
               aria-pressed={profile.grade === g.value}
               aria-label={g.label[profile.lang]}
-              onClick={() => { setProfile((p) => ({ ...p, grade: g.value })); advance(); }}
+              onClick={() => { setProfile((p) => syncActive({ ...p, grade: g.value })); advance(); }}
             >
               {g.value}
             </button>
           ))}
         </div>
+      </>
+    );
+  } else if (key === "kids") {
+    content = (
+      <>
+        <div className="ob-q"><h1>{t.obQKids}</h1><p>{t.obQKidsSub}</p></div>
+        <KidsEditor profile={profile} onChange={setProfile} />
       </>
     );
   } else {
@@ -305,13 +325,45 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
             type="button"
             className="btn primary block"
             disabled={last ? !ready : !answered}
-            onClick={() => (last ? onSave(profile) : go(step + 1))}
+            onClick={() => (last ? onSave(finalProfile(profile)) : go(step + 1))}
           >
             {last ? t.obLetsGo : t.next}
           </button>
-          {step !== 6 && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
+          {key !== "theme" && key !== "kids" && <span className="ob-hint">{last ? t.obFirstTime : t.obAutoNext}</span>}
         </div>
       </div>
     </LangProvider>
+  );
+}
+
+/** Eltern: Kinder mit Name (optional), Schulart und Klasse – im Onboarding und in den Einstellungen. */
+function KidsEditor({ profile, onChange }: { profile: Profile; onChange: (p: Profile) => void }) {
+  const t = DICTS[profile.lang];
+  const kids = kidsOf(profile);
+  const update = (i: number, patch: Partial<Child>) => onChange(setKids(profile, kids.map((k, j) => (j === i ? { ...k, ...patch } : k))));
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      {kids.map((k, i) => (
+        <div key={k.id} className="kid-card">
+          <div className="kid-head">
+            <input className="input set" value={k.name} maxLength={20} placeholder={t.childN(i + 1)} aria-label={t.childName} onChange={(e) => update(i, { name: e.target.value })} />
+            {kids.length > 1 && (
+              <button type="button" className="iconbtn" aria-label={t.childRemove} onClick={() => onChange(setKids(profile, kids.filter((_, j) => j !== i)))}>
+                <Icon name="close" size={18} />
+              </button>
+            )}
+          </div>
+          <LangProvider lang={profile.lang}>
+            <ProfileSelects profile={{ ...profile, schoolType: k.schoolType, grade: k.grade }} onChange={(p) => update(i, { schoolType: p.schoolType, grade: p.grade })} />
+          </LangProvider>
+        </div>
+      ))}
+      {kids.length < MAX_CHILDREN && (
+        <button type="button" className="ob-more" onClick={() => onChange(setKids(profile, [...kids, { id: newChildId(), name: "", schoolType: kids[kids.length - 1]?.schoolType ?? "", grade: 0 }]))}>
+          + {t.childAdd}
+        </button>
+      )}
+      <span className="muted" style={{ fontSize: 13, fontWeight: 600 }}>{t.childHint}</span>
+    </div>
   );
 }

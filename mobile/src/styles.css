@@ -1111,3 +1111,12 @@ h1 .beta { position: relative; top: -3px; }
 .hw-switch i { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.2s; }
 .hw-toggle.on .hw-switch { background: var(--teal); }
 .hw-toggle.on .hw-switch i { left: 21px; }
+
+/* Eltern: Kinder-Karten (Onboarding/Einstellungen) und "Für wen?"-Chips */
+.kid-card { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 18px; background: var(--surface); border: 1px solid var(--surface-2); }
+.kid-head { display: flex; align-items: center; gap: 8px; }
+.kid-head .input { flex: 1; }
+.kid-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.kid-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--surface-2); color: var(--fg); font-size: 12px; font-weight: 800; }
+.kid-chip { height: 44px; padding: 0 16px; border-radius: 14px; border: 3px solid #e5e7eb; background: #fff; color: var(--sheet-fg); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; }
+.kid-chip.on { border-color: var(--teal-dark); background: var(--ok-bg); }

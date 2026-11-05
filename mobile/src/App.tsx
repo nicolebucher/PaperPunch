@@ -24,6 +24,7 @@ import { awardRun, materialKey, POINTS, type RewardLine } from "./punches";
 import { PlanSetup } from "./screens/PlanSetup";
 import { PlanView } from "./screens/PlanView";
 import { GoHomeContext, Toast } from "./ui";
+import { activeChild, childLabel, isParent, kidsOf } from "./children";
 import { UpdateBanner } from "./appUpdate";
 
 /** Wenn Material aus einer Plan-Einheit stammt, merkt sich die App die Einheit. */
@@ -196,6 +197,16 @@ function AppInner() {
     return t.errGeneric;
   }
 
+  /** Eltern mit mehreren Kindern: Material bekommt ein Namensschild (Kind, für das es erstellt wurde). */
+  function childTag(): { childId?: string; child?: string } {
+    const p = loadProfile();
+    if (!p || !isParent(p) || kidsOf(p).length < 2) return {};
+    const kids = kidsOf(p);
+    const kid = activeChild(p);
+    if (!kid) return {};
+    return { childId: kid.id, child: childLabel(kid, kids.indexOf(kid), t.childN) };
+  }
+
   type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View };
 
   /** Fertiges Ergebnis übernehmen: Zwischentest direkt starten, sonst speichern und anzeigen. */
@@ -215,6 +226,7 @@ function AppInner() {
       sources: opts.files.length ? toStoredFiles(opts.files) : undefined,
       subject: opts.subject,
       notes: opts.notes,
+      ...childTag(),
     });
     setView({ name: "result", result, from: opts.from, materialId });
   }
@@ -373,7 +385,7 @@ function AppInner() {
           say={say}
           onBack={() => setView({ name: "home" })}
           onCreate={(format, files, topic, p, notes) => {
-            if (p.grade !== profile!.grade || p.schoolType !== profile!.schoolType) {
+            if (p.grade !== profile!.grade || p.schoolType !== profile!.schoolType || p.childId !== profile!.childId || JSON.stringify(p.children) !== JSON.stringify(profile!.children)) {
               setProfile(p);
               saveProfile(p);
             }
