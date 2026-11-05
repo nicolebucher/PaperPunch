@@ -9,12 +9,13 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.15.0 – 5 November 2026 (website; the app part ships with the next app build)
 
-Visit duration and bounce rate for the cost dashboard.
+Visit duration, bounce rate and print vs. online for the cost dashboard.
 
 | Area | Change |
 | --- | --- |
 | Website + App · Tech | Anonymous visit measurement (no cookie, no identifier, nothing stored on the device): the website and the app report once per visit the number of pages/screens and the seconds in the foreground to the new POST /api/visit-stat; only daily totals are stored in Upstash (stat:visit:<day>: visits, bounces, pages, seconds, duration classes). Bounce = only one page (app: only the start screen). Included in /api/admin/stats |
-| Website | Privacy policy section 8 (DE/EN) mentions the anonymous visit measurement |
+| Website + App · Tech | Print vs. online: anonymous daily counters per source, action and format (POST /api/use-stat, Upstash stat:use:<day>). print = PDF viewed, downloaded, printed or shared; online = solved online or game played (incl. study groups and challenges); each material counts once per action and session |
+| Website | Privacy policy section 8 (DE/EN) mentions the anonymous visit measurement and the print/online count |
 
 ## v0.14.1 – 5 November 2026 (website only)
 
