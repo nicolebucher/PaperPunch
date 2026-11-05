@@ -3,7 +3,8 @@ import { deviceLang, LangProvider, useT } from "./i18n";
 import { loadProfile } from "./storage";
 import { BrandMark, PIXEL_COLORS } from "./brand";
 import { Icon } from "./ui";
-import { learnedToday, LEVELS, levelFor, recentEntries, streakDays, totalPunches, weekPunches, type Reward } from "./punches";
+import { learnedToday, LEVELS, LEVELS_CHANGED_NOTE_UNTIL, levelFor, recentEntries, streakDays, totalPunches, weekPunches, type Reward } from "./punches";
+import { todayISO } from "./dates";
 
 // Belohnungs-Anzeige: Punches-Zähler oben, Abrechnung nach einer Einheit, Level-Aufstieg, Level-Seite.
 
@@ -194,6 +195,7 @@ export function LevelScreen({ onBack }: { onBack: () => void }) {
           </div>
         </div>
 
+        {total > 0 && todayISO() <= LEVELS_CHANGED_NOTE_UNTIL && <p className="levels-new">{t.levelsNew}</p>}
         <div className="stack" style={{ gap: 8 }}>
           <span className="eyebrow">{t.allLevels}</span>
           {LEVELS.map((l, i) => (

@@ -36,18 +36,28 @@ export const POINTS = {
   invite: 50, // einmalig fürs erste Einladen
 };
 
+// 15 Stufen mit wachsenden Abständen (v0.12): ein Lernspiel bringt ca. 450–600 Punches → Stufe 2 nach dem ersten Spiel,
+// die höchste Stufe erst nach etwa einem Schuljahr (5 Spiele pro Woche). Vorher: 10 Stufen bis 5.000 – nach ~2 Wochen erreicht.
 export const LEVELS: { at: number; name: Record<Lang, string> }[] = [
   { at: 0, name: { de: "Rookie", en: "Rookie" } },
-  { at: 100, name: { de: "Starter", en: "Starter" } },
-  { at: 250, name: { de: "Grinder", en: "Grinder" } },
-  { at: 500, name: { de: "Streak Master", en: "Streak Master" } },
-  { at: 900, name: { de: "Brainiac", en: "Brainiac" } },
-  { at: 1400, name: { de: "Pro", en: "Pro" } },
-  { at: 2000, name: { de: "Elite", en: "Elite" } },
-  { at: 2800, name: { de: "Mastermind", en: "Mastermind" } },
-  { at: 3800, name: { de: "Legend", en: "Legend" } },
-  { at: 5000, name: { de: "Unstoppable", en: "Unstoppable" } },
+  { at: 300, name: { de: "Starter", en: "Starter" } },
+  { at: 800, name: { de: "Grinder", en: "Grinder" } },
+  { at: 1600, name: { de: "Streak Master", en: "Streak Master" } },
+  { at: 3000, name: { de: "Brainiac", en: "Brainiac" } },
+  { at: 5000, name: { de: "Pro", en: "Pro" } },
+  { at: 8000, name: { de: "Elite", en: "Elite" } },
+  { at: 12000, name: { de: "Mastermind", en: "Mastermind" } },
+  { at: 18000, name: { de: "Champion", en: "Champion" } },
+  { at: 26000, name: { de: "Legend", en: "Legend" } },
+  { at: 36000, name: { de: "Titan", en: "Titan" } },
+  { at: 50000, name: { de: "Mythic", en: "Mythic" } },
+  { at: 70000, name: { de: "Grandmaster", en: "Grandmaster" } },
+  { at: 95000, name: { de: "Icon", en: "Icon" } },
+  { at: 125000, name: { de: "Unstoppable", en: "Unstoppable" } },
 ];
+
+/** Hinweis "Neue Level" bis Ende 2026 zeigen (für alle, die schon Punches hatten). */
+export const LEVELS_CHANGED_NOTE_UNTIL = "2026-12-31";
 
 function load(): PunchState {
   try {

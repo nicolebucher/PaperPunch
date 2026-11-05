@@ -7,7 +7,18 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.12.0 – 4 November 2026 (Android: version code 11)
+## v0.13.0 – 5 November 2026 (Android: version code 11, includes v0.12.0)
+
+Levels last longer: 15 levels with growing steps instead of 10 levels up to 5,000 Punches (reachable in about two weeks).
+
+| Area | Change |
+| --- | --- |
+| App + Website | 15 levels instead of 10, steps grow with each level: Rookie 0 · Starter 300 · Grinder 800 · Streak Master 1,600 · Brainiac 3,000 · Pro 5,000 · Elite 8,000 · Mastermind 12,000 · Champion 18,000 · Legend 26,000 · Titan 36,000 · Mythic 50,000 · Grandmaster 70,000 · Icon 95,000 · Unstoppable 125,000 – level 2 after the first game, the top level after roughly a school year at 5 games a week |
+| App + Website | Short note “New: 15 levels instead of 10 … you keep all your Punches” in the Punches section (app level page, website Punches popover) for everyone who already has Punches, shown until end of 2026 |
+| App + Website | Punches earned stay the same; only the thresholds changed, so existing testers may show a lower level |
+| Website | Landing page feature list: “Punches and 15 levels” |
+
+## v0.12.0 – 4 November 2026 (Android: shipped with v0.13.0, version code 11)
 
 Testers find out about new app versions inside the app.
 

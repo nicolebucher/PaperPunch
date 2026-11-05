@@ -1097,3 +1097,6 @@ h1 .beta { position: relative; top: -3px; }
 .update-go { background: var(--green); color: #111214; }
 @keyframes update-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .update-banner { animation: none; } }
+
+/* Hinweis "Neue Level" auf der Punches-Seite (bis Ende 2026) */
+.levels-new { margin: 0; border-radius: 16px; padding: 12px 14px; background: rgba(31, 214, 234, 0.12); color: var(--fg, #f4f4f5); font-size: 14px; font-weight: 700; line-height: 1.4; border: 1px solid rgba(31, 214, 234, 0.35); }

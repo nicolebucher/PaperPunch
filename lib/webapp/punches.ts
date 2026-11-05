@@ -12,16 +12,24 @@ export const JOKER_PUNCHES = 30;
 
 export const LEVELS = [
   { min: 0, name: "Rookie" },
-  { min: 100, name: "Starter" },
-  { min: 250, name: "Grinder" },
-  { min: 500, name: "Streak Master" },
-  { min: 900, name: "Brainiac" },
-  { min: 1400, name: "Pro" },
-  { min: 2000, name: "Elite" },
-  { min: 2800, name: "Mastermind" },
-  { min: 3800, name: "Legend" },
-  { min: 5000, name: "Unstoppable" },
+  { min: 300, name: "Starter" },
+  { min: 800, name: "Grinder" },
+  { min: 1600, name: "Streak Master" },
+  { min: 3000, name: "Brainiac" },
+  { min: 5000, name: "Pro" },
+  { min: 8000, name: "Elite" },
+  { min: 12000, name: "Mastermind" },
+  { min: 18000, name: "Champion" },
+  { min: 26000, name: "Legend" },
+  { min: 36000, name: "Titan" },
+  { min: 50000, name: "Mythic" },
+  { min: 70000, name: "Grandmaster" },
+  { min: 95000, name: "Icon" },
+  { min: 125000, name: "Unstoppable" },
 ] as const;
+
+/** Hinweis "Neue Level" bis Ende 2026 zeigen (für alle, die schon Punches hatten). */
+export const LEVELS_CHANGED_NOTE_UNTIL = "2026-12-31";
 
 export function totalPunches(): number {
   try {

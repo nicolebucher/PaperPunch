@@ -137,7 +137,7 @@ const en = {
     appFeatures: [
       "Study plan: enter your test date and get sessions for every day until then (beta)",
       "Reminders on study days and the day before the test",
-      "Punches and 10 levels for every correct answer",
+      "Punches and 15 levels for every correct answer",
       "Pick up where you left off – your materials and photos stay on your phone",
       "Try again with a hint before the solution is shown",
       "German and English, light and dark mode",
@@ -343,7 +343,7 @@ const de: typeof en = {
     appFeatures: [
       "Lernplan: Testdatum eingeben und für jeden Tag bis dahin Einheiten bekommen (Beta)",
       "Erinnerungen an Lerntagen und am Tag vor dem Test",
-      "Punches und 10 Level für jede richtige Antwort",
+      "Punches und 15 Level für jede richtige Antwort",
       "Weitermachen, wo du aufgehört hast – Materialien und Fotos bleiben auf deinem Handy",
       "Nochmal versuchen mit Hinweis, bevor die Lösung kommt",
       "Deutsch und Englisch, heller und dunkler Modus",

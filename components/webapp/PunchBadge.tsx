@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { learnedToday, levelFor, PUNCHES_EVENT, streakDays, totalPunches } from "@/lib/webapp/punches";
+import { learnedToday, levelFor, LEVELS_CHANGED_NOTE_UNTIL, PUNCHES_EVENT, streakDays, totalPunches } from "@/lib/webapp/punches";
 import { useAppText } from "./ui";
 
 /** Level-Ring + Punches oben rechts (wie in der App). Klick zeigt Stufe und was bis zur nächsten fehlt. */
@@ -93,6 +93,9 @@ export function PunchBadge() {
               <Flame /> {tx.streak(streak)}
               {!today && <span className="font-semibold text-zinc-500">· {tx.streakKeep}</span>}
             </span>
+          )}
+          {value > 0 && new Date().toISOString().slice(0, 10) <= LEVELS_CHANGED_NOTE_UNTIL && (
+            <span className="rounded-xl bg-[#1fd6ea]/10 px-3 py-2 text-xs font-bold leading-snug text-[#7eeaf5] ring-1 ring-[#1fd6ea]/30">{tx.punchesNewLevels}</span>
           )}
           <span className="text-xs font-semibold leading-snug text-zinc-500">{tx.punchesHow}</span>
         </div>
