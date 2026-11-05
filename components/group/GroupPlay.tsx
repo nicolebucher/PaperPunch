@@ -6,6 +6,7 @@ import type { GameData } from "@/types/generation";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { LevelPlayer } from "@/components/game/LevelPlayer";
 import { track } from "@/lib/analytics";
+import { countUse } from "@/lib/webapp/use-stat";
 import { fetchBoard, fmtTime, saveGroup, submitToGroup, timeLeft, type Board, type BoardEntry } from "@/lib/webapp/groups";
 import { isBlockedName } from "@/lib/name-filter";
 
@@ -151,6 +152,7 @@ export function GroupPlay({ code, name, lang, endsAt, game, homework = false }: 
     startedAt.current = Date.now();
     answers.current = [];
     track("group_join", { questions: total });
+    countUse("online", "group", `g:${code}`);
     setStage("play");
   }
 

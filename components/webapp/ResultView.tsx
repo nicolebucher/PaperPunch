@@ -15,6 +15,7 @@ import { AppIcon, useAppText } from "./ui";
 import { RatingCard } from "./RatingCard";
 import { GroupCreate } from "./GroupCreate";
 import { isBlockedName } from "@/lib/name-filter";
+import { countUse } from "@/lib/webapp/use-stat";
 
 function base64ToBlob(base64: string, type: string): Blob {
   const bin = atob(base64);
@@ -152,11 +153,11 @@ export function ResultView({ material }: { material: WebMaterial }) {
 
       <div className="flex flex-col gap-2.5">
         <span className="px-1 text-[13px] font-extrabold text-zinc-400">{tx.howPractice}</span>
-        {material.sheet && option("play", tx.solveOnline, tx.solveSub, () => { track("practice_start", { format: material.format }); setView("practice"); }, true)}
-        {material.game && option("play", tx.playGame, tx.solveSub, () => { track("game_start"); setView("play"); }, true)}
-        {material.sheet && option("eye", tx.viewPdf, tx.viewPdfSub, () => { track("pdf_view", { format: material.format }); setView("pdf"); })}
+        {material.sheet && option("play", tx.solveOnline, tx.solveSub, () => { track("practice_start", { format: material.format }); countUse("online", material.format, material.id); setView("practice"); }, true)}
+        {material.game && option("play", tx.playGame, tx.solveSub, () => { track("game_start"); countUse("online", "game", material.id); setView("play"); }, true)}
+        {material.sheet && option("eye", tx.viewPdf, tx.viewPdfSub, () => { track("pdf_view", { format: material.format }); countUse("print", material.format, material.id); setView("pdf"); })}
         {pdf && (
-          <a href={pdf.url} download={pdf.filename} onClick={() => track("pdf_download", { format: material.format })} className="flex w-full items-center gap-3.5 rounded-[22px] bg-[#15171b] p-4 text-left ring-1 ring-white/[0.06]">
+          <a href={pdf.url} download={pdf.filename} onClick={() => { track("pdf_download", { format: material.format }); countUse("print", material.format, material.id); }} className="flex w-full items-center gap-3.5 rounded-[22px] bg-[#15171b] p-4 text-left ring-1 ring-white/[0.06]">
             <span className="grid h-[46px] w-[46px] flex-none place-items-center rounded-[14px] bg-[#22252b]"><AppIcon name="download" size={22} /></span>
             <span className="flex min-w-0 flex-1 flex-col gap-0.5"><b className="text-[17px]">{tx.download}</b><span className="text-[13px] font-semibold text-zinc-400">{tx.downloadSub}</span></span>
             <AppIcon name="chevron" size={18} stroke={2.6} />

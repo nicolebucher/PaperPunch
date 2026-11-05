@@ -1,6 +1,7 @@
 "use client";
 
 import { track } from "@/lib/analytics";
+import { countUse } from "@/lib/webapp/use-stat";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { ChallengeRecord } from "@/lib/challenges";
@@ -92,6 +93,7 @@ export function ChallengePlay({ challenge }: { challenge: ChallengeRecord }) {
 
   function start() {
     track("challenge_accepted", { questions: total, has_target: challenge.from.pct !== undefined });
+    countUse("online", "challenge");
     try {
       if (name.trim()) localStorage.setItem(NAME_KEY, name.trim());
     } catch {

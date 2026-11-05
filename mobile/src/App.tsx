@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { noteScreen } from "./visitBeacon";
+import { countUse } from "./useStat";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
 import { clearPendingJob, clearPlanFiles, deleteMaterial, loadPendingJob, PENDING_FILES_KEY, savePendingJob, savePlanFiles, fromStoredFiles, listMaterials, toStoredFiles, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
 import { adjustPlan, ApiError, generateMaterial, sendRating, waitForJob } from "./api";
@@ -64,6 +65,11 @@ function AppInner() {
   const [toast, setToast] = useState("");
   // Screens pro Sitzung zählen (anonyme Nutzungsdauer/Absprünge, siehe visitBeacon.ts)
   useEffect(() => noteScreen(view.name), [view.name]);
+  // Online lösen/spielen zählen (anonym, siehe useStat.ts)
+  useEffect(() => {
+    if (view.name === "practice") countUse("online", view.result.format, view.materialId ?? view.result.data.title);
+    if (view.name === "quiz") countUse("online", "game", view.materialId ?? view.game.gameTitle);
+  }, [view]);
   // Logo-Animation bei jedem Start (beim allerersten Start übernimmt das Onboarding diese Rolle)
   const [splash, setSplash] = useState(() => !!loadProfile());
   // Offline-Hinweis: Üben und Spielen gespeicherter Materialien geht, Erstellen braucht Internet

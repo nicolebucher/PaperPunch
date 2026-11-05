@@ -106,6 +106,20 @@ function visitStats(h: Record<string, string>, src: string): VisitStats {
   return { visits: n("visits"), bounces: n("bounces"), pages: n("pages"), sec: n("sec"), dur };
 }
 
+// Drucken vs. online lösen (Website und App), ohne Kennung: pro Tag nur Zähler je Quelle, Aktion und Format.
+// print = PDF angesehen, heruntergeladen, gedruckt oder geteilt; online = online gelöst bzw. gespielt (gestartet).
+export type UseAction = "print" | "online";
+
+export async function recordUse(src: "web" | "app", action: UseAction, format: string): Promise<void> {
+  if (!quotaEnabled()) return;
+  try {
+    const key = `stat:use:${berlinDay()}`;
+    await redis([["HINCRBY", key, `${src}:${action}:${format.slice(0, 20)}`, 1], ["EXPIRE", key, TTL]]);
+  } catch {
+    /* egal */
+  }
+}
+
 export interface DayStats {
   day: string;
   aiUsd: number;
@@ -119,6 +133,8 @@ export interface DayStats {
   consent: { shown: number; granted: number; denied: number };
   /** Besuche Website/App (gibt es seit 5. Nov. 2026) */
   visits: { web: VisitStats; app: VisitStats };
+  /** Drucken vs. online: z. B. "web:print:worksheet" → Anzahl (gibt es seit 5. Nov. 2026 abends) */
+  use: Record<string, number>;
 }
 
 function lastDays(n: number): string[] {
@@ -152,13 +168,13 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
   for (const d of days) {
     cmds.push(["HGETALL", `stat:ai:${d}`], ["HGETALL", `stat:gen:${d}`], ["PFCOUNT", `stat:creators:${d}`]);
     cmds.push(["GET", `stat:consent:${d}:shown`], ["GET", `stat:consent:${d}:granted`], ["GET", `stat:consent:${d}:denied`]);
-    cmds.push(["HGETALL", `stat:visit:${d}`]);
+    cmds.push(["HGETALL", `stat:visit:${d}`], ["HGETALL", `stat:use:${d}`]);
   }
   const months = [...new Set(days.map(month))];
   for (const m of months) cmds.push(["PFCOUNT", `stat:creators:m:${m}`]);
   const r = await redis(cmds);
   if (!r) return null;
-  const PER = 7;
+  const PER = 8;
   const out: DayStats[] = days.map((day, i) => {
     const ai = toObj(r[i * PER]);
     const gen = toObj(r[i * PER + 1]);
@@ -190,6 +206,7 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
       creators: Number(r[i * PER + 2]) || 0,
       consent: { shown: Number(r[i * PER + 3]) || 0, granted: Number(r[i * PER + 4]) || 0, denied: Number(r[i * PER + 5]) || 0 },
       visits: { web: visitStats(toObj(r[i * PER + 6]), "web"), app: visitStats(toObj(r[i * PER + 6]), "app") },
+      use: Object.fromEntries(Object.entries(toObj(r[i * PER + 7])).map(([k, v]) => [k, Number(v) || 0])),
     };
   });
   const base = days.length * PER;

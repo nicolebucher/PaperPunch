@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
+import { countUse } from "../useStat";
 import { buildStandaloneGameHtml } from "../gameExport";
 import { Icon, type IconName } from "../ui";
 import type { GameResult, GenerateResult, MaterialFormat } from "../types";
@@ -124,6 +125,7 @@ export function Result({
           : result.format === "podcast"
             ? await shareFile({ filename: result.filename, mime: "audio/mpeg", title: result.title, base64: result.audioBase64 })
             : await shareFile({ filename: result.filename, mime: "application/pdf", title: result.data.title, base64: result.pdfBase64 });
+      if (isSheet && outcome !== "cancelled") countUse("print", result.format, result.data.title);
       if (outcome === "shared") say(t.shared);
       if (outcome === "downloaded") say(t.downloaded);
     } catch {
@@ -133,6 +135,7 @@ export function Result({
 
   async function view() {
     if (!isSheet) return;
+    countUse("print", result.format, result.data.title);
     try {
       await openPdf(result.pdfBase64, result.filename, result.data.title);
     } catch {
