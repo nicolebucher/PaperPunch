@@ -7,6 +7,19 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.14.0 – 5 November 2026 (Android: version code 12)
+
+Tester feedback (Jan): clearer creation, Punches explained, spelling hints, offline-friendly.
+
+| Area | Change |
+| --- | --- |
+| App | Fix: “Report a problem” on light practice screens – the Cancel button was invisible (dark on dark); the report box now has consistent dark styling |
+| App | Creating from a topic: the topic field is now also inside the bottom sheet; the button no longer looks dead – it says “Enter a topic first” and jumps into the field (other missing steps show a short message) |
+| App | Punches explained: the first reward shows “What are Punches?” (points for correct answers, levels from Rookie to Unstoppable, jokers); a “?” on every reward card and an explainer on the level page; the “up to … Punches” estimate on the result screen was removed |
+| App + Website | Answer check: if an answer only counts thanks to tolerance (one typo, missing umlaut – “aphel”, “Apfel” for “Äpfel”), the app says “Correct! Watch the spelling: Äpfel”; spelling exercises (title/subject mentions spelling, Rechtschreibung, Diktat) are checked strictly without typo tolerance or AI leniency |
+| App | Offline: a banner says “Offline – practising and playing work, creating needs internet”; reports and ratings made offline are kept in an outbox on the phone and sent automatically when back online (max. 50, 14 days) |
+| Website · Tech | AI prompts: language-quality rule – idiomatic, native wording (e.g. “Stell dir vor”, never “Male dir vor”) and a final wording/grammar re-read of all questions, options and explanations |
+
 ## v0.13.0 – 5 November 2026 (Android: version code 11, includes v0.12.0)
 
 Levels last longer, the app asks who is using it (parents can add several children), and teachers get a results view and homework for their study groups.

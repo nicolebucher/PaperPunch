@@ -63,6 +63,18 @@ function AppInner() {
   const [toast, setToast] = useState("");
   // Logo-Animation bei jedem Start (beim allerersten Start übernimmt das Onboarding diese Rolle)
   const [splash, setSplash] = useState(() => !!loadProfile());
+  // Offline-Hinweis: Üben und Spielen gespeicherter Materialien geht, Erstellen braucht Internet
+  const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine !== false));
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
   const endSplash = useCallback(() => setSplash(false), []);
   const [materials, setMaterials] = useState<StoredMaterial[]>([]);
   const toastTimer = useRef<number>();
@@ -593,6 +605,9 @@ function AppInner() {
         </div>
       ) : (
         toast && <Toast text={toast} />
+      )}
+      {!online && !splash && (view.name === "home" || view.name === "capture" || view.name === "materials" || view.name === "plan") && (
+        <div className="offline-bar" role="status">{t.offlineBar}</div>
       )}
       <UpdateBanner visible={!splash && !undoItem && !toast && (view.name === "home" || view.name === "materials" || view.name === "plan")} />
       {splash && <Splash onDone={endSplash} />}

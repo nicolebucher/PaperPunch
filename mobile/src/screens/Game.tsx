@@ -7,6 +7,7 @@ import { PunchIcon } from "../rewards";
 import { POINTS, spend, totalPunches, type RewardLine } from "../punches";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
+import { isSpellingContext } from "../answerMatch";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
@@ -290,7 +291,7 @@ function LevelPlay({
     }
     setStatus("checking");
     const prev = status;
-    const result = await checkTypedAnswer({ question: q.prompt, expected: answer, accepted: q.acceptedAnswers, given: value, lang });
+    const result = await checkTypedAnswer({ question: q.prompt, expected: answer, accepted: q.acceptedAnswers, given: value, lang, strict: isSpellingContext(`${subject ?? ""} ${gameTitle ?? ""} ${title}`) });
     // Status vor dem Prüfen wiederherstellen, damit handle() den richtigen Versuch erkennt
     setStatus(prev);
     if (result.error && !checkFailedOnce) {

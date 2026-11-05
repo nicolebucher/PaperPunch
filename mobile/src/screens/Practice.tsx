@@ -6,6 +6,7 @@ import type { QuizOutcome, Task } from "../types";
 import { POINTS, type RewardLine } from "../punches";
 import { hapticRight, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
+import { isSpellingContext } from "../answerMatch";
 import type { PracticeProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
 
@@ -103,7 +104,7 @@ export function Practice({
     }
     const prev = status;
     setStatus("checking");
-    const result = await checkTypedAnswer({ question: task.question, expected: task.answer, accepted: task.acceptedAnswers, given: value, lang });
+    const result = await checkTypedAnswer({ question: task.question, expected: task.answer, accepted: task.acceptedAnswers, given: value, lang, strict: isSpellingContext(title) });
     setStatus(prev);
     if (result.error && !checkFailedOnce) {
       // Prüfung ging nicht (offline, Limit) – beim ersten Mal zählt das nicht als Versuch, danach gilt der Vergleich in der App.

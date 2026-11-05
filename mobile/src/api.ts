@@ -1,6 +1,7 @@
 import type { GameResult, GenerateResult, MaterialFormat, PlanGoal, Profile, QuizOutcome, StudyPlan } from "./types";
 import { daysBetween, todayISO } from "./dates";
-import { answerMatches } from "./answerMatch";
+import { answerMatches, spellingNote } from "./answerMatch";
+import { postOrQueue } from "./outbox";
 import { deviceId } from "./device";
 
 // Die App hat keine eigene KI-Schnittstelle: Sie ruft die API der Website auf.
@@ -127,12 +128,10 @@ export interface ReportPayload {
 }
 
 /** "Fehler melden" an einer Frage – geht ins Feedback-Sheet der Website. */
+/** Meldung senden – offline wird sie im Postausgang gemerkt und später nachgeschickt (zählt trotzdem als "gesendet"). */
 export async function reportProblem(p: ReportPayload): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/api/report`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    await postOrQueue(`${API_BASE}/api/report`, {
         ...p,
         question: p.question.slice(0, 1000),
         expected: p.expected?.slice(0, 400),
@@ -142,9 +141,8 @@ export async function reportProblem(p: ReportPayload): Promise<boolean> {
         subject: p.subject?.slice(0, 80),
         level: p.level?.slice(0, 120),
         note: p.note?.slice(0, 1000),
-      }),
     });
-    return res.ok;
+    return true;
   } catch {
     return false;
   }
@@ -222,8 +220,14 @@ export interface CheckResult {
  * Prüft eine getippte Antwort: erst tolerant auf dem Gerät, nur im Zweifel per KI (kurzer Aufruf).
  * Ohne Verbindung zählt das Ergebnis des Vergleichs auf dem Gerät.
  */
-export async function checkTypedAnswer(opts: { question: string; expected: string; accepted?: string[]; given: string; lang: string }): Promise<CheckResult> {
-  if (answerMatches(opts.given, opts.expected, opts.accepted, opts.question)) return { correct: true, feedback: "" };
+export async function checkTypedAnswer(opts: { question: string; expected: string; accepted?: string[]; given: string; lang: string; strict?: boolean }): Promise<CheckResult> {
+  if (answerMatches(opts.given, opts.expected, opts.accepted, opts.question, opts.strict)) {
+    // Mit Tippfehler/ohne Umlaut richtig gewertet → richtige Schreibweise zeigen
+    const note = opts.strict ? null : spellingNote(opts.given, opts.expected, opts.accepted, opts.question);
+    return { correct: true, feedback: note ? (opts.lang === "en" ? `Watch the spelling: ${note}` : `Achte auf die Schreibweise: ${note}`) : "" };
+  }
+  // Rechtschreib-Übung: keine KI-Kulanz – falsch geschrieben ist falsch
+  if (opts.strict) return { correct: false, feedback: "" };
   try {
     const res = await fetch(`${API_BASE}/api/check`, {
       method: "POST",
@@ -255,10 +259,7 @@ export async function sendRating(r: {
   score?: { correct: number; total: number };
 }): Promise<void> {
   try {
-    await fetch(`${API_BASE}/api/rating`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    await postOrQueue(`${API_BASE}/api/rating`, {
         stars: r.stars,
         text: r.text,
         format: r.format,
@@ -271,10 +272,9 @@ export async function sendRating(r: {
         role: r.profile.role,
         score: r.score,
         source: "app",
-      }),
     });
   } catch {
-    // offline: Bewertung geht verloren, das ist okay
+    // Postausgang nicht verfügbar – egal
   }
 }
 

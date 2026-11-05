@@ -36,7 +36,18 @@ topic. Stay strictly on this topic, and keep every fact correct.`;
  * the language of the uploaded material, or of what the student typed - never the app/UI language.
  * The UI locale is only the fallback when the input gives no clear signal.
  */
+/** Natürliche, kindgerechte Sprache – kein Übersetzungsdeutsch (Feedback: "Male dir vor" statt "Stell dir vor"). */
+const NATURAL_LANGUAGE = `Language quality rule: write the way a good native-speaking teacher of that grade would write -
+idiomatic, natural phrasing, never word-for-word translations or invented idioms. German examples:
+"Stell dir vor" (never "Male dir vor"), "Wie viele ... sind es?", "Wer hat mehr ...?". Before finishing, re-read
+every question, option and explanation once purely for wording, grammar and spelling and fix anything a
+native speaker would find odd.`;
+
 export function contentLanguage(hasMaterial: boolean, locale: Locale, fields: string): string {
+  return `${contentLanguageRule(hasMaterial, locale, fields)}\n\n${NATURAL_LANGUAGE}`;
+}
+
+function contentLanguageRule(hasMaterial: boolean, locale: Locale, fields: string): string {
   if (hasMaterial) {
     return `Output language rule (critical): detect the language of the attached material and write all content
 (${fields}) in that same language - regardless of the language of these instructions and regardless of

@@ -84,8 +84,39 @@ function listKey(s: string): string {
   return s.replace(/\s*(?:,|;|\/|&|\+|\bund\b|\band\b|\bsowie\b)\s*/g, " ").replace(/\s+/g, " ").trim();
 }
 
-/** true, wenn `given` als richtig gilt. `prompt` (optional) = Aufgabentext mit "___" für Lückentexte. */
-export function answerMatches(given: string, expected: string, accepted: string[] = [], prompt = ""): boolean {
+/** Rechtschreib-Übungen: dort zählt jeder Buchstabe (keine Tippfehler-Toleranz, Umlaute müssen stimmen). */
+export function isSpellingContext(text: string): boolean {
+  return /rechtschreib|spelling|diktat|schreibweise|gro(ß|ss)- und kleinschreibung/i.test(text);
+}
+
+/** Wie fold, aber Umlaute/ß bleiben – um "äpfel" von "apfel" zu unterscheiden. */
+function foldKeep(s: string): string {
+  return s.toLowerCase().replace(/[“”„"'`´’]/g, "").replace(/[.,;:!?]+$/g, "").replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Wurde die Antwort nur dank Toleranz als richtig gewertet (Tippfehler, fehlende Umlaute)?
+ * Dann die richtige Schreibweise zurückgeben, damit die App "Achte auf die Schreibweise: Äpfel" zeigen kann.
+ */
+export function spellingNote(given: string, expected: string, accepted: string[] = [], prompt = ""): string | null {
+  if (!answerMatches(given, expected, accepted, prompt)) return null;
+  const g = foldKeep(given).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "");
+  if (asNumber(g) !== null) return null;
+  for (const a of [expected, ...accepted]) {
+    const k = foldKeep(a);
+    if (g === k || g === k.replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "")) return null;
+  }
+  // Nur melden, wenn die Antwort wirklich nah an der erwarteten Schreibweise liegt (nicht bei Varianten/Listen)
+  const e = foldKeep(expected).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "");
+  return distance(fold(g), fold(e)) <= 2 && (fold(g) !== fold(e) || g !== e) ? expected : null;
+}
+
+/** true, wenn `given` als richtig gilt. `prompt` (optional) = Aufgabentext mit "___" für Lückentexte. `strict` = Rechtschreib-Übung. */
+export function answerMatches(given: string, expected: string, accepted: string[] = [], prompt = "", strict = false): boolean {
+  if (strict) {
+    const g = foldKeep(given);
+    return !!g && [expected, ...accepted].some((a) => foldKeep(a) === g);
+  }
   const g = fold(given).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "");
   if (!g) return false;
   const answers = [expected, ...accepted];

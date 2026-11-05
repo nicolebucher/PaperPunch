@@ -103,6 +103,7 @@ export function Result({
     : result.format === "game"
       ? Math.max(3, Math.round(questionTotal / 3))
       : 0;
+  // Punches-Vorschau entfernt (Tester-Feedback: verwirrt eher) – Wert bleibt für spätere Nutzung berechnet
   const maxPunches = isSheet
     ? result.data.tasks.length * POINTS.sheetAnswer
     : result.format === "game"
@@ -209,9 +210,8 @@ export function Result({
           <span className="result-e-ready">{t.resultReady(result.format)}</span>
           <h1 className="result-e-title">{title}</h1>
           {meta && <span className="result-e-meta">{meta}</span>}
-          {(maxPunches > 0 || isSheet) && (
+          {isSheet && (
             <span className="result-e-chips">
-              {maxPunches > 0 && <span className="result-e-punches">{t.upToPunches(maxPunches)}</span>}
               {isSheet && (
                 <button type="button" className="result-e-preview" onClick={() => setPreview(true)}>
                   <Icon name="eye" size={16} stroke={2.2} /> {t.preview}

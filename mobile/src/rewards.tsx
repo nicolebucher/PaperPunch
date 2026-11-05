@@ -68,9 +68,27 @@ function LevelBar({ total }: { total: number }) {
   );
 }
 
+const PUNCH_INTRO_KEY = "paperpunch-punch-intro";
+
 function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => void }) {
   const { t, lang } = useT();
   const [phase, setPhase] = useState<"sum" | "levelup">("sum");
+  // Beim allerersten Mal (und über "?") erklären, was Punches sind – Tester-Feedback "Punches verstehe ich nicht"
+  const [explain, setExplain] = useState(() => {
+    try {
+      return !localStorage.getItem(PUNCH_INTRO_KEY);
+    } catch {
+      return false;
+    }
+  });
+  function close() {
+    try {
+      localStorage.setItem(PUNCH_INTRO_KEY, "1");
+    } catch {
+      /* egal */
+    }
+    onClose();
+  }
   const shown = useCountUp(0, reward.total);
   const runningTotal = useCountUp(reward.before, reward.after, 1200);
   const lvlAfter = levelFor(reward.after);
@@ -86,7 +104,7 @@ function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => voi
         <span className="eyebrow">{t.levelUpTitle}</span>
         <h1 className="display levelup-name">{lvlAfter.current.name[lang]}</h1>
         <p className="muted">{t.levelNumber(lvlAfter.number)}</p>
-        <button type="button" className="btn primary block" style={{ marginTop: 24 }} onClick={onClose}>{t.great}</button>
+        <button type="button" className="btn primary block" style={{ marginTop: 24 }} onClick={close}>{t.great}</button>
       </div>
     );
   }
@@ -94,8 +112,12 @@ function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => voi
   return (
     <div className="reward-backdrop" role="dialog" aria-label={t.rewardTitle}>
       <div className="reward-card">
-        <span className="eyebrow"><PunchIcon /> {t.rewardTitle}</span>
+        <div className="reward-head">
+          <span className="eyebrow"><PunchIcon /> {t.rewardTitle}</span>
+          <button type="button" className="punch-help" aria-expanded={explain} aria-label={t.punchesWhat} onClick={() => setExplain((e) => !e)}>?</button>
+        </div>
         <div className="reward-big">+{shown}</div>
+        {explain && <PunchExplainer />}
         {reward.total === 0 ? (
           <p className="muted" style={{ textAlign: "center" }}>{t.rewardRepeat}</p>
         ) : (
@@ -122,7 +144,7 @@ function RewardOverlay({ reward, onClose }: { reward: Reward; onClose: () => voi
           <LevelBar total={runningTotal} />
           {lvlAfter.next && <span className="muted" style={{ fontSize: 13 }}>{t.toNextLevel(lvlAfter.toNext, lvlAfter.next.name[lang])}</span>}
         </div>
-        <button type="button" className="btn primary block" onClick={() => (reward.levelUp ? setPhase("levelup") : onClose())}>
+        <button type="button" className="btn primary block" onClick={() => (reward.levelUp ? setPhase("levelup") : close())}>
           {t.next}
         </button>
       </div>
@@ -163,6 +185,21 @@ export function RewardProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** Kurz erklärt: wofür es Punches gibt und was man davon hat. */
+export function PunchExplainer() {
+  const { t } = useT();
+  return (
+    <div className="punch-explainer">
+      <b>{t.punchesWhat}</b>
+      <ul>
+        <li>{t.punchesExplain1}</li>
+        <li>{t.punchesExplain2}</li>
+        <li>{t.punchesExplain3}</li>
+      </ul>
+    </div>
+  );
+}
+
 /** Level-Seite: Titel, Punches, Woche, alle Stufen, letzte Einträge. */
 export function LevelScreen({ onBack }: { onBack: () => void }) {
   const { t, lang } = useT();
@@ -186,6 +223,7 @@ export function LevelScreen({ onBack }: { onBack: () => void }) {
           <LevelBar total={total} />
           {lvl.next ? <span className="muted" style={{ fontSize: 14 }}>{t.toNextLevel(lvl.toNext, lvl.next.name[lang])}</span> : <span className="muted">{t.maxLevel}</span>}
         </div>
+        <PunchExplainer />
         <div className="grid2">
           <div className="card"><span className="muted" style={{ fontSize: 13, fontWeight: 700 }}>{t.thisWeek}</span><b style={{ fontSize: 24 }}>+{weekPunches()}</b></div>
           <div className="card">

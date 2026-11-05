@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useT } from "../i18n";
 import { addFiles, formatMb, isNative, MAX_BYTES, MAX_FILES, takeNativePhoto, totalBytes, type FileError } from "../files";
 import { FileChips, FilePick, FORMATS, Icon, ProfileSelects, TopBar } from "../ui";
@@ -32,6 +32,7 @@ export function Capture({
   const [notes, setNotes] = useState("");
   const [format, setFormat] = useState<MaterialFormat | null>(initialFormat ?? null);
   const [profile, setProfile] = useState(initialProfile);
+  const sheetTopicRef = useRef<HTMLInputElement | null>(null);
   // Lehrkräfte: eigene Fächer statt Beispiel-Ideen (Antippen setzt "Mathe: " – dann das Thema dahinter tippen)
   const teacherSubjects = initialProfile.role === "teacher" ? initialProfile.subjects ?? [] : [];
   const [flash, setFlash] = useState(false);
@@ -193,6 +194,13 @@ export function Capture({
                 </div>
               )}
 
+              {mode === "topic" && (
+                <label className="field">
+                  {t.topicLabel}
+                  <input ref={sheetTopicRef} className="input sheet-topic" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder={t.topicPlaceholder} maxLength={60} />
+                </label>
+              )}
+
               <div className="grid2">
                 {FORMATS.map((f) => (
                   f === "podcast" ? (
@@ -258,8 +266,16 @@ export function Capture({
                 <button
                   type="button"
                   className="btn dark block"
-                  disabled={!!blocker}
-                  onClick={() => format && onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim())}
+                  aria-disabled={!!blocker}
+                  onClick={() => {
+                    // Statt eines toten Buttons: sagen, was fehlt, und beim Thema direkt ins Feld springen
+                    if (blocker) {
+                      if (blocker === t.needTopic) sheetTopicRef.current?.focus();
+                      else say(blocker);
+                      return;
+                    }
+                    if (format) onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim());
+                  }}
                 >
                   {blocker || t.create}
                 </button>
