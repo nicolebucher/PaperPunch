@@ -7,6 +7,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.15.0 – 5 November 2026 (website; the app part ships with the next app build)
+
+Visit duration and bounce rate for the cost dashboard.
+
+| Area | Change |
+| --- | --- |
+| Website + App · Tech | Anonymous visit measurement (no cookie, no identifier, nothing stored on the device): the website and the app report once per visit the number of pages/screens and the seconds in the foreground to the new POST /api/visit-stat; only daily totals are stored in Upstash (stat:visit:<day>: visits, bounces, pages, seconds, duration classes). Bounce = only one page (app: only the start screen). Included in /api/admin/stats |
+| Website | Privacy policy section 8 (DE/EN) mentions the anonymous visit measurement |
+
 ## v0.14.1 – 5 November 2026 (website only)
 
 Bug fix after a teacher report.
