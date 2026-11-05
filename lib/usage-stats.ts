@@ -60,6 +60,52 @@ export async function recordCreation(subject: string, format: string): Promise<v
   }
 }
 
+// Besuchsdauer und Absprünge (Website und App), ohne Kennung und ohne Cookie: der Browser bzw. die App
+// schickt beim Verlassen einmal {Seiten/Screens, Sekunden}; gespeichert werden nur Tagessummen.
+// Absprung = Besuch mit nur einer Seite (App: nur der Startscreen). Sekunden pro Besuch gedeckelt (1 h).
+export const DURATION_BUCKETS = [10, 30, 60, 180, 600] as const; // Obergrenzen in Sekunden, darüber "600+"
+
+export function durationBucket(sec: number): string {
+  const b = DURATION_BUCKETS.find((x) => sec < x);
+  return b === undefined ? "600+" : `<${b}`;
+}
+
+export async function recordVisit(src: "web" | "app", pages: number, seconds: number): Promise<void> {
+  if (!quotaEnabled()) return;
+  try {
+    const day = berlinDay();
+    const key = `stat:visit:${day}`;
+    const p = Math.max(1, Math.min(200, Math.round(pages)));
+    const sec = Math.max(0, Math.min(3600, Math.round(seconds)));
+    await redis([
+      ["HINCRBY", key, `${src}:visits`, 1],
+      ["HINCRBY", key, `${src}:bounces`, p <= 1 ? 1 : 0],
+      ["HINCRBY", key, `${src}:pages`, p],
+      ["HINCRBY", key, `${src}:sec`, sec],
+      ["HINCRBY", key, `${src}:d:${durationBucket(sec)}`, 1],
+      ["EXPIRE", key, TTL],
+    ]);
+  } catch {
+    /* egal */
+  }
+}
+
+export interface VisitStats {
+  visits: number;
+  bounces: number;
+  pages: number;
+  sec: number;
+  /** Anzahl Besuche je Dauer-Klasse ("<10", "<30", "<60", "<180", "<600", "600+") */
+  dur: Record<string, number>;
+}
+
+function visitStats(h: Record<string, string>, src: string): VisitStats {
+  const n = (k: string) => Number(h[`${src}:${k}`]) || 0;
+  const dur: Record<string, number> = {};
+  for (const b of [...DURATION_BUCKETS.map((x) => `<${x}`), "600+"]) dur[b] = n(`d:${b}`);
+  return { visits: n("visits"), bounces: n("bounces"), pages: n("pages"), sec: n("sec"), dur };
+}
+
 export interface DayStats {
   day: string;
   aiUsd: number;
@@ -71,6 +117,8 @@ export interface DayStats {
   generated: Record<string, number>;
   creators: number;
   consent: { shown: number; granted: number; denied: number };
+  /** Besuche Website/App (gibt es seit 5. Nov. 2026) */
+  visits: { web: VisitStats; app: VisitStats };
 }
 
 function lastDays(n: number): string[] {
@@ -104,14 +152,16 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
   for (const d of days) {
     cmds.push(["HGETALL", `stat:ai:${d}`], ["HGETALL", `stat:gen:${d}`], ["PFCOUNT", `stat:creators:${d}`]);
     cmds.push(["GET", `stat:consent:${d}:shown`], ["GET", `stat:consent:${d}:granted`], ["GET", `stat:consent:${d}:denied`]);
+    cmds.push(["HGETALL", `stat:visit:${d}`]);
   }
   const months = [...new Set(days.map(month))];
   for (const m of months) cmds.push(["PFCOUNT", `stat:creators:m:${m}`]);
   const r = await redis(cmds);
   if (!r) return null;
+  const PER = 7;
   const out: DayStats[] = days.map((day, i) => {
-    const ai = toObj(r[i * 6]);
-    const gen = toObj(r[i * 6 + 1]);
+    const ai = toObj(r[i * PER]);
+    const gen = toObj(r[i * PER + 1]);
     const aiByKind: DayStats["aiByKind"] = {};
     const aiByModel: Record<string, number> = {};
     let usd = 0;
@@ -137,10 +187,11 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
       aiByKind,
       aiByModel,
       generated: Object.fromEntries(Object.entries(gen).map(([k, v]) => [k, Number(v) || 0])),
-      creators: Number(r[i * 6 + 2]) || 0,
-      consent: { shown: Number(r[i * 6 + 3]) || 0, granted: Number(r[i * 6 + 4]) || 0, denied: Number(r[i * 6 + 5]) || 0 },
+      creators: Number(r[i * PER + 2]) || 0,
+      consent: { shown: Number(r[i * PER + 3]) || 0, granted: Number(r[i * PER + 4]) || 0, denied: Number(r[i * PER + 5]) || 0 },
+      visits: { web: visitStats(toObj(r[i * PER + 6]), "web"), app: visitStats(toObj(r[i * PER + 6]), "app") },
     };
   });
-  const base = days.length * 6;
+  const base = days.length * PER;
   return { days: out, months: months.map((m, j) => ({ month: m, creators: Number(r[base + j]) || 0 })), week: await weekQuota() };
 }

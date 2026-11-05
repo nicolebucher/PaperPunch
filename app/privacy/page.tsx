@@ -88,7 +88,9 @@ function PrivacyEn() {
             We use Vercel Web Analytics to understand overall traffic (e.g. page views, referring pages). It is
             cookie-free and does not use persistent identifiers to track you across visits or sites; data is
             aggregated and no individual profile is built. We also count, per day and without any identifier, how often
-            the cookie banner was shown, accepted or declined.
+            the cookie banner was shown, accepted or declined. In the same way, the website and the app report once per
+            visit how long it lasted and how many pages or screens were viewed; we store only daily totals, without any
+            identifier, cookie or data on your device.
           </p>
           <p className="mt-2">
             Only if you click “Accept” in the cookie banner do we also use Google Analytics 4 (Google Ireland
@@ -267,7 +269,9 @@ function PrivacyDe() {
             verweisende Seiten). Der Dienst ist cookie-frei und verwendet keine dauerhaften Kennungen, um dich
             über Besuche oder Websites hinweg zu verfolgen; die Daten werden aggregiert, es wird kein
             individuelles Profil erstellt. Außerdem zählen wir pro Tag und ohne jede Kennung, wie oft das Cookie-Banner
-            angezeigt, akzeptiert oder abgelehnt wurde.
+            angezeigt, akzeptiert oder abgelehnt wurde. Ebenso melden Website und App einmal pro Besuch, wie lange er
+            gedauert hat und wie viele Seiten bzw. Bildschirme aufgerufen wurden; gespeichert werden nur Tagessummen,
+            ohne Kennung, ohne Cookie und ohne Daten auf deinem Gerät.
           </p>
           <p className="mt-2">
             Nur wenn du im Cookie-Banner auf „Akzeptieren“ klickst, nutzen wir zusätzlich Google Analytics 4

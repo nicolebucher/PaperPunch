@@ -7,7 +7,7 @@ import { deviceId } from "./device";
 // Die App hat keine eigene KI-Schnittstelle: Sie ruft die API der Website auf.
 // Standard ist die feste Vercel-Adresse der Website – sie funktioniert immer, auch bevor paper-punch.com
 // eingerichtet ist. Mit VITE_API_BASE (z. B. in .env.local) lässt sich eine andere Adresse setzen.
-const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "https://snap-it-new.vercel.app";
+export const API_BASE = (import.meta.env.VITE_API_BASE as string | undefined)?.replace(/\/$/, "") || "https://snap-it-new.vercel.app";
 
 export class ApiError extends Error {
   constructor(message: string, readonly network = false, readonly code?: string) {

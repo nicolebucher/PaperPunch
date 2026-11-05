@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { noteScreen } from "./visitBeacon";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
 import { clearPendingJob, clearPlanFiles, deleteMaterial, loadPendingJob, PENDING_FILES_KEY, savePendingJob, savePlanFiles, fromStoredFiles, listMaterials, toStoredFiles, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
 import { adjustPlan, ApiError, generateMaterial, sendRating, waitForJob } from "./api";
@@ -61,6 +62,8 @@ function AppInner() {
   const [plans, setPlansState] = useState<ActivePlan[]>(() => loadPlans());
   const [view, setView] = useState<View>(() => (loadProfile() ? { name: "home" } : { name: "onboarding" }));
   const [toast, setToast] = useState("");
+  // Screens pro Sitzung zählen (anonyme Nutzungsdauer/Absprünge, siehe visitBeacon.ts)
+  useEffect(() => noteScreen(view.name), [view.name]);
   // Logo-Animation bei jedem Start (beim allerersten Start übernimmt das Onboarding diese Rolle)
   const [splash, setSplash] = useState(() => !!loadProfile());
   // Offline-Hinweis: Üben und Spielen gespeicherter Materialien geht, Erstellen braucht Internet

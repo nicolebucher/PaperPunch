@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { LanguageProvider } from "@/lib/i18n/language-context";
 import { ConsentAnalytics } from "@/components/consent/ConsentAnalytics";
+import { VisitBeacon } from "@/components/VisitBeacon";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <ConsentAnalytics />
         </LanguageProvider>
         <Analytics />
+        <VisitBeacon />
       </body>
     </html>
   );
