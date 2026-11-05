@@ -19,7 +19,7 @@ export function Materials({
   const { t, lang } = useT();
   const [editing, setEditing] = useState(false);
   // Eltern mit mehreren Kindern: nach Kind filtern
-  const kids = [...new Map(materials.filter((m) => m.childId && m.child).map((m) => [m.childId!, m.child!])).entries()];
+  const kids = [...new Map(materials.filter((m) => m.childId && m.child).map((m) => [m.childId!, m.child!] as [string, string])).entries()];
   const [kid, setKid] = useState<string | null>(null);
   const shown = kid ? materials.filter((m) => m.childId === kid) : materials;
 

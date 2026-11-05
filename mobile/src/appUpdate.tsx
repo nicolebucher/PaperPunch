@@ -67,7 +67,7 @@ type Phase = { kind: "hidden" } | { kind: "available"; code?: string } | { kind:
 
 /** Kleiner Banner unten: "Neue Version verfügbar" → Laden → "Update bereit – Neu starten". */
 export function UpdateBanner({ visible }: { visible: boolean }) {
-  const t = useT();
+  const { t } = useT();
   const [phase, setPhase] = useState<Phase>({ kind: "hidden" });
   const listener = useRef<PluginListenerHandle | null>(null);
 
