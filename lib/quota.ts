@@ -39,7 +39,7 @@ export function quotaSubject(device: unknown, ip: string): string {
   return createHash("sha256").update(`pp-quota:${id}`).digest("hex").slice(0, 24);
 }
 
-async function redis(commands: (string | number)[][]): Promise<unknown[] | null> {
+export async function redis(commands: (string | number)[][]): Promise<unknown[] | null> {
   const url = REDIS_URL();
   const token = REDIS_TOKEN();
   if (!url || !token) return null;

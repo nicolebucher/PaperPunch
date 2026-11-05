@@ -19,6 +19,7 @@ Tester feedback (Jan): clearer creation, Punches explained, spelling hints, offl
 | App + Website | Answer check: if an answer only counts thanks to tolerance (one typo, missing umlaut – “aphel”, “Apfel” for “Äpfel”), the app says “Correct! Watch the spelling: Äpfel”; spelling exercises (title/subject mentions spelling, Rechtschreibung, Diktat) are checked strictly without typo tolerance or AI leniency |
 | App | Offline: a banner says “Offline – practising and playing work, creating needs internet”; reports and ratings made offline are kept in an outbox on the phone and sent automatically when back online (max. 50, 14 days) |
 | Website · Tech | AI prompts: language-quality rule – idiomatic, native wording (e.g. “Stell dir vor”, never “Male dir vor”) and a final wording/grammar re-read of all questions, options and explanations |
+| Website · Tech | Real usage numbers for the cost dashboard (Upstash, sums only): every Claude call records tokens and cost (by model and call type), every created material its format, and unique creators per day/month as HyperLogLog of the hashed device key; new GET /api/admin/stats (key STATS_KEY) |
 
 ## v0.13.0 – 5 November 2026 (Android: version code 11, includes v0.12.0)
 

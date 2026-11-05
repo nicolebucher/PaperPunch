@@ -16,6 +16,7 @@ import { renderWorksheetPdf } from "@/lib/pdf/render-worksheet-pdf";
 import { renderTestPdf } from "@/lib/pdf/render-test-pdf";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { countCreation, getQuota, quotaSubject } from "@/lib/quota";
+import { recordCreation } from "@/lib/usage-stats";
 import { slugify } from "@/lib/slugify";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
 import { preflight, withCors } from "@/lib/cors";
@@ -110,7 +111,7 @@ async function handleGenerate(request: NextRequest) {
     }
   }
   const countIfOk = async (res: NextResponse) => {
-    if (counts && res.ok) await countCreation(quotaKey);
+    if (counts && res.ok) await Promise.all([countCreation(quotaKey), recordCreation(quotaKey, String(format))]);
     return res;
   };
 

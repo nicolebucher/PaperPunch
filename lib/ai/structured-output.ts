@@ -2,6 +2,7 @@ import { z } from "zod";
 import type Anthropic from "@anthropic-ai/sdk";
 import { getClaudeClient } from "./claude-client";
 import { currentModel, recordUsage } from "./model-context";
+import { recordAiUsage } from "@/lib/usage-stats";
 
 type MessageContent = Anthropic.Messages.MessageParam["content"];
 
@@ -59,6 +60,8 @@ export async function generateStructuredOutput<T extends z.ZodTypeAny>({
     });
     const message = await stream.finalMessage();
     recordUsage(message.usage.input_tokens, message.usage.output_tokens);
+    // Echte Kosten fürs Kosten-Dashboard mitschreiben (Upstash, nur Summen)
+    await recordAiUsage(message.model || currentModel(), toolName, message.usage.input_tokens, message.usage.output_tokens);
 
     if (message.stop_reason === "max_tokens") {
       lastError = "Antwort wurde wegen Längenbegrenzung abgeschnitten";
