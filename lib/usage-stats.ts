@@ -1,4 +1,4 @@
-import { berlinDay, quotaEnabled, redis } from "@/lib/quota";
+import { berlinDay, quotaEnabled, redis, weekKey } from "@/lib/quota";
 
 // Echte Nutzungs- und Kostenzahlen fürs Kosten-Dashboard (Upstash Redis, nur Summen, keine Inhalte):
 // - jede Claude-Anfrage: Tokens und Kosten in Mikro-US-Dollar, nach Art des Aufrufs (toolName)
@@ -86,7 +86,18 @@ const toObj = (arr: unknown): Record<string, string> => {
 };
 
 /** Zahlen der letzten `n` Tage plus eindeutige Ersteller:innen pro Monat. */
-export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number }[] } | null> {
+/** Kontingent dieser Woche: wie viele Geräte wie viele Materialien erstellt haben (gibt es seit 4. Nov. 2026). */
+async function weekQuota(): Promise<{ week: string; devices: number; creations: number }> {
+  const week = weekKey();
+  const keys = (await redis([["KEYS", `quota:${week}:*`]]))?.[0];
+  const list = Array.isArray(keys) ? (keys as string[]).slice(0, 2000) : [];
+  if (!list.length) return { week, devices: 0, creations: 0 };
+  const vals = (await redis([["MGET", ...list]]))?.[0];
+  const creations = Array.isArray(vals) ? vals.reduce((s: number, v) => s + (Number(v) || 0), 0) : 0;
+  return { week, devices: list.length, creations };
+}
+
+export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number }[]; week: { week: string; devices: number; creations: number } } | null> {
   if (!quotaEnabled()) return null;
   const days = lastDays(Math.min(Math.max(n, 1), 120));
   const cmds: (string | number)[][] = [];
@@ -131,5 +142,5 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
     };
   });
   const base = days.length * 6;
-  return { days: out, months: months.map((m, j) => ({ month: m, creators: Number(r[base + j]) || 0 })) };
+  return { days: out, months: months.map((m, j) => ({ month: m, creators: Number(r[base + j]) || 0 })), week: await weekQuota() };
 }
