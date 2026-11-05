@@ -13,6 +13,10 @@ import { fetchTeacherReport, fmtTime, saveGroup, timeLeft } from "@/lib/webapp/g
 const TEXT = {
   de: {
     eyebrow: "Lerngruppe · Auswertung für Lehrkräfte",
+    hwEyebrow: "Hausaufgabe · Auswertung für Lehrkräfte",
+    done: "Erledigt",
+    ranking: "Rangliste (nur für dich sichtbar)",
+    due: (s: string) => `Abgabe bis ${s}`,
     until: (s: string) => `Ende: ${s}`,
     noEnd: "ohne Enddatum",
     ended: "Beendet",
@@ -51,6 +55,10 @@ const TEXT = {
   },
   en: {
     eyebrow: "Study group · Results for teachers",
+    hwEyebrow: "Homework · Results for teachers",
+    done: "Done",
+    ranking: "Ranking (only visible to you)",
+    due: (s: string) => `Due ${s}`,
     until: (s: string) => `Ends: ${s}`,
     noEnd: "no end date",
     ended: "Ended",
@@ -183,10 +191,10 @@ export function TeacherReportView({ code }: { code: string }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{t.eyebrow}</span>
+          <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{r.meta.homework ? t.hwEyebrow : t.eyebrow}</span>
           <h1 className="text-2xl font-extrabold tracking-tight">{r.meta.name}</h1>
           <span className="text-sm font-semibold text-zinc-400">
-            {r.meta.title} · {r.meta.ended ? t.ended : r.meta.endsAt ? t.until(`${new Date(r.meta.endsAt).toLocaleString(lang === "de" ? "de-DE" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${left ? ` (${left})` : ""}`) : t.noEnd}
+            {r.meta.title} · {r.meta.ended ? t.ended : r.meta.endsAt ? (r.meta.homework ? t.due : t.until)(`${new Date(r.meta.endsAt).toLocaleString(lang === "de" ? "de-DE" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${left ? ` (${left})` : ""}`) : t.noEnd}
           </span>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -205,7 +213,7 @@ export function TeacherReportView({ code }: { code: string }) {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            {metric(t.players, String(r.players))}
+            {metric(r.meta.homework ? t.done : t.players, String(r.players))}
             {metric(t.avg, r.avgPct !== null ? `${r.avgPct} %` : "–")}
             {metric(t.time, r.avgMs ? fmtTime(r.avgMs) : "–")}
             {metric(t.weakest, weakest ? weakest.title : "–")}
@@ -257,7 +265,7 @@ export function TeacherReportView({ code }: { code: string }) {
           )}
 
           <div className={`${card} flex flex-col gap-2`}>
-            <b className="text-[15px]">{t.results}</b>
+            <b className="text-[15px]">{r.meta.homework ? t.ranking : t.results}</b>
             <div className="grid grid-cols-[minmax(0,1fr)_64px_64px_70px] gap-x-3 gap-y-1.5 text-sm">
               <span className="text-xs font-bold text-zinc-500">{t.nick}</span>
               <span className="text-right text-xs font-bold text-zinc-500">{t.right}</span>

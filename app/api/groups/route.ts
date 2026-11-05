@@ -21,6 +21,8 @@ const bodySchema = z.object({
   by: z.string().max(60).optional().default(""),
   lang: z.enum(["de", "en"]).optional().default("de"),
   endsAt: z.string().max(40).nullable().optional().default(null),
+  /** Hausaufgabe (braucht ein Enddatum): Rangliste nur für die Lehrkraft. */
+  homework: z.boolean().optional().default(false),
   device: z.string().max(64).optional(),
   /** Ergebnis der Person, die die Gruppe startet (wenn sie das Spiel schon gespielt hat). */
   result: resultSchema.optional(),
@@ -46,13 +48,13 @@ async function create(request: NextRequest) {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
   }
   try {
-    const meta = await createGroup({ name: body.name, by: body.by, lang: body.lang, endsAt: body.endsAt, game: body.game });
+    const meta = await createGroup({ name: body.name, by: body.by, lang: body.lang, endsAt: body.endsAt, game: body.game, homework: body.homework });
     if (body.result && body.device && isDeviceId(body.device)) {
       await submitResult(meta.code, body.device, { name: meta.by, ...body.result });
     }
     void cleanupOldGroups();
     // teacherUrl nur an die Person, die die Gruppe anlegt – der Schlüssel steht nirgends sonst im Klartext.
-    return NextResponse.json({ code: meta.code, url: groupUrl(meta.code), name: meta.name, endsAt: meta.endsAt, teacherKey: meta.teacherKey, teacherUrl: teacherUrl(meta.code, meta.teacherKey) });
+    return NextResponse.json({ code: meta.code, url: groupUrl(meta.code), name: meta.name, endsAt: meta.endsAt, homework: !!meta.homework, teacherKey: meta.teacherKey, teacherUrl: teacherUrl(meta.code, meta.teacherKey) });
   } catch (error) {
     console.error("[groups] create failed:", error instanceof Error ? error.message : error);
     return NextResponse.json({ error: "save failed" }, { status: 500 });

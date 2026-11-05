@@ -1100,3 +1100,14 @@ h1 .beta { position: relative; top: -3px; }
 
 /* Hinweis "Neue Level" auf der Punches-Seite (bis Ende 2026) */
 .levels-new { margin: 0; border-radius: 16px; padding: 12px 14px; background: rgba(31, 214, 234, 0.12); color: var(--fg, #f4f4f5); font-size: 14px; font-weight: 700; line-height: 1.4; border: 1px solid rgba(31, 214, 234, 0.35); }
+
+/* Lerngruppe: Schalter "Als Hausaufgabe" */
+.hw-toggle { display: flex; align-items: center; gap: 12px; width: 100%; border: none; border-radius: 18px; padding: 12px 14px; background: var(--surface-2); color: var(--fg); font: inherit; text-align: left; cursor: pointer; }
+.hw-toggle.on { box-shadow: inset 0 0 0 2px var(--teal); }
+.hw-toggle-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hw-toggle-text b { font-size: 15px; font-weight: 900; }
+.hw-toggle-text span { font-size: 12px; font-weight: 700; color: var(--muted); }
+.hw-switch { position: relative; width: 44px; height: 26px; border-radius: 999px; background: var(--surface); flex-shrink: 0; transition: background 0.2s; }
+.hw-switch i { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left 0.2s; }
+.hw-toggle.on .hw-switch { background: var(--teal); }
+.hw-toggle.on .hw-switch i { left: 21px; }

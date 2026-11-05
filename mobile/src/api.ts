@@ -298,14 +298,16 @@ export async function createChallenge(game: GameResult["game"], name: string, pc
 
 export interface GroupBoardEntry { name: string; pct: number; correct: number; total: number; ms: number; at: string; me: string }
 export interface GroupBoard {
-  meta: { code: string; name: string; createdAt: string; endsAt: string | null; lang: "de" | "en"; by: string };
+  meta: { code: string; name: string; createdAt: string; endsAt: string | null; lang: "de" | "en"; by: string; homework?: boolean };
   entries: GroupBoardEntry[];
   ended: boolean;
+  /** alle Einträge (bei Hausaufgaben enthält entries nur den eigenen) */
+  count?: number;
   me?: string;
 }
 
 /** Lerngruppe anlegen; mit `result` steht die eigene Punktzahl gleich in der Rangliste. */
-export async function createGroup(input: { game: GameResult["game"]; name: string; by: string; lang: string; endsAt: string | null; device: string; result?: { pct: number; correct: number; total: number } }): Promise<{ code: string; url: string; name: string; endsAt: string | null; teacherUrl?: string }> {
+export async function createGroup(input: { game: GameResult["game"]; name: string; by: string; lang: string; endsAt: string | null; homework?: boolean; device: string; result?: { pct: number; correct: number; total: number } }): Promise<{ code: string; url: string; name: string; endsAt: string | null; homework?: boolean; teacherUrl?: string }> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}/api/groups`, {
@@ -317,7 +319,7 @@ export async function createGroup(input: { game: GameResult["game"]; name: strin
     throw new ApiError("network", true);
   }
   if (!res.ok) throw new ApiError(`HTTP ${res.status}`);
-  return (await res.json()) as { code: string; url: string; name: string; endsAt: string | null; teacherUrl?: string };
+  return (await res.json()) as { code: string; url: string; name: string; endsAt: string | null; homework?: boolean; teacherUrl?: string };
 }
 
 export async function fetchGroupBoard(code: string, device: string): Promise<GroupBoard | null> {

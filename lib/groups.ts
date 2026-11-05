@@ -25,6 +25,8 @@ export interface GroupMeta {
   lang: "de" | "en";
   by: string;
   game: GameData;
+  /** Hausaufgabe: Kinder sehen nur ihr eigenes Ergebnis, die Rangliste nur die Lehrkraft (Auswertung). */
+  homework?: boolean;
   /** SHA-256 des Lehrkraft-Schlüssels (Auswertung). Fehlt bei Gruppen von vor v0.13. Nie an Spieler:innen ausliefern. */
   teacherHash?: string;
 }
@@ -50,6 +52,8 @@ export interface GroupBoard {
   meta: Omit<GroupMeta, "game" | "teacherHash">;
   entries: GroupEntry[];
   ended: boolean;
+  /** Anzahl aller Einträge (bei Hausaufgaben enthält entries nur den eigenen). */
+  count: number;
 }
 
 export const groupsEnabled = () => !!process.env.BLOB_READ_WRITE_TOKEN;
@@ -113,7 +117,8 @@ export async function readGroup(code: string): Promise<GroupMeta | null> {
   return (await load(code))?.meta ?? null;
 }
 
-export async function readBoard(code: string, fresh = false): Promise<GroupBoard | null> {
+/** Rangliste für Spieler:innen. Bei Hausaufgaben nur der eigene Eintrag (`me` = Geräte-Kennung) plus die Anzahl. */
+export async function readBoard(code: string, fresh = false, me?: string): Promise<GroupBoard | null> {
   if (!isGroupCode(code)) return null;
   const data = await load(code, fresh);
   if (!data) return null;
@@ -121,8 +126,9 @@ export async function readBoard(code: string, fresh = false): Promise<GroupBoard
   void _game;
   void _hash;
   // Antworten pro Frage bleiben privat (nur Lehrkraft-Auswertung)
-  const entries = rank(data.entries).map(({ qs: _qs, ...e }) => (void _qs, e));
-  return { meta, entries, ended: isEnded(data.meta) };
+  const all = rank(data.entries).map(({ qs: _qs, ...e }) => (void _qs, e));
+  const entries = data.meta.homework ? all.filter((e) => !!me && e.me === me) : all;
+  return { meta, entries, ended: isEnded(data.meta), count: all.length };
 }
 
 async function sha256(text: string): Promise<string> {
@@ -143,7 +149,7 @@ export async function checkTeacherKey(meta: GroupMeta, key: string): Promise<boo
   return (await sha256(`pp-teacher:${meta.code}:${key}`)) === meta.teacherHash;
 }
 
-export async function createGroup(input: { name: string; by: string; lang: "de" | "en"; endsAt: string | null; game: GameData }): Promise<GroupMeta & { teacherKey: string }> {
+export async function createGroup(input: { name: string; by: string; lang: "de" | "en"; endsAt: string | null; game: GameData; homework?: boolean }): Promise<GroupMeta & { teacherKey: string }> {
   let endsAt = input.endsAt;
   if (endsAt) {
     const t = new Date(endsAt).getTime();
@@ -158,6 +164,7 @@ export async function createGroup(input: { name: string; by: string; lang: "de" 
     lang: input.lang,
     by: cleanName(input.by) || (input.lang === "en" ? "Someone" : "Jemand"),
     game: input.game,
+    ...(input.homework && endsAt ? { homework: true } : {}),
   };
   const teacherKey = newTeacherKey();
   meta.teacherHash = await sha256(`pp-teacher:${meta.code}:${teacherKey}`);
@@ -232,7 +239,7 @@ export interface TeacherQuestion {
 }
 
 export interface TeacherReport {
-  meta: { code: string; name: string; title: string; subject: string; createdAt: string; endsAt: string | null; ended: boolean; lang: "de" | "en" };
+  meta: { code: string; name: string; title: string; subject: string; createdAt: string; endsAt: string | null; ended: boolean; lang: "de" | "en"; homework: boolean };
   players: number;
   avgPct: number | null;
   avgMs: number | null;
@@ -296,7 +303,7 @@ export async function teacherReport(code: string, key: string): Promise<TeacherR
   const ranked = rank(entries);
   const avg = (xs: number[]) => (xs.length ? Math.round(xs.reduce((s, x) => s + x, 0) / xs.length) : null);
   return {
-    meta: { code: meta.code, name: meta.name, title: meta.game.gameTitle, subject: meta.game.subject, createdAt: meta.createdAt, endsAt: meta.endsAt, ended: isEnded(meta), lang: meta.lang },
+    meta: { code: meta.code, name: meta.name, title: meta.game.gameTitle, subject: meta.game.subject, createdAt: meta.createdAt, endsAt: meta.endsAt, ended: isEnded(meta), lang: meta.lang, homework: !!meta.homework },
     players: entries.length,
     avgPct: avg(entries.map((e) => e.pct)),
     avgMs: avg(entries.filter((e) => e.ms > 0).map((e) => e.ms)),

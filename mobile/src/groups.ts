@@ -26,6 +26,8 @@ export interface MyGroup {
   lastRank?: number;
   /** Auswertung für die Person, die die Gruppe angelegt hat (Lehrkraft-Link, nicht weitergeben). */
   teacherUrl?: string;
+  /** Hausaufgabe: Rangliste nur in der Auswertung der Lehrkraft */
+  homework?: boolean;
 }
 
 export function myGroups(): MyGroup[] {
@@ -60,25 +62,29 @@ export function resultOf(m: StoredMaterial | undefined): { pct: number; correct:
 }
 
 /** Gruppe anlegen, auf dem Gerät merken und den Link übers Teilen-Menü verschicken. */
-export async function startGroup(opts: { material: StoredMaterial; game: GameResult["game"]; name: string; nick: string; endsAt: string | null; lang: string; t: Dict }): Promise<{ outcome: InviteOutcome; group: MyGroup }> {
+export async function startGroup(opts: { material: StoredMaterial; game: GameResult["game"]; name: string; nick: string; endsAt: string | null; homework?: boolean; lang: string; t: Dict }): Promise<{ outcome: InviteOutcome; group: MyGroup }> {
   const nick = opts.nick.trim();
   try {
     if (nick) localStorage.setItem(NAME_KEY, nick);
   } catch {
     // ignorieren
   }
-  const result = resultOf(opts.material);
-  const res = await createGroup({ game: opts.game, name: opts.name.trim(), by: nick, lang: opts.lang, endsAt: opts.endsAt, device: deviceId(), result });
-  const group: MyGroup = { code: res.code, url: res.url, name: res.name, title: opts.game.gameTitle, endsAt: res.endsAt, createdAt: Date.now(), materialId: opts.material.id, submitted: !!result, teacherUrl: res.teacherUrl };
+  // Bei Hausaufgaben zählt das eigene Ergebnis der Lehrkraft nicht mit
+  const result = opts.homework ? undefined : resultOf(opts.material);
+  const res = await createGroup({ game: opts.game, name: opts.name.trim(), by: nick, lang: opts.lang, endsAt: opts.endsAt, homework: opts.homework, device: deviceId(), result });
+  const group: MyGroup = { code: res.code, url: res.url, name: res.name, title: opts.game.gameTitle, endsAt: res.endsAt, createdAt: Date.now(), materialId: opts.material.id, submitted: !!result, teacherUrl: res.teacherUrl, homework: !!res.homework };
   addGroup(group);
-  const outcome = await shareLink(opts.t.groupShareTitle, opts.t.groupShareText(res.name, opts.game.gameTitle), res.url);
+  const due = res.endsAt ? new Date(res.endsAt).toLocaleString(opts.lang === "en" ? "en-GB" : "de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const outcome = res.homework
+    ? await shareLink(opts.t.hwShareTitle, opts.t.hwShareText(opts.game.gameTitle, due), res.url)
+    : await shareLink(opts.t.groupShareTitle, opts.t.groupShareText(res.name, opts.game.gameTitle), res.url);
   return { outcome, group };
 }
 
 /** Eigenes Ergebnis nachreichen, wenn das Spiel inzwischen gespielt ist (nur der erste Durchgang zählt). */
 export async function submitPending(materials: StoredMaterial[]): Promise<void> {
   for (const g of myGroups()) {
-    if (g.submitted || !g.materialId) continue;
+    if (g.submitted || !g.materialId || g.homework) continue;
     const r = resultOf(materials.find((m) => m.id === g.materialId));
     if (!r) continue;
     const board = await submitGroupResult(g.code, deviceId(), { name: savedNickname() || "Ich", ...r });
@@ -103,6 +109,21 @@ export function endOptions(t: Dict): { id: string; label: string; endsAt: string
     { id: "friday", label: t.groupEndFriday, endsAt: friday.toISOString() },
     { id: "week", label: t.groupEndWeek, endsAt: new Date(now.getTime() + 7 * 86_400_000).toISOString() },
   ];
+}
+
+/** Abgabe-Optionen für Hausaufgaben: morgen 8 Uhr, dann die nächsten Schultage (Mo–Fr) jeweils 8 Uhr. */
+export function homeworkOptions(t: Dict, lang: string): { id: string; label: string; endsAt: string }[] {
+  const out: { id: string; label: string; endsAt: string }[] = [];
+  const d = new Date();
+  d.setHours(8, 0, 0, 0);
+  for (let i = 1; out.length < 5 && i < 14; i++) {
+    const x = new Date(d);
+    x.setDate(d.getDate() + i);
+    if (x.getDay() === 0 || x.getDay() === 6) continue;
+    const day = x.toLocaleDateString(lang === "en" ? "en-GB" : "de-DE", { weekday: "short" }).replace(".", "");
+    out.push({ id: `d${i}`, label: i === 1 ? t.hwTomorrow : t.hwDay(day), endsAt: x.toISOString() });
+  }
+  return out;
 }
 
 export function timeLeft(endsAt: string | null, t: Dict): string | null {

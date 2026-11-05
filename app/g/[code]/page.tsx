@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps<"/g/[code]">): Prom
   const group = await readGroup(code).catch(() => null);
   if (!group) return { title: "PaperPunch Lerngruppe" };
   const de = group.lang === "de";
-  const title = de ? `Lerngruppe „${group.name}“ 👥` : `Study group “${group.name}” 👥`;
+  const title = group.homework ? (de ? `Hausaufgabe „${group.name}“ 📚` : `Homework “${group.name}” 📚`) : de ? `Lerngruppe „${group.name}“ 👥` : `Study group “${group.name}” 👥`;
   const description = de ? `Wer schafft am meisten in „${group.game.gameTitle}“? Ohne Anmeldung mitspielen.` : `Who gets the most right in “${group.game.gameTitle}”? Join without signing up.`;
   return { title, description, openGraph: { title, description }, robots: { index: false } };
 }
@@ -30,7 +30,7 @@ export default async function GroupPage({ params }: PageProps<"/g/[code]">) {
   }
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-      <GroupPlay code={group.code} name={group.name} lang={group.lang} endsAt={group.endsAt} game={group.game} />
+      <GroupPlay code={group.code} name={group.name} lang={group.lang} endsAt={group.endsAt} game={group.game} homework={!!group.homework} />
     </main>
   );
 }

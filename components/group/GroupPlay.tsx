@@ -49,6 +49,16 @@ const TEXT = {
     winnerTag: "Gewinner:in",
     endedOn: (d: string) => `Beendet · ${d}`,
     error: "Das hat nicht geklappt. Versuch es noch einmal.",
+    hwEyebrow: (n: string) => `Hausaufgabe · ${n}`,
+    hwDue: (d: string) => `Abgabe bis ${d}`,
+    hwFoot: "Läuft im Browser oder in der App – keine Anmeldung · Nur der erste Versuch zählt",
+    hwStart: "Hausaufgabe starten",
+    hwDone: "Erledigt",
+    hwResult: (pct: number, c: number, n: number) => `${pct} % richtig · ${c} von ${n}`,
+    hwTeacherSees: "Deine Lehrkraft sieht dein Ergebnis. Nur der erste Versuch zählt.",
+    hwOver: "Die Abgabe ist vorbei.",
+    hwOverSub: "Diese Hausaufgabe kann nicht mehr abgegeben werden.",
+    hwNick: "Dein Name in der Klasse",
   },
   en: {
     eyebrow: (n: string) => `Study group · ${n}`,
@@ -87,10 +97,20 @@ const TEXT = {
     winnerTag: "Winner",
     endedOn: (d: string) => `Ended · ${d}`,
     error: "That didn't work. Please try again.",
+    hwEyebrow: (n: string) => `Homework · ${n}`,
+    hwDue: (d: string) => `Due ${d}`,
+    hwFoot: "Runs in the browser or the app – no sign-up · Only your first try counts",
+    hwStart: "Start homework",
+    hwDone: "Done",
+    hwResult: (pct: number, c: number, n: number) => `${pct}% correct · ${c} of ${n}`,
+    hwTeacherSees: "Your teacher can see your result. Only your first try counts.",
+    hwOver: "The deadline has passed.",
+    hwOverSub: "This homework can't be handed in any more.",
+    hwNick: "Your name in class",
   },
 };
 
-export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; name: string; lang: "de" | "en"; endsAt: string | null; game: GameData }) {
+export function GroupPlay({ code, name, lang, endsAt, game, homework = false }: { code: string; name: string; lang: "de" | "en"; endsAt: string | null; game: GameData; homework?: boolean }) {
   const { setLocale } = useLanguage();
   const t = TEXT[lang];
   const levels = useMemo(() => [...game.levels].sort((a, b) => a.id - b.id), [game.levels]);
@@ -117,10 +137,10 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
       const played = !!b?.me && b.entries.some((e) => e.me === b.me);
       setStage(b?.ended || played ? "board" : "intro");
       const idx = b?.me ? b.entries.findIndex((e) => e.me === b.me) : -1;
-      saveGroup({ code, name, title: game.gameTitle, endsAt, ...(idx >= 0 ? { lastRank: idx + 1 } : {}) });
+      saveGroup({ code, name, title: game.gameTitle, endsAt, homework, ...(idx >= 0 && !homework ? { lastRank: idx + 1 } : {}) });
       track("group_opened", { played, ended: !!b?.ended });
     });
-  }, [code, lang, setLocale, name, game.gameTitle, endsAt]);
+  }, [code, lang, setLocale, name, game.gameTitle, endsAt, homework]);
 
   function start() {
     try {
@@ -141,7 +161,7 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
     if (res) {
       setBoard(res);
       const idx = res.me ? res.entries.findIndex((e) => e.me === res.me) : -1;
-      if (idx >= 0) saveGroup({ code, name, title: game.gameTitle, endsAt, lastRank: idx + 1 });
+      if (idx >= 0) saveGroup({ code, name, title: game.gameTitle, endsAt, homework, ...(homework ? {} : { lastRank: idx + 1 }) });
     }
     else setNote(t.error);
     track("group_finished", { pct });
@@ -195,6 +215,29 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
   const entries = board?.entries ?? [];
   const left = timeLeft(endsAt, lang);
 
+  const due = endsAt ? new Date(endsAt).toLocaleString(lang === "de" ? "de-DE" : "en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+  if (stage === "intro" && homework) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col gap-5 py-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <span className="grid h-20 w-20 place-items-center rounded-3xl bg-[#1fd6ea] text-4xl">📚</span>
+          <p className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{t.hwEyebrow(name)}</p>
+          <h1 className="text-3xl font-extrabold tracking-tight">{game.gameTitle}</h1>
+          <p className="text-sm font-semibold text-zinc-400">{t.meta(total, Math.max(3, Math.round(total / 3)))}</p>
+          {due && <span className="rounded-full bg-[#22252b] px-4 py-2 text-sm font-extrabold">{t.hwDue(due)}{left ? ` · ${left}` : ""}</span>}
+        </div>
+        <label className="flex flex-col gap-2 rounded-[20px] bg-[#15171b] p-4 ring-1 ring-white/[0.06]">
+          <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{t.hwNick}</span>
+          <input value={nick} maxLength={20} placeholder={t.nickPh} onChange={(e) => setNick(e.target.value.slice(0, 20))} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold outline-none focus:border-[#1fd6ea]" />
+          {isBlockedName(nick) && <span className="text-xs font-semibold normal-case tracking-normal text-[#ff8a80]">{t.nameBlocked}</span>}
+        </label>
+        <button type="button" disabled={isBlockedName(nick)} onClick={start} className="rounded-2xl bg-[#1fd6ea] px-6 py-4 text-lg font-extrabold text-black disabled:opacity-50">{t.hwStart}</button>
+        <p className="text-center text-xs font-semibold text-zinc-500">{t.hwFoot}</p>
+      </div>
+    );
+  }
+
   if (stage === "intro") {
     return (
       <div className="mx-auto flex max-w-md flex-col gap-5 py-6">
@@ -215,6 +258,41 @@ export function GroupPlay({ code, name, lang, endsAt, game }: { code: string; na
         </label>
         <button type="button" disabled={isBlockedName(nick)} onClick={start} className="rounded-2xl bg-[#1fd6ea] px-6 py-4 text-lg font-extrabold text-black disabled:opacity-50">{t.play}</button>
         <p className="text-center text-xs font-semibold text-zinc-500">{t.foot}</p>
+      </div>
+    );
+  }
+
+  // ---------- Hausaufgabe: nur das eigene Ergebnis, keine Rangliste ----------
+  if (homework) {
+    const mine = board?.me ? entries.find((e) => e.me === board.me) : undefined;
+    return (
+      <div className="mx-auto flex max-w-md flex-col gap-5 py-6">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{t.hwEyebrow(name)}</p>
+          {mine ? (
+            <>
+              <span className="grid h-24 w-24 place-items-center rounded-full bg-[#1fd6ea] text-5xl font-extrabold text-black">✓</span>
+              <h1 className="text-[34px] font-extrabold leading-none tracking-tight">{t.hwDone}</h1>
+              <p className="text-lg font-bold">{t.hwResult(mine.pct, mine.correct, mine.total)}</p>
+              <p className="text-sm font-semibold text-zinc-400">{game.gameTitle}</p>
+              <p className="max-w-xs text-sm font-semibold text-zinc-400">{t.hwTeacherSees}</p>
+            </>
+          ) : board?.ended ? (
+            <>
+              <span className="grid h-24 w-24 place-items-center rounded-full bg-[#22252b] text-5xl">⏰</span>
+              <h1 className="text-3xl font-extrabold leading-tight tracking-tight">{t.hwOver}</h1>
+              <p className="text-sm font-semibold text-zinc-400">{t.hwOverSub}</p>
+            </>
+          ) : (
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight">{game.gameTitle}</h1>
+          )}
+        </div>
+        {note && <p className="text-center text-sm font-semibold text-zinc-400">{note}</p>}
+        {!mine && !board?.ended && <button type="button" onClick={() => setStage("intro")} className="rounded-2xl bg-[#1fd6ea] px-6 py-4 text-lg font-extrabold text-black">{t.hwStart}</button>}
+        <Link href="/app" className="mt-2 flex items-center gap-3 rounded-2xl bg-[#15171b] p-4 ring-1 ring-white/[0.06]">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#1fd6ea] text-xl">📷</span>
+          <span className="flex min-w-0 flex-1 flex-col"><b className="text-[15px]">{t.own}</b><span className="text-xs font-semibold text-zinc-400">{t.ownSub}</span></span>
+        </Link>
       </div>
     );
   }

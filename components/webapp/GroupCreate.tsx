@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { track } from "@/lib/analytics";
-import { createGroupWeb, endOptions, saveGroup, teacherLink } from "@/lib/webapp/groups";
+import { createGroupWeb, endOptions, homeworkOptions, saveGroup, teacherLink } from "@/lib/webapp/groups";
 import { listMaterials, type WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
 import { isBlockedName } from "@/lib/name-filter";
@@ -23,11 +23,16 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
   const [picked, setPicked] = useState(material?.id ?? "");
   const ends = endOptions(lang);
   const [end, setEnd] = useState("friday");
+  // Hausaufgabe: Abgabe-Termin statt Ende, Rangliste nur in der Auswertung der Lehrkraft
+  const [homework, setHomework] = useState(false);
+  const dues = homeworkOptions(lang);
+  const [due, setDue] = useState(dues[0]?.id ?? "");
+  const [customDue, setCustomDue] = useState("");
   const [name, setName] = useState(initialName);
   const [nick, setNick] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
-  const [created, setCreated] = useState<{ code: string; url: string } | null>(null);
+  const [created, setCreated] = useState<{ code: string; url: string; endsAt?: string | null; teacherKey?: string; homework?: boolean } | null>(null);
 
   useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
@@ -46,8 +51,9 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
 
   const chosen = games.find((g) => g.id === picked);
 
-  async function share(url: string, groupName: string, title: string) {
-    const text = tx.groupShareText(groupName, title);
+  async function share(url: string, groupName: string, title: string, hw = false, endsAt: string | null = null) {
+    const dueLabel = endsAt ? new Date(endsAt).toLocaleString(lang === "de" ? "de-DE" : "en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    const text = hw ? tx.hwShareText(title, dueLabel) : tx.groupShareText(groupName, title);
     try {
       if (navigator.share) await navigator.share({ text, url });
       else {
@@ -57,6 +63,12 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
     } catch {
       // abgebrochen
     }
+  }
+
+  function dueAt(): string | null {
+    if (due !== "custom") return dues.find((d) => d.id === due)?.endsAt ?? null;
+    const t = customDue ? new Date(customDue).getTime() : NaN;
+    return Number.isFinite(t) && t > Date.now() + 10 * 60_000 && t < Date.now() + 14 * 86_400_000 ? new Date(t).toISOString() : null;
   }
 
   async function create() {
@@ -69,12 +81,16 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
       // ignorieren
     }
     try {
-      const endsAt = ends.find((e) => e.id === end)?.endsAt ?? null;
-      const res = await createGroupWeb({ game: chosen.game, name: name.trim(), by: nick.trim(), lang, endsAt });
-      saveGroup({ code: res.code, name: res.name, title: chosen.game.gameTitle, endsAt: res.endsAt, teacherKey: res.teacherKey });
-      track("group_created", { end, has_name: !!name.trim() });
+      const endsAt = homework ? dueAt() : ends.find((e) => e.id === end)?.endsAt ?? null;
+      if (homework && !endsAt) {
+        setNote(tx.hwPickDue);
+        return;
+      }
+      const res = await createGroupWeb({ game: chosen.game, name: name.trim(), by: nick.trim(), lang, endsAt, homework });
+      saveGroup({ code: res.code, name: res.name, title: chosen.game.gameTitle, endsAt: res.endsAt, teacherKey: res.teacherKey, homework: !!res.homework });
+      track("group_created", { end: homework ? `hw-${due}` : end, has_name: !!name.trim(), homework });
       setCreated(res);
-      await share(res.url, res.name, chosen.game.gameTitle);
+      await share(res.url, res.name, chosen.game.gameTitle, !!res.homework, res.endsAt);
     } catch {
       setNote(tx.groupError);
     } finally {
@@ -87,9 +103,9 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
   if (created && chosen) {
     return (
       <div className="flex flex-col gap-3 rounded-[24px] bg-[#15171b] p-4 ring-1 ring-white/[0.06]">
-        <b className="text-lg">{tx.groupCreated}</b>
+        <b className="text-lg">{created.homework ? tx.hwCreated : tx.groupCreated}</b>
         <span className="break-all rounded-xl bg-black px-3 py-2.5 text-sm font-bold text-[#1fd6ea]">{created.url}</span>
-        <button type="button" onClick={() => void share(created.url, name.trim() || chosen.game!.gameTitle, chosen.game!.gameTitle)} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black">↗ {tx.groupShare}</button>
+        <button type="button" onClick={() => void share(created.url, name.trim() || chosen.game!.gameTitle, chosen.game!.gameTitle, !!created.homework, created.endsAt ?? null)} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black">↗ {created.homework ? tx.hwShare : tx.groupShare}</button>
         <Link href={`/g/${created.code}`} className="rounded-2xl bg-zinc-100 px-5 py-3.5 text-center font-extrabold text-zinc-950">{tx.groupPlaySelf}</Link>
         {created.teacherKey && (
           <div className="flex flex-col gap-2 rounded-[18px] bg-[#1b1d22] p-3.5">
@@ -135,12 +151,34 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
           <AppIcon name="chevron" size={16} stroke={2.6} />
         </Link>
       )}
-      <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{tx.groupEnds}</span>
-      <div className="flex flex-wrap gap-2">
-        {ends.map((e) => (
-          <button key={e.id} type="button" onClick={() => setEnd(e.id)} className={chip(end === e.id)}>{e.label}</button>
-        ))}
-      </div>
+      <button type="button" role="switch" aria-checked={homework} onClick={() => setHomework((h) => !h)} className={`flex items-center gap-3 rounded-[18px] p-3 text-left ${homework ? "bg-[#0f2a2e] ring-2 ring-[#1fd6ea]" : "bg-[#1b1d22]"}`}>
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-black text-xl">📚</span>
+        <span className="flex min-w-0 flex-1 flex-col"><b className="text-[15px]">{tx.hwToggle}</b><span className="text-xs font-semibold text-zinc-400">{tx.hwToggleSub}</span></span>
+        <span className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${homework ? "bg-[#1fd6ea]" : "bg-zinc-700"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${homework ? "left-[22px]" : "left-0.5"}`} /></span>
+      </button>
+      {homework ? (
+        <>
+          <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{tx.hwDue}</span>
+          <div className="flex flex-wrap gap-2">
+            {dues.map((d) => (
+              <button key={d.id} type="button" onClick={() => setDue(d.id)} className={chip(due === d.id)}>{d.label}</button>
+            ))}
+            <button type="button" onClick={() => setDue("custom")} className={chip(due === "custom")}>{tx.hwCustom}</button>
+          </div>
+          {due === "custom" && (
+            <input type="datetime-local" value={customDue} onChange={(e) => setCustomDue(e.target.value)} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold text-zinc-100 outline-none focus:border-[#1fd6ea] [color-scheme:dark]" />
+          )}
+        </>
+      ) : (
+        <>
+          <span className="text-xs font-extrabold uppercase tracking-wide text-zinc-500">{tx.groupEnds}</span>
+          <div className="flex flex-wrap gap-2">
+            {ends.map((e) => (
+              <button key={e.id} type="button" onClick={() => setEnd(e.id)} className={chip(end === e.id)}>{e.label}</button>
+            ))}
+          </div>
+        </>
+      )}
       <label className="flex flex-col gap-1.5 text-xs font-extrabold uppercase tracking-wide text-zinc-500">
         {tx.groupName}
         <input value={name} maxLength={40} placeholder={tx.groupNamePh} onChange={(e) => setName(e.target.value)} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold normal-case tracking-normal text-zinc-100 outline-none focus:border-[#1fd6ea]" />
@@ -151,8 +189,8 @@ export function GroupCreate({ material, initialName = "", exclude, preselect }: 
         <input value={nick} maxLength={20} placeholder={tx.nicknamePh} onChange={(e) => setNick(e.target.value)} className="h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold normal-case tracking-normal text-zinc-100 outline-none focus:border-[#1fd6ea]" />
         {isBlockedName(nick) && <span className="text-xs font-semibold normal-case tracking-normal text-[#ff8a80]">{tx.nameBlocked}</span>}
       </label>
-      <button type="button" disabled={!chosen || busy || isBlockedName(name) || isBlockedName(nick)} onClick={() => void create()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-50">{busy ? tx.groupBusy : `↗ ${tx.groupShare}`}</button>
-      <span className="text-center text-xs font-semibold text-zinc-500">{tx.groupHint}</span>
+      <button type="button" disabled={!chosen || busy || isBlockedName(name) || isBlockedName(nick)} onClick={() => void create()} className="rounded-2xl bg-[#1fd6ea] px-5 py-3.5 font-extrabold text-black disabled:opacity-50">{busy ? tx.groupBusy : `↗ ${homework ? tx.hwShare : tx.groupShare}`}</button>
+      <span className="text-center text-xs font-semibold text-zinc-500">{homework ? tx.hwHint : tx.groupHint}</span>
       {note && <p className="text-center text-sm font-semibold text-zinc-400">{note}</p>}
     </div>
   );

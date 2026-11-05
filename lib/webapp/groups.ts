@@ -7,12 +7,14 @@ const GROUPS_KEY = "paperpunch-web-groups";
 
 export interface BoardEntry { name: string; pct: number; correct: number; total: number; ms: number; at: string; me: string }
 export interface Board {
-  meta: { code: string; name: string; createdAt: string; endsAt: string | null; lang: "de" | "en"; by: string };
+  meta: { code: string; name: string; createdAt: string; endsAt: string | null; lang: "de" | "en"; by: string; homework?: boolean };
   entries: BoardEntry[];
   ended: boolean;
+  /** alle Einträge (bei Hausaufgaben enthält entries nur den eigenen) */
+  count?: number;
   me?: string;
 }
-export interface SavedGroup { code: string; name: string; title: string; endsAt: string | null; savedAt: number; lastRank?: number; /** Lehrkraft-Schlüssel (nur bei selbst angelegten Gruppen) */ teacherKey?: string }
+export interface SavedGroup { code: string; name: string; title: string; endsAt: string | null; savedAt: number; lastRank?: number; homework?: boolean; /** Lehrkraft-Schlüssel (nur bei selbst angelegten Gruppen) */ teacherKey?: string }
 
 export const teacherLink = (code: string, key: string) => `/g/${code}/auswertung#k=${key}`;
 
@@ -62,9 +64,9 @@ export async function submitToGroup(code: string, r: { name: string; pct: number
   return res.ok ? ((await res.json()) as Board & { outcome: string }) : null;
 }
 
-export interface CreatedGroup { code: string; url: string; name: string; endsAt: string | null; teacherKey?: string; teacherUrl?: string }
+export interface CreatedGroup { code: string; url: string; name: string; endsAt: string | null; homework?: boolean; teacherKey?: string; teacherUrl?: string }
 
-export async function createGroupWeb(input: { game: GameData; name: string; by: string; lang: "de" | "en"; endsAt: string | null }): Promise<CreatedGroup> {
+export async function createGroupWeb(input: { game: GameData; name: string; by: string; lang: "de" | "en"; endsAt: string | null; homework?: boolean }): Promise<CreatedGroup> {
   const res = await fetch("/api/groups", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -91,6 +93,24 @@ export function endOptions(lang: "de" | "en"): { id: string; label: string; ends
     { id: "friday", label: de ? "Fr, 18 Uhr" : "Fri, 6 pm", endsAt: friday.toISOString() },
     { id: "week", label: de ? "In 1 Woche" : "In 1 week", endsAt: week.toISOString() },
   ];
+}
+
+/** Abgabe-Optionen für Hausaufgaben: morgen 8 Uhr, dann die nächsten Schultage (Mo–Fr) jeweils 8 Uhr. */
+export function homeworkOptions(lang: "de" | "en"): { id: string; label: string; endsAt: string }[] {
+  const de = lang === "de";
+  const out: { id: string; label: string; endsAt: string }[] = [];
+  const d = new Date();
+  d.setHours(8, 0, 0, 0);
+  for (let i = 1; out.length < 5 && i < 14; i++) {
+    const x = new Date(d);
+    x.setDate(d.getDate() + i);
+    const wd = x.getDay();
+    if (wd === 0 || wd === 6) continue;
+    const day = x.toLocaleDateString(de ? "de-DE" : "en-GB", { weekday: "short" }).replace(".", "");
+    const label = i === 1 ? (de ? "Morgen, 8 Uhr" : "Tomorrow, 8 am") : de ? `${day}, 8 Uhr` : `${day}, 8 am`;
+    out.push({ id: `d${i}`, label, endsAt: x.toISOString() });
+  }
+  return out;
 }
 
 /** "noch 2 Tage" / "noch 5 Std." / "Beendet" */

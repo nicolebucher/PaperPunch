@@ -14,7 +14,7 @@ export function AppHome() {
   const { locale } = useLanguage();
   const [materials, setMaterials] = useState<WebMaterial[]>([]);
   const [plans, setPlans] = useState<WebPlan[]>([]);
-  const [groups, setGroups] = useState<(SavedGroup & { rank?: number; count?: number; passed?: string; ended?: boolean })[]>([]);
+  const [groups, setGroups] = useState<(SavedGroup & { rank?: number; count?: number; passed?: string; ended?: boolean; done?: boolean })[]>([]);
 
   // Gespeichertes erst im Browser lesen (nicht beim Server-Rendern).
   useEffect(() => {
@@ -29,6 +29,8 @@ export function AppHome() {
         const b = await fetchBoard(g.code).catch(() => null);
         if (!b) return null;
         const idx = b.me ? b.entries.findIndex((e) => e.me === b.me) : -1;
+        // Hausaufgabe: keine Platzierung, nur erledigt/offen
+        if (b.meta.homework) return { ...g, homework: true, done: idx >= 0, count: b.count ?? b.entries.length, ended: b.ended };
         const rank = idx >= 0 ? idx + 1 : undefined;
         const passed = rank && g.lastRank && rank > g.lastRank ? b.entries[idx - 1]?.name : undefined;
         if (rank) saveGroup({ ...g, lastRank: rank });
@@ -58,7 +60,7 @@ export function AppHome() {
         <Link key={g.code} href={g.teacherKey ? teacherLink(g.code, g.teacherKey) : `/g/${g.code}`} className="my-1 flex items-center gap-3 rounded-[18px] bg-gradient-to-br from-pink-500/20 to-[#1fd6ea]/15 p-3 ring-1 ring-white/[0.08]">
           <span className="grid h-[38px] w-[38px] place-items-center rounded-xl bg-black text-[#f23a8e]"><AppIcon name="group" size={20} /></span>
           <span className="flex min-w-0 flex-1 flex-col">
-            <b className="truncate text-[15px]">{g.name} · {tx.groupRow(g.rank, g.count ?? 0)}</b>
+            <b className="truncate text-[15px]">{g.homework ? `📚 ${g.name} · ${g.teacherKey ? tx.hwDoneCount(g.count ?? 0) : g.done ? tx.hwDoneMe : tx.hwOpen}` : `${g.name} · ${tx.groupRow(g.rank, g.count ?? 0)}`}</b>
             <span className="text-xs font-bold text-pink-300">{g.teacherKey ? tx.teacherRow : g.passed ? tx.groupPassed(g.passed) : g.title}{g.endsAt ? ` · ${timeLeft(g.endsAt, locale === "en" ? "en" : "de")}` : ""}</span>
           </span>
           <AppIcon name="chevron" size={16} stroke={2.6} />

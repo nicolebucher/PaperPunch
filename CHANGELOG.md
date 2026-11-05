@@ -9,7 +9,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 
 ## v0.13.0 – 5 November 2026 (Android: version code 11, includes v0.12.0)
 
-Levels last longer, the app asks who is using it, and teachers get a results view for their study groups.
+Levels last longer, the app asks who is using it, and teachers get a results view and homework for their study groups.
 
 | Area | Change |
 | --- | --- |
@@ -25,6 +25,9 @@ Levels last longer, the app asks who is using it, and teachers get a results vie
 | Website · Tech | Players' answers per question are now sent with the group result (level, question, correct, given answer ≤ 60 chars) and stored in the entry; the public leaderboard never returns them; new GET /api/groups/CODE/report (header x-teacher-key, only a SHA-256 hash of the key is stored in the group); older groups and app results without single answers only count in the results |
 | App + Website · Tech | Ratings also send the role (student/parent/teacher) so the feedback sheet shows who uses PaperPunch |
 | Website | Privacy policy section 11 (study groups): answers per question and the private results link |
+| Website + App | Homework: switch “As homework” when creating a study group – due date instead of an end (tomorrow 8 am, the next school days at 8 am, or – on the website – a custom date within 14 days); students only see their own result (“✓ Done · 75 % correct”), never the ranking; the ranking is only visible to the teacher in the results view (“Done” count, “Ranking (only visible to you)”); after the deadline: “The deadline has passed” |
+| Website + App | Homework share text: “📚 Homework: learning game “…” – due Thu 08:00. No sign-up, just open the link”; continue list shows “📚 name · 18 done” for the teacher and “✓ done / still open” for students; the teacher's own result isn't added to homework |
+| Website · Tech | Group meta flag homework (only with an end date); GET /api/groups/CODE and the result response return only the caller's own entry plus count for homework groups |
 
 ## v0.12.0 – 4 November 2026 (Android: shipped with v0.13.0, version code 11)
 

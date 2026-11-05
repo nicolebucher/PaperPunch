@@ -40,8 +40,9 @@ export async function POST(request: NextRequest, { params }: Ctx) {
   try {
     const outcome = await submitResult(code, body.device, body);
     if (outcome === "missing") return withCors(request, NextResponse.json({ error: "not found" }, { status: 404 }));
-    const board = await readBoard(code);
-    return withCors(request, NextResponse.json({ outcome, ...board, me: await myTag(body.device) }));
+    const me = await myTag(body.device);
+    const board = await readBoard(code, false, me);
+    return withCors(request, NextResponse.json({ outcome, ...board, me }));
   } catch (error) {
     console.error("[groups] submit failed:", error instanceof Error ? error.message : error);
     return withCors(request, NextResponse.json({ error: "save failed" }, { status: 500 }));

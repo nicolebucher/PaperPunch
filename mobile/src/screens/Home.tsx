@@ -8,7 +8,7 @@ import type { ActivePlan } from "../types";
 import type { StoredMaterial } from "../storage";
 import { isResumable, materialDate, materialTitle } from "./materialInfo";
 import { challengePctOf, savedNickname, sendChallenge } from "../challenge";
-import { endOptions, loadBoard, myGroups, startGroup, submitPending, timeLeft, updateGroup, type MyGroup } from "../groups";
+import { endOptions, homeworkOptions, loadBoard, myGroups, startGroup, submitPending, timeLeft, updateGroup, type MyGroup } from "../groups";
 import type { GroupBoard } from "../api";
 import { isBlockedName } from "../nameFilter";
 
@@ -151,7 +151,7 @@ export function Home({
             <button key={g.code} type="button" className="home-c-row home-c-group" onClick={() => setOpenGroup(g.code)}>
               <span className="home-c-group-icon"><Icon name="group" size={20} stroke={2} /></span>
               <span className="home-c-row-text">
-                <b>{g.name} · {t.groupRow(g.rank, g.board?.entries.length ?? 0)}</b>
+                <b>{g.homework ? `📚 ${g.name} · ${t.hwDoneCount(g.board?.count ?? g.board?.entries.length ?? 0)}` : `${g.name} · ${t.groupRow(g.rank, g.board?.entries.length ?? 0)}`}</b>
                 <span className="accent-pink">{g.passed ? t.groupPassed(g.passed) : g.title}{g.endsAt ? ` · ${timeLeft(g.endsAt, t)}` : ""}</span>
               </span>
               <Icon name="chevron" size={16} stroke={2.6} />
@@ -350,6 +350,9 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
   const [picked, setPicked] = useState(games[0]?.id ?? "");
   const ends = endOptions(t);
   const [end, setEnd] = useState("friday");
+  const [homework, setHomework] = useState(false);
+  const dues = homeworkOptions(t, lang);
+  const [due, setDue] = useState(dues[0]?.id ?? "");
   const [name, setName] = useState(initialName ?? "");
   const [nick, setNick] = useState(savedNickname);
   const [busy, setBusy] = useState(false);
@@ -359,7 +362,7 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
     if (!chosen || chosen.result.format !== "game" || busy) return;
     setBusy(true);
     try {
-      const { outcome, group } = await startGroup({ material: chosen, game: chosen.result.game, name, nick, endsAt: ends.find((e) => e.id === end)?.endsAt ?? null, lang, t });
+      const { outcome, group } = await startGroup({ material: chosen, game: chosen.result.game, name, nick, endsAt: homework ? dues.find((d) => d.id === due)?.endsAt ?? null : ends.find((e) => e.id === end)?.endsAt ?? null, homework, lang, t });
       onCreated(group);
       if (outcome === "copied") say?.(t.inviteCopied);
       onClose();
@@ -399,11 +402,19 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
         </div>
         {games.length > 0 && (
           <>
-            <span className="group-lab">{t.groupEnds}</span>
+            <button type="button" role="switch" aria-checked={homework} className={homework ? "hw-toggle on" : "hw-toggle"} onClick={() => setHomework((h) => !h)}>
+              <span className="hw-toggle-text"><b>📚 {t.hwToggle}</b><span>{t.hwToggleSub}</span></span>
+              <span className="hw-switch" aria-hidden="true"><i /></span>
+            </button>
+            <span className="group-lab">{homework ? t.hwDue : t.groupEnds}</span>
             <div className="group-chips">
-              {ends.map((e) => (
-                <button key={e.id} type="button" className={end === e.id ? "group-chip on" : "group-chip"} aria-pressed={end === e.id} onClick={() => setEnd(e.id)}>{e.label}</button>
-              ))}
+              {homework
+                ? dues.map((d) => (
+                  <button key={d.id} type="button" className={due === d.id ? "group-chip on" : "group-chip"} aria-pressed={due === d.id} onClick={() => setDue(d.id)}>{d.label}</button>
+                ))
+                : ends.map((e) => (
+                  <button key={e.id} type="button" className={end === e.id ? "group-chip on" : "group-chip"} aria-pressed={end === e.id} onClick={() => setEnd(e.id)}>{e.label}</button>
+                ))}
             </div>
             <label className="field">
               {t.groupName}
@@ -416,9 +427,9 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
               {isBlockedName(nick) && <span className="name-blocked">{t.nameBlocked}</span>}
             </label>
             <button type="button" className="btn primary block" disabled={!chosen || busy || isBlockedName(name) || isBlockedName(nick)} onClick={() => void create()}>
-              <Icon name="share" size={20} /> {busy ? t.groupBusy : t.groupSend}
+              <Icon name="share" size={20} /> {busy ? t.groupBusy : homework ? t.hwSend : t.groupSend}
             </button>
-            <p className="muted" style={{ fontSize: 12, fontWeight: 600, textAlign: "center" }}>{t.groupHint}</p>
+            <p className="muted" style={{ fontSize: 12, fontWeight: 600, textAlign: "center" }}>{homework ? t.hwHint : t.groupHint}</p>
           </>
         )}
         {games.length === 0 && <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{t.groupEmptyText}</p>}
@@ -429,7 +440,7 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
 
 /** Rangliste einer eigenen Lerngruppe (Entwürfe G3/G4). */
 function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: MyGroup & { board?: GroupBoard | null }; onClose: () => void; onPlay?: () => void; onNewRound: () => void; say?: (msg: string) => void }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const board = group.board;
   const entries = board?.entries ?? [];
   const meIdx = board?.me ? entries.findIndex((e) => e.me === board.me) : -1;
@@ -437,7 +448,10 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
   const left = timeLeft(group.endsAt, t);
 
   async function share() {
-    const outcome = await shareLink(t.groupShareTitle, t.groupShareText(group.name, group.title), group.url);
+    const due = group.endsAt ? new Date(group.endsAt).toLocaleString(lang === "en" ? "en-GB" : "de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    const outcome = group.homework
+      ? await shareLink(t.hwShareTitle, t.hwShareText(group.title, due), group.url)
+      : await shareLink(t.groupShareTitle, t.groupShareText(group.name, group.title), group.url);
     if (outcome === "copied") say?.(t.inviteCopied);
   }
 
@@ -451,7 +465,14 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
           {left && <span className="group-pill">{left}</span>}
         </div>
         {board === null && <p className="muted">{t.groupOffline}</p>}
-        {board && (ended ? (
+        {board && group.homework && (
+          <div className="stack" style={{ gap: 4 }}>
+            <span className="group-lab">{t.hwLabel} · {group.title}</span>
+            <h2>{t.hwDoneCount(board.count ?? board.entries.length)}</h2>
+            <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{t.hwBoardSub}</p>
+          </div>
+        )}
+        {board && !group.homework && (ended ? (
           <div className="group-winner">
             <span className="group-crown">👑</span>
             <h2>{entries[0] ? t.groupWinner(entries[0].name) : t.groupNobody}</h2>
@@ -463,7 +484,7 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
             {meIdx >= 0 && <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{meIdx === 0 ? t.groupFirst : t.groupToFirst(entries[0].pct - entries[meIdx].pct)}</p>}
           </div>
         ))}
-        <div className="group-list">
+        {!group.homework && <div className="group-list">
           {entries.slice(0, 8).map((e, i) => {
             const me = i === meIdx;
             const medal = ended && i === 0 ? "🏆" : ["🥇", "🥈", "🥉"][i];
@@ -475,8 +496,13 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
               </div>
             );
           })}
-        </div>
-        {ended ? (
+        </div>}
+        {group.homework ? (
+          <>
+            {group.teacherUrl && <button type="button" className="btn primary block" onClick={() => window.open(group.teacherUrl, "_blank")}><Icon name="eye" size={20} /> {t.groupTeacher}</button>}
+            {!ended && <button type="button" className="btn ghost block" onClick={() => void share()}><Icon name="share" size={20} /> {t.hwSend}</button>}
+          </>
+        ) : ended ? (
           <button type="button" className="btn primary block" onClick={onNewRound}>{t.groupNewRound}</button>
         ) : (
           <>
@@ -484,7 +510,7 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
             <button type="button" className={meIdx < 0 && onPlay ? "btn ghost block" : "btn primary block"} onClick={() => void share()}><Icon name="share" size={20} /> {t.groupShareAgain}</button>
           </>
         )}
-        {group.teacherUrl && (
+        {group.teacherUrl && !group.homework && (
           <button type="button" className="btn ghost block" onClick={() => window.open(group.teacherUrl, "_blank")}><Icon name="eye" size={20} /> {t.groupTeacher}</button>
         )}
         <button type="button" className="link-btn" onClick={() => window.open(group.url, "_blank")}>{t.groupOpenWeb}</button>
