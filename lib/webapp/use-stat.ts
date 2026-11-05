@@ -1,4 +1,4 @@
-// Drucken vs. online lösen zählen (anonym, nur Tageszähler – siehe app/api/use-stat).
+// Drucken vs. online lösen zählen (anonym, nur Tageszähler – siehe app/api/use-stat, Website-Seite).
 // Pro Material und Aktion nur einmal je Sitzung (PDF ansehen + herunterladen = einmal "Drucken").
 const seen = new Set<string>();
 
