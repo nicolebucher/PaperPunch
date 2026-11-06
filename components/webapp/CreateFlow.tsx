@@ -12,6 +12,7 @@ import { schoolTypes } from "@/types/generation";
 import { AppIcon, useAppText } from "./ui";
 import { BetaIntro, QuotaEmpty, QuotaLine, useQuota } from "./BetaQuota";
 import { deviceId } from "@/lib/webapp/groups";
+import { Working } from "./Working";
 
 const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
 const PROFILE_KEY = "paperpunch-web-profile";
@@ -34,7 +35,6 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   const [grade, setGrade] = useState("");
   const [schoolType, setSchoolType] = useState("");
   const [error, setError] = useState("");
-  const [buildStep, setBuildStep] = useState(0);
   const [quotaHit, setQuotaHit] = useState(false);
   const quota = useQuota();
   const quotaGone = quotaHit || (!!quota?.enforced && quota.remaining <= 0);
@@ -54,16 +54,6 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     }
   }, []);
 
-  // "Wird erstellt": Schritte nacheinander abhaken (rein zur Orientierung).
-  useEffect(() => {
-    if (step !== "loading") return;
-    const a = window.setTimeout(() => setBuildStep(1), 6000);
-    const b = window.setTimeout(() => setBuildStep(2), 45000);
-    return () => {
-      window.clearTimeout(a);
-      window.clearTimeout(b);
-    };
-  }, [step]);
 
   const totalBytes = files.reduce((s, f) => s + f.size, 0);
   const canNext = mode === "upload" ? files.length > 0 && totalBytes <= MAX_TOTAL_SIZE : subject.trim().length >= 2;
@@ -99,7 +89,6 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     track("create_submit", { format, mode, files: files.length, has_notes: !!notes.trim(), grade: grade || undefined, school_type: schoolType || undefined });
     const started = Date.now();
     setStep("loading");
-    setBuildStep(0);
     setError("");
     try {
       localStorage.setItem(PROFILE_KEY, JSON.stringify({ grade, schoolType }));
@@ -160,30 +149,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   const primary = "mt-auto w-full rounded-[20px] bg-[#1fd6ea] px-6 py-4 text-[17px] font-extrabold text-black transition active:scale-[0.98] disabled:bg-zinc-800 disabled:text-zinc-500";
 
   if (step === "loading") {
-    const name = tx.formats[format];
-    return (
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-6 py-10 text-center">
-        <span className="text-xs font-extrabold uppercase tracking-[0.08em] text-zinc-500">{name}</span>
-        <div className="relative h-[120px] w-[200px]" aria-hidden="true">
-          <svg className="absolute left-0 top-2" width="120" height="104" viewBox="14 6 110 112" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M92 30C78 20 58 17 40 19V88C58 86 78 89 92 98Z" /><path d="M32 26V94C52 92 74 94 92 104" /><path d="M24 33V100C48 98 72 100 92 110" /><path d="M92 30V98" />
-          </svg>
-          {[["#1fd6ea", 140, 14, 0], ["#f23a8e", 168, 50, 0.3], ["#a8e43a", 132, 72, 0.6], ["#1fd6ea", 176, 88, 0.9]].map(([c, x, y, d], i) => (
-            <i key={i} className="absolute h-4 w-4 animate-pulse rounded" style={{ background: c as string, left: x as number, top: y as number, animationDelay: `${d}s` }} />
-          ))}
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight">{tx.building(name)}</h1>
-        <ul className="flex flex-col gap-2.5 text-left text-[15px] font-semibold">
-          {tx.buildSteps.map((s, i) => (
-            <li key={s} className={`flex items-center gap-2.5 ${i < buildStep ? "text-zinc-500" : i === buildStep ? "text-zinc-100" : "text-zinc-600"}`}>
-              {i < buildStep ? <span className="text-[#1fd6ea]"><AppIcon name="check" size={16} stroke={3} /></span> : <span className={`h-4 w-4 rounded-full ${i === buildStep ? "animate-pulse bg-[#1fd6ea]/40" : "ring-2 ring-inset ring-zinc-700"}`} />}
-              {s}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-4 rounded-2xl bg-[#15171b] px-4 py-3 text-[13px] font-semibold text-zinc-400 ring-1 ring-white/[0.06]">{tx.buildTip}</p>
-      </div>
-    );
+    return <Working kind={format} formatName={tx.formats[format]} fileCount={mode === "upload" ? files.length : 0} />;
   }
 
   if (step === "error") {

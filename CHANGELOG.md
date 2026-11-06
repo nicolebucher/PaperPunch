@@ -44,6 +44,7 @@ Tester wish: rename materials.
 
 | Area | Change |
 | --- | --- |
+| Website | Loading screen now identical to the app: pixels “punched” out of the book, 12-pixel progress bar, current step and rotating study tips (same 20 tips as the app); also shown while a study plan is being created |
 | App + Website | Materials and games can be renamed: tap the title on the result screen (pencil icon), edit, save. The new title is stored in the material itself, so lists, study groups and challenges use it; an already generated PDF keeps its original title (hint shown for worksheets/tests) |
 
 ## v0.15.0 – 5 November 2026 (website; app part shipped in v0.16.0, version code 13)

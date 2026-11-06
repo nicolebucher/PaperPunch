@@ -9,6 +9,7 @@ import { addDays, daysBetween, deletePlan, getPlan, listPlans, newId, savePlan, 
 import type { StudyPlan } from "@/types/generation";
 import { AppIcon, Badge, useAppText } from "./ui";
 import { todaysSession } from "./util";
+import { Working } from "./Working";
 
 /** Lernpläne im Browser: Liste, neuer Plan (über /api/plan) und Planansicht zum Abhaken. */
 export function AppPlans({ id, create }: { id?: string; create?: boolean }) {
@@ -98,6 +99,8 @@ function NewPlan() {
   }
 
   const field = "h-12 rounded-xl border border-zinc-700 bg-black px-4 text-base font-semibold outline-none focus:border-[#1fd6ea]";
+  // Während der Lernplan entsteht: derselbe Ladebildschirm wie beim Erstellen (wie in der App)
+  if (busy) return <Working kind="plan" />;
   return (
     <div className="max-w-xl">
       <div className="mb-5 mt-2 flex items-center gap-3 lg:mt-0">

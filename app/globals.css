@@ -63,3 +63,29 @@ button {
 .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; font-size: 0.8em; line-height: 1.05; margin: 0 0.12em; }
 .frac > span { padding: 0 0.15em; }
 .frac > span:first-child { border-bottom: 0.09em solid currentColor; }
+
+
+/* Ladebildschirm wie in der App (components/webapp/Working.tsx, Vorlage: mobile/src/styles.css) */
+.pp-mark { display: block; width: 100%; height: auto; overflow: visible; }
+.pp-mark-px { transform-box: view-box; }
+.pp-mark-punch .pp-mark-px { opacity: 0; animation: pp-pxpunch 3.6s cubic-bezier(.2,.9,.3,1.3) infinite; animation-delay: calc(var(--i) * 0.16s); }
+@keyframes pp-pxpunch {
+  0% { opacity: 0; transform: translate(calc(var(--dx) * -2.6), calc(var(--dy) * -1.2)) scale(0.2) rotate(-40deg); }
+  18% { opacity: 1; transform: translate(0, 0) scale(1.15) rotate(0deg); }
+  26% { transform: scale(1); }
+  70% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(calc(var(--dx) * 0.8), calc(var(--dy) * 0.8 - 10px)) scale(0.6); }
+}
+.pp-mark-punch .pp-mark-line { stroke-dasharray: 40; animation: pp-write 3.6s ease-in-out infinite; }
+@keyframes pp-write { 0% { stroke-dashoffset: 40; } 30%, 100% { stroke-dashoffset: 0; } }
+.pp-glow { position: absolute; left: 50%; top: 50%; width: 240px; height: 240px; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(31, 214, 234, 0.22), rgba(31, 214, 234, 0) 70%); }
+.pp-pixelbar { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; }
+.pp-pixelbar span { aspect-ratio: 1; border-radius: 4px; background: #27272a; transition: background 0.4s ease; }
+.pp-pixelbar span.next { animation: pp-blink 1s ease-in-out infinite; }
+@keyframes pp-blink { 50% { background: #3f3f46; } }
+.pp-fadein { animation: pp-fadein 0.45s ease-out; }
+@keyframes pp-fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pp-mark-punch .pp-mark-line, .pp-pixelbar span.next, .pp-fadein { animation: none; }
+  .pp-mark-punch .pp-mark-px { animation: none; opacity: 1; }
+}
