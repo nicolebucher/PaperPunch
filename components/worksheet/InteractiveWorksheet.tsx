@@ -8,11 +8,17 @@ import { addPunches, SHEET_ANSWER_PUNCHES } from "@/lib/webapp/punches";
 import { ReportProblem } from "@/components/ReportProblem";
 
 function shuffle<T>(items: T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+  // Zuordnen: höchstens ein Drittel darf neben seinem Partner stehen, sonst neu mischen
+  const fixed = (a: T[]) => a.filter((v, i) => v === items[i]).length;
+  let copy = [...items];
+  for (let tries = 0; tries < 12 && (tries === 0 || fixed(copy) > Math.floor(items.length / 3)); tries++) {
+    copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
   }
+  if (items.length > 1 && fixed(copy) > Math.floor(items.length / 3)) copy = [...items.slice(1), items[0]];
   return copy;
 }
 

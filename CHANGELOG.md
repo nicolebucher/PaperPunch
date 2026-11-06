@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.22.3 – 6 November 2026 (website; the app part ships with the next app build)
+
+Fix: matching tasks gave the answer away.
+
+| Area | Change |
+| --- | --- |
+| App | Fix: in matching tasks the right column was hardly shuffled, so the solutions were usually right next to their partners. Now properly shuffled (fixed per task, so the order stays the same when you come back); at most a third of the items may end up next to their partner by chance |
+| Website | Same guarantee for the website (random shuffle, reshuffled if too many items stay next to their partner) |
 ## v0.22.2 – 6 November 2026 (website)
 
 Cost protection from the security review.
@@ -18,6 +26,7 @@ Cost protection from the security review.
 | Tech · Costs | Weekly quota is reserved atomically before generating and given back on failure – parallel requests can no longer overshoot it |
 | Tech · Costs | Spelling check phase 2 (follow-up worksheet) is only free with the signed token from phase 1 (bound to device/IP, 6 h); without it, it counts as a new material. Before, it could be used for unlimited free worksheets |
 | Tech | /api/feedback and GET /api/groups/<code> now have rate limits |
+
 ## v0.22.1 – 6 November 2026 (website; app answer check ships with the next app build)
 
 Security and answer-check fixes from the security review.
