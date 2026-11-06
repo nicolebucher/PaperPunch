@@ -17,6 +17,7 @@ Push statistics and retention with vs. without study plan reminders; custom date
 | Website · Tech | POST /api/visit-stat stores push counts per day (Upstash stat:push:<day>: delivered, tapped), devices with reminders on as HyperLogLog (stat:users:app:rem:<day>/m:<month>) and, for retention, one small record per hashed device (dev:<src>:<hash>: first day, active days, reminder flag; 400 days). /api/admin/stats returns push per day, remDevices per month and period, and retention per cohort week and group (website, app with reminders, app without): came back within 1, 7 and 30 days |
 | Website | Privacy policy section 8 (DE/EN) mentions active days, reminder setting and push counts under the hashed device ID |
 | Cost dashboard | Pick any dates (from/to) besides the presets, plus today, yesterday, this/last week and last month; unique counts are exact for presets, single days and whole months, otherwise shown as a range. New cards: study plan reminders (devices with reminders on, delivered per device, tap rate) and retention with vs. without reminders |
+| Cost dashboard | New chart "Visits per day: website and app" (visits/sessions per day and source for the picked period) |
 
 ## v0.17.0 – 6 November 2026 (website; the app part ships with the next app build)
 
