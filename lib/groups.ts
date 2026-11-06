@@ -125,7 +125,14 @@ async function load(code: string, fresh = false): Promise<{ meta: GroupMeta; ent
   let backend: Backend | null = null;
   let blobs: ListBlobResultBlob[] = [];
   for (const b of backends) {
-    blobs = await listBlobs(`${PREFIX}${code}/`, b);
+    try {
+      blobs = await listBlobs(`${PREFIX}${code}/`, b);
+    } catch (error) {
+      // privater Store nicht erreichbar: im öffentlichen weitersuchen statt die Gruppe zu verlieren
+      if (b === "public") throw error;
+      console.error("[groups] private store list failed:", error instanceof Error ? error.message : error);
+      blobs = [];
+    }
     if (blobs.some((x) => x.pathname.endsWith("/meta.json"))) {
       backend = b;
       break;
@@ -211,7 +218,15 @@ export async function createGroup(input: { name: string; by: string; lang: "de" 
   };
   const teacherKey = newTeacherKey();
   meta.teacherHash = await sha256(`pp-teacher:${meta.code}:${teacherKey}`);
-  await writeJson(`${PREFIX}${meta.code}/meta.json`, meta, newGroupBackend());
+  const target = newGroupBackend();
+  try {
+    await writeJson(`${PREFIX}${meta.code}/meta.json`, meta, target);
+  } catch (error) {
+    // Sicherheitsnetz: Klappt der private Store nicht, lieber wie bisher öffentlich speichern als gar nicht
+    if (target === "public") throw error;
+    console.error("[groups] private store write failed, using public store:", error instanceof Error ? error.message : error);
+    await writeJson(`${PREFIX}${meta.code}/meta.json`, meta, "public");
+  }
   return { ...meta, teacherKey };
 }
 
