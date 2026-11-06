@@ -64,7 +64,7 @@ const describeQ = (q: z.infer<typeof inQuestion>) =>
 
 async function handle(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`edit:${ip}`, 15)) return NextResponse.json({ error: "rate" }, { status: 429 });
+  if (!(await checkRateLimit(`edit:${ip}`, 15)) || !(await checkRateLimit(`edit-day:${ip}`, 80, 86400))) return NextResponse.json({ error: "rate" }, { status: 429 });
 
   let body: z.infer<typeof bodySchema>;
   try {

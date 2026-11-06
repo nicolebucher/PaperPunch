@@ -13,7 +13,7 @@ type Ctx = { params: Promise<{ code: string }> };
 export async function GET(request: NextRequest, { params }: Ctx) {
   const { code } = await params;
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!checkRateLimit(`group-report:${ip}`, 30)) return NextResponse.json({ error: "rate limit" }, { status: 429 });
+  if (!(await checkRateLimit(`group-report:${ip}`, 30))) return NextResponse.json({ error: "rate limit" }, { status: 429 });
   if (!isGroupCode(code)) return NextResponse.json({ error: "invalid" }, { status: 400 });
   const key = request.headers.get("x-teacher-key") ?? "";
   try {

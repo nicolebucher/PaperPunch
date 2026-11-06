@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
 async function handle(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`report:${ip}`, 10)) return NextResponse.json({ error: "rate" }, { status: 429 });
+  if (!(await checkRateLimit(`report:${ip}`, 30))) return NextResponse.json({ error: "rate" }, { status: 429 });
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());

@@ -71,14 +71,29 @@ export async function getQuota(subject: string): Promise<QuotaState> {
   return state(Number(r[0] ?? 0) || 0, true, week);
 }
 
-/** Nach erfolgreichem Erstellen eins hochzählen (Schlüssel verfällt nach 8 Tagen von selbst). */
-export async function countCreation(subject: string): Promise<QuotaState> {
+/**
+ * Platz im Kontingent VOR dem Erstellen reservieren (atomar per INCR): Parallele Anfragen können das Limit
+ * so nicht überholen. Liegt der Zähler danach über dem Limit, wird sofort zurückgegeben. Schlägt das Erstellen
+ * fehl, gibt releaseCreation den Platz wieder frei. Ohne Speicher: nicht begrenzt (wie bisher).
+ */
+export async function reserveCreation(subject: string): Promise<{ ok: boolean; reserved: boolean; state: QuotaState }> {
   const week = weekKey();
-  if (!quotaEnabled()) return state(0, false, week);
+  if (!quotaEnabled()) return { ok: true, reserved: false, state: state(0, false, week) };
   const key = `quota:${week}:${subject}`;
   const r = await redis([["INCR", key], ["EXPIRE", key, 8 * 86400]]);
-  if (!r) return state(0, false, week);
-  return state(Number(r[0] ?? 0) || 0, true, week);
+  if (!r) return { ok: true, reserved: false, state: state(0, false, week) };
+  const used = Number(r[0] ?? 0) || 0;
+  if (used > QUOTA_LIMIT) {
+    await redis([["DECR", key]]);
+    return { ok: false, reserved: false, state: state(QUOTA_LIMIT, true, week) };
+  }
+  return { ok: true, reserved: true, state: state(used, true, week) };
+}
+
+/** Reservierten Platz zurückgeben (Erstellen fehlgeschlagen). */
+export async function releaseCreation(subject: string): Promise<void> {
+  if (!quotaEnabled()) return;
+  await redis([["DECR", `quota:${weekKey()}:${subject}`]]);
 }
 
 /** Anonymer Tageszähler (z. B. Cookie-Banner: angezeigt/akzeptiert/abgelehnt) – keine Kennung, nur Summen. */

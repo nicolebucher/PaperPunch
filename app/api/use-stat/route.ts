@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
 async function handle(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!checkRateLimit(`use:${ip}`, 30)) return new NextResponse(null, { status: 204 });
+  if (!(await checkRateLimit(`use:${ip}`, 120))) return new NextResponse(null, { status: 204 });
   let body: { src?: unknown; action?: unknown; format?: unknown } = {};
   try {
     body = JSON.parse(await request.text()) as typeof body;

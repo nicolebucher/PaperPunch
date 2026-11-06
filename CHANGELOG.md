@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.22.2 – 6 November 2026 (website)
+
+Cost protection from the security review.
+
+| Area | Change |
+| --- | --- |
+| Tech · Costs | Rate limits now count in Upstash Redis across all Vercel instances (before: in memory per instance, so barely effective); IP stored only as a hash, keys expire with their window. Falls back to memory without Redis |
+| Tech · Costs | Daily limits per IP on top of the per-device weekly quota: create material 150/day (env GENERATE_PER_IP_PER_DAY), study plan 100, game edits 80, answer checks 2000, feedback form 30 (+5/min). Per-minute limits raised so a whole class behind one school IP is not blocked |
+| Tech · Costs | Weekly quota is reserved atomically before generating and given back on failure – parallel requests can no longer overshoot it |
+| Tech · Costs | Spelling check phase 2 (follow-up worksheet) is only free with the signed token from phase 1 (bound to device/IP, 6 h); without it, it counts as a new material. Before, it could be used for unlimited free worksheets |
+| Tech | /api/feedback and GET /api/groups/<code> now have rate limits |
 ## v0.22.1 – 6 November 2026 (website; app answer check ships with the next app build)
 
 Security and answer-check fixes from the security review.

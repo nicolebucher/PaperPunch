@@ -44,7 +44,7 @@ async function handleRating(request: NextRequest) {
   }
 
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`rating:${ip}`, 20)) {
+  if (!(await checkRateLimit(`rating:${ip}`, 60))) {
     return NextResponse.json({ error: "too many" }, { status: 429 });
   }
 

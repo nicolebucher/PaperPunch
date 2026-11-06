@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { preflight, withCors } from "@/lib/cors";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 import { isDeviceId, isGroupCode, myTag, readBoard } from "@/lib/groups";
 
 export const runtime = "nodejs";
@@ -14,6 +15,7 @@ export function OPTIONS(request: NextRequest) {
 export async function GET(request: NextRequest, { params }: Ctx) {
   const { code } = await params;
   if (!isGroupCode(code)) return withCors(request, NextResponse.json({ error: "invalid" }, { status: 400 }));
+  if (!(await checkRateLimit(`group-read:${clientIp(request)}`, 300))) return withCors(request, NextResponse.json({ error: "rate limit" }, { status: 429 }));
   try {
     const device = request.nextUrl.searchParams.get("device");
     const me = device && isDeviceId(device) ? await myTag(device) : undefined;

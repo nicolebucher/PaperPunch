@@ -96,6 +96,8 @@ export function CreationWizard({
   const [game, setGame] = useState<GameData | null>(() => saved?.game ?? null);
   const [diagnostic, setDiagnostic] = useState<SpellingDiagnostic | null>(null);
   const [spellingResult, setSpellingResult] = useState<SpellingResult | null>(null);
+  // Vom Server signiert: Phase 2 des Rechtschreib-Checks zählt damit nicht noch einmal zum Kontingent
+  const [followupToken, setFollowupToken] = useState<string | null>(null);
   const [loadingTitle, setLoadingTitle] = useState<string | undefined>(undefined);
 
   const totalSize = files.reduce((sum, file) => sum + file.size, 0);
@@ -143,6 +145,7 @@ export function CreationWizard({
         setStep("result-game");
       } else if (format === "spelling") {
         setDiagnostic(json.diagnostic);
+        setFollowupToken(typeof json.followupToken === "string" ? json.followupToken : null);
         setStep("spelling-diagnostic");
       } else if (format === "podcast") {
         const blob = base64ToBlob(json.audioBase64, "audio/mpeg");
@@ -183,6 +186,7 @@ export function CreationWizard({
     body.set("format", "spelling");
     body.set("phase", "followup");
     body.set("missed", JSON.stringify(spellingResult.missed));
+    if (followupToken) body.set("followupToken", followupToken);
     body.set("locale", locale);
     body.set("device", deviceId());
     files.forEach((file) => body.append("file", file));

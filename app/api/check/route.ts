@@ -46,7 +46,7 @@ async function handleCheck(request: NextRequest) {
   }
 
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`check:${ip}`, 40)) {
+  if (!(await checkRateLimit(`check:${ip}`, 200)) || !(await checkRateLimit(`check-day:${ip}`, 2000, 86400))) {
     return NextResponse.json({ error: t(locale).serverErrors.tooManyRequests }, { status: 429 });
   }
 

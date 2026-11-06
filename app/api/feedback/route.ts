@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,10 @@ function parseLocale(value: unknown): Locale {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = clientIp(request);
+  if (!(await checkRateLimit(`feedback:${ip}`, 5)) || !(await checkRateLimit(`feedback-day:${ip}`, 30, 86400))) {
+    return NextResponse.json({ error: t("en").serverErrors.tooManyRequests }, { status: 429 });
+  }
   let body: unknown;
   try {
     body = await request.json();
