@@ -14,14 +14,31 @@ function fold(s: string): string {
     .trim();
 }
 
-/** Zahl aus "3/4", "0,75", "0.75", "75 %" – sonst null. */
+/** Zahl aus "3/4", "0,75", "0.75", "75 %", "1.000" (Tausenderpunkt) – sonst null. */
 function asNumber(s: string): number | null {
-  const t = s.replace(/\s/g, "").replace(",", ".");
+  const raw = s.replace(/\s/g, "");
+  // Tausendertrennzeichen: "1.000", "12.500.000" (deutsch) bzw. "1,000" (englisch) = ganze Zahl,
+  // nicht 1,0. Drei Ziffern nach dem Trenner und keine führende Null ("0,125" bleibt eine Dezimalzahl).
+  if (/^-?[1-9]\d{0,2}([.,]\d{3})+$/.test(raw)) {
+    return Number(raw.replace(/[.,]/g, ""));
+  }
+  const t = raw.replace(",", ".");
   const frac = t.match(/^(-?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/);
   if (frac) return Number(frac[2]) === 0 ? null : Number(frac[1]) / Number(frac[2]);
   const pct = t.match(/^(-?\d+(?:\.\d+)?)%$/);
   if (pct) return Number(pct[1]) / 100;
   return /^-?\d+(?:\.\d+)?$/.test(t) ? Number(t) : null;
+}
+
+/** Alle Zahlen im Text, in Reihenfolge ("x = 5 cm" → [5]). */
+function numbersIn(s: string): (number | null)[] {
+  return (s.match(/\d+(?:[.,]\d+)*/g) ?? []).map(asNumber);
+}
+
+function sameNumbers(a: string, b: string): boolean {
+  const x = numbersIn(a);
+  const y = numbersIn(b);
+  return x.length === y.length && x.every((n, i) => n !== null && y[i] !== null && Math.abs(n - (y[i] as number)) < 1e-9);
 }
 
 function distance(a: string, b: string): number {
@@ -47,7 +64,9 @@ function variants(expected: string): string[] {
     out.add(`${paren[1]} ${paren[3]}`.trim());
     out.add(paren[2]);
   }
-  for (const part of expected.split(/\s+(?:oder|or|bzw\.)\s+|\s*\/\s*(?=\D)/)) if (part.trim()) out.add(part);
+  // "/" nur als "oder" werten, wenn Leerzeichen drumherum stehen oder auf beiden Seiten ganze Wörter
+  // (ab 4 Buchstaben): "Mitose / Meiose", "Mitose/Meiose" – aber Einheiten wie "km/h", "m/s" bleiben ganz.
+  for (const part of expected.split(/\s+(?:oder|or|bzw\.)\s+|\s+\/\s+|(?<=\p{L}{4})\/(?=\p{L}{4})/u)) if (part.trim()) out.add(part);
   // ohne Artikel am Anfang
   for (const v of [...out]) out.add(v.replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/i, ""));
   return [...out].map(fold).filter(Boolean);
@@ -130,6 +149,8 @@ export function answerMatches(given: string, expected: string, accepted: string[
       if (Math.abs(gNum - cNum) < 1e-9) return true;
       continue; // Zahlen nie per Tippfehler-Toleranz
     }
+    // Zahlen mit Einheit o. Ä. ("12 cm", "x = 5"): die Zahlen müssen exakt stimmen, Toleranz nur für den Rest
+    if (!sameNumbers(g, c)) continue;
     // ein Tippfehler bei Wörtern ab 5 Buchstaben, zwei ab 12
     const allowed = c.length >= 12 ? 2 : c.length >= 5 ? 1 : 0;
     if (allowed && distance(g, c) <= allowed) return true;
