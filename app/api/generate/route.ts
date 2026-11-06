@@ -31,6 +31,10 @@ function isOutputFormat(value: unknown): value is OutputFormat {
   return typeof value === "string" && (outputFormats as readonly string[]).includes(value);
 }
 
+function podcastEnabled(): boolean {
+  return process.env.PODCAST_ENABLED === "true" && !!process.env.ELEVENLABS_API_KEY;
+}
+
 function nullToUndefined(value: FormDataEntryValue | null): FormDataEntryValue | undefined {
   if (value === null) return undefined;
   if (typeof value === "string" && value.trim() === "") return undefined;
@@ -73,6 +77,11 @@ async function handleGenerate(request: NextRequest) {
   const files = formData.getAll("file").filter((entry): entry is File => entry instanceof File);
 
   if (!isOutputFormat(format)) {
+    return NextResponse.json({ error: messages.invalidFormat }, { status: 400 });
+  }
+  // Podcast ist noch "Coming soon": ohne Freigabe und TTS-Schlüssel gar nicht erst starten,
+  // sonst kostet das Skript (Claude) Geld und die Anfrage scheitert danach an der Sprachausgabe.
+  if (format === "podcast" && !podcastEnabled()) {
     return NextResponse.json({ error: messages.invalidFormat }, { status: 400 });
   }
   if (files.length > MAX_FILES) {
