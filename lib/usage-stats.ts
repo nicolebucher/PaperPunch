@@ -82,7 +82,16 @@ export function userSubject(device: unknown): string | null {
   return createHash("sha256").update(`pp-users:${device}`).digest("hex").slice(0, 24);
 }
 
-export async function recordVisit(src: "web" | "app", pages: number, seconds: number, user: string | null = null): Promise<void> {
+// Push-Statistik und Rückkehrquote (seit v0.18.0): Die App meldet mit dem Besuch, ob Lernplan-Erinnerungen an sind
+// (rem) und wie viele seit der letzten Meldung zugestellt/angetippt wurden. Für die Rückkehrquote führt der Server pro
+// gehashtem Gerät einen kleinen Datensatz dev:<src>:<hash> {first, rem, remEver, d:<Tag>…} (nur Aktivtage, 400 Tage).
+export interface VisitExtra {
+  rem?: boolean;
+  delivered?: number;
+  tapped?: number;
+}
+
+export async function recordVisit(src: "web" | "app", pages: number, seconds: number, user: string | null = null, extra: VisitExtra = {}): Promise<void> {
   if (!quotaEnabled()) return;
   try {
     const day = berlinDay();
@@ -104,6 +113,26 @@ export async function recordVisit(src: "web" | "app", pages: number, seconds: nu
         ["PFADD", `stat:users:${src}:m:${month(day)}`, user],
         ["EXPIRE", `stat:users:${src}:m:${month(day)}`, TTL],
       );
+      const dev = `dev:${src}:${user}`;
+      cmds.push(["HSETNX", dev, "first", day], ["HSET", dev, `d:${day}`, 1]);
+      if (src === "app") {
+        cmds.push(["HSET", dev, "rem", extra.rem ? 1 : 0]);
+        if (extra.rem) {
+          cmds.push(
+            ["HSET", dev, "remEver", 1],
+            ["PFADD", `stat:users:app:rem:${day}`, user],
+            ["EXPIRE", `stat:users:app:rem:${day}`, TTL],
+            ["PFADD", `stat:users:app:rem:m:${month(day)}`, user],
+            ["EXPIRE", `stat:users:app:rem:m:${month(day)}`, TTL],
+          );
+        }
+      }
+      cmds.push(["EXPIRE", dev, TTL]);
+    }
+    const delivered = Math.max(0, Math.min(500, Math.round(extra.delivered ?? 0)));
+    const tapped = Math.max(0, Math.min(500, Math.round(extra.tapped ?? 0)));
+    if (src === "app" && (delivered || tapped)) {
+      cmds.push(["HINCRBY", `stat:push:${day}`, "delivered", delivered], ["HINCRBY", `stat:push:${day}`, "tapped", tapped], ["EXPIRE", `stat:push:${day}`, TTL]);
     }
     await redis(cmds);
   } catch {
@@ -158,6 +187,55 @@ export interface DayStats {
   use: Record<string, number>;
   /** Eindeutige Geräte mit mindestens einem Besuch an diesem Tag, je Quelle (gibt es seit 6. Nov. 2026) */
   users: { web: number; app: number };
+  /** Lernplan-Erinnerungen (App): zugestellt, angetippt, Geräte mit Erinnerungen an (gibt es seit v0.18.0) */
+  push: { delivered: number; tapped: number; remDevices: number };
+}
+
+/** Rückkehrquote je Kohorte (Woche des ersten Besuchs, Montag) und Gruppe; eN = Geräte, deren N-Tage-Fenster
+ *  vorbei ist, bN = davon an mindestens einem der N Tage nach dem ersten Besuch wieder da. */
+export interface RetentionRow {
+  cohort: string;
+  group: "web" | "app_reminders" | "app_no_reminders";
+  size: number;
+  e1: number;
+  b1: number;
+  e7: number;
+  b7: number;
+  e30: number;
+  b30: number;
+}
+
+const addDaysIso = (day: string, n: number) => new Date(Date.parse(`${day}T00:00:00Z`) + n * 86400000).toISOString().slice(0, 10);
+const mondayOf = (day: string) => addDaysIso(day, -((new Date(`${day}T00:00:00Z`).getUTCDay() + 6) % 7));
+
+async function readRetention(today: string): Promise<RetentionRow[]> {
+  const keys = (await redis([["KEYS", "dev:*"]]))?.[0];
+  const list = Array.isArray(keys) ? (keys as string[]).slice(0, 5000) : [];
+  if (!list.length) return [];
+  const r = await redis(list.map((k) => ["HGETALL", k]));
+  if (!r) return [];
+  const yesterday = addDaysIso(today, -1);
+  const rows = new Map<string, RetentionRow>();
+  list.forEach((key, i) => {
+    const h = toObj(r[i]);
+    const first = h.first;
+    if (!first) return;
+    const src = key.split(":")[1];
+    const group: RetentionRow["group"] = src === "web" ? "web" : h.remEver === "1" ? "app_reminders" : "app_no_reminders";
+    const cohort = mondayOf(first);
+    const id = `${cohort}|${group}`;
+    const row = rows.get(id) ?? { cohort, group, size: 0, e1: 0, b1: 0, e7: 0, b7: 0, e30: 0, b30: 0 };
+    row.size += 1;
+    const days = Object.keys(h).filter((k) => k.startsWith("d:")).map((k) => k.slice(2));
+    for (const n of [1, 7, 30] as const) {
+      const last = addDaysIso(first, n);
+      if (last > yesterday) continue;
+      row[`e${n}`] += 1;
+      if (days.some((d) => d > first && d <= last)) row[`b${n}`] += 1;
+    }
+    rows.set(id, row);
+  });
+  return [...rows.values()].sort((a, b) => a.cohort.localeCompare(b.cohort) || a.group.localeCompare(b.group));
 }
 
 export interface UserRange {
@@ -168,6 +246,8 @@ export interface UserRange {
   app: number;
   /** eindeutige Geräte, die etwas erstellt haben (Website + App) */
   creators: number;
+  /** eindeutige App-Geräte mit Lernplan-Erinnerungen an */
+  remDevices: number;
 }
 
 function lastDays(n: number): string[] {
@@ -193,7 +273,7 @@ async function weekQuota(): Promise<{ week: string; devices: number; creations: 
   return { week, devices: list.length, creations };
 }
 
-export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number; users: { web: number; app: number } }[]; userRanges: UserRange[]; week: { week: string; devices: number; creations: number } } | null> {
+export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number; users: { web: number; app: number }; remDevices: number }[]; userRanges: UserRange[]; retention: RetentionRow[]; week: { week: string; devices: number; creations: number } } | null> {
   if (!quotaEnabled()) return null;
   const days = lastDays(Math.min(Math.max(n, 1), 120));
   const cmds: (string | number)[][] = [];
@@ -202,19 +282,21 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
     cmds.push(["GET", `stat:consent:${d}:shown`], ["GET", `stat:consent:${d}:granted`], ["GET", `stat:consent:${d}:denied`]);
     cmds.push(["HGETALL", `stat:visit:${d}`], ["HGETALL", `stat:use:${d}`]);
     cmds.push(["PFCOUNT", `stat:users:web:${d}`], ["PFCOUNT", `stat:users:app:${d}`]);
+    cmds.push(["HGETALL", `stat:push:${d}`], ["PFCOUNT", `stat:users:app:rem:${d}`]);
   }
   const months = [...new Set(days.map(month))];
-  for (const m of months) cmds.push(["PFCOUNT", `stat:creators:m:${m}`], ["PFCOUNT", `stat:users:web:m:${m}`], ["PFCOUNT", `stat:users:app:m:${m}`]);
+  for (const m of months) cmds.push(["PFCOUNT", `stat:creators:m:${m}`], ["PFCOUNT", `stat:users:web:m:${m}`], ["PFCOUNT", `stat:users:app:m:${m}`], ["PFCOUNT", `stat:users:app:rem:m:${m}`]);
   // Eindeutige Geräte über mehrere Tage: PFCOUNT über mehrere Schlüssel zählt die Vereinigung
   const spans = [...new Set([7, 30, 90, days.length].filter((x) => x <= days.length))];
   for (const span of spans) {
     const last = days.slice(-span);
     cmds.push(["PFCOUNT", ...last.map((d) => `stat:users:web:${d}`)], ["PFCOUNT", ...last.map((d) => `stat:users:app:${d}`)]);
     cmds.push(["PFCOUNT", ...last.map((d) => `stat:creators:${d}`)]);
+    cmds.push(["PFCOUNT", ...last.map((d) => `stat:users:app:rem:${d}`)]);
   }
   const r = await redis(cmds);
   if (!r) return null;
-  const PER = 10;
+  const PER = 12;
   const out: DayStats[] = days.map((day, i) => {
     const ai = toObj(r[i * PER]);
     const gen = toObj(r[i * PER + 1]);
@@ -248,20 +330,26 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
       visits: { web: visitStats(toObj(r[i * PER + 6]), "web"), app: visitStats(toObj(r[i * PER + 6]), "app") },
       use: Object.fromEntries(Object.entries(toObj(r[i * PER + 7])).map(([k, v]) => [k, Number(v) || 0])),
       users: { web: Number(r[i * PER + 8]) || 0, app: Number(r[i * PER + 9]) || 0 },
+      push: (() => {
+        const p = toObj(r[i * PER + 10]);
+        return { delivered: Number(p.delivered) || 0, tapped: Number(p.tapped) || 0, remDevices: Number(r[i * PER + 11]) || 0 };
+      })(),
     };
   });
   const base = days.length * PER;
   const monthStats = months.map((m, j) => ({
     month: m,
-    creators: Number(r[base + j * 3]) || 0,
-    users: { web: Number(r[base + j * 3 + 1]) || 0, app: Number(r[base + j * 3 + 2]) || 0 },
+    creators: Number(r[base + j * 4]) || 0,
+    users: { web: Number(r[base + j * 4 + 1]) || 0, app: Number(r[base + j * 4 + 2]) || 0 },
+    remDevices: Number(r[base + j * 4 + 3]) || 0,
   }));
-  const spanBase = base + months.length * 3;
+  const spanBase = base + months.length * 4;
   const userRanges = spans.map((span, j) => ({
     days: span,
-    web: Number(r[spanBase + j * 3]) || 0,
-    app: Number(r[spanBase + j * 3 + 1]) || 0,
-    creators: Number(r[spanBase + j * 3 + 2]) || 0,
+    web: Number(r[spanBase + j * 4]) || 0,
+    app: Number(r[spanBase + j * 4 + 1]) || 0,
+    creators: Number(r[spanBase + j * 4 + 2]) || 0,
+    remDevices: Number(r[spanBase + j * 4 + 3]) || 0,
   }));
-  return { days: out, months: monthStats, userRanges, week: await weekQuota() };
+  return { days: out, months: monthStats, userRanges, retention: await readRetention(berlinDay()), week: await weekQuota() };
 }

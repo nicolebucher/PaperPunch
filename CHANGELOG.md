@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.18.0 – 6 November 2026 (website; the app part ships with the next app build)
+
+Push statistics and retention with vs. without study plan reminders; custom dates on the cost dashboard.
+
+| Area | Change |
+| --- | --- |
+| App · Tech | The app counts its study plan reminders (local notifications): reminders that became due are counted as delivered when the app is next opened, taps are counted via the notification listener; both counters and whether reminders are on (on + permission granted) go with the next visit report |
+| Website · Tech | POST /api/visit-stat stores push counts per day (Upstash stat:push:<day>: delivered, tapped), devices with reminders on as HyperLogLog (stat:users:app:rem:<day>/m:<month>) and, for retention, one small record per hashed device (dev:<src>:<hash>: first day, active days, reminder flag; 400 days). /api/admin/stats returns push per day, remDevices per month and period, and retention per cohort week and group (website, app with reminders, app without): came back within 1, 7 and 30 days |
+| Website | Privacy policy section 8 (DE/EN) mentions active days, reminder setting and push counts under the hashed device ID |
+| Cost dashboard | Pick any dates (from/to) besides the presets, plus today, yesterday, this/last week and last month; unique counts are exact for presets, single days and whole months, otherwise shown as a range. New cards: study plan reminders (devices with reminders on, delivered per device, tap rate) and retention with vs. without reminders |
+
 ## v0.17.0 – 6 November 2026 (website; the app part ships with the next app build)
 
 Unique users per website and app, and a period picker on the cost dashboard.

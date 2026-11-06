@@ -98,7 +98,11 @@ function PrivacyEn() {
             local storage or in the app). Our server immediately turns it into a one-way hash and adds it only to a
             counting structure (HyperLogLog) with Upstash, Inc. (data centre in Frankfurt), our processor. From it we
             can only read how many different devices visited on a day, in a month or over several days, never which
-            ones; the ID itself is not stored. The counters are deleted automatically after 400 days. Legal basis:
+            ones; the ID itself is not stored. To see whether people come back (e.g. whether study plan reminders help),
+            the server also keeps, under that one-way hash, the days on which the device was active and, in the
+            app, whether study plan reminders are switched on; the app also reports how many reminders were
+            delivered or tapped since its last report (counts only). The counters and these records are deleted
+            automatically after 400 days. Legal basis:
             our legitimate interest in understanding how many people use the service so we can plan costs and
             capacity (Art. 6(1)(f) GDPR). You can delete the ID at any time by clearing this site&apos;s data in your
             browser or the app&apos;s data on your device.
@@ -291,7 +295,11 @@ function PrivacyDe() {
             nicht umkehrbaren Hash und fügt ihn nur einer Zählstruktur (HyperLogLog) bei Upstash, Inc.
             (Rechenzentrum Frankfurt) als Auftragsverarbeiter hinzu. Daraus können wir nur ablesen, wie viele
             verschiedene Geräte an einem Tag, in einem Monat oder über mehrere Tage da waren, nie welche; die Kennung
-            selbst wird nicht gespeichert. Die Zähler werden nach 400 Tagen automatisch gelöscht. Rechtsgrundlage:
+            selbst wird nicht gespeichert. Um zu sehen, ob Menschen wiederkommen (z. B. ob Lernplan-Erinnerungen
+            helfen), speichert der Server unter diesem Hash außerdem, an welchen Tagen das Gerät aktiv war, und in
+            der App, ob Lernplan-Erinnerungen eingeschaltet sind; die App meldet zudem, wie viele Erinnerungen seit
+            der letzten Meldung zugestellt oder angetippt wurden (nur Anzahlen). Zähler und diese Datensätze werden
+            nach 400 Tagen automatisch gelöscht. Rechtsgrundlage:
             unser berechtigtes Interesse, zu verstehen, wie viele Menschen den Dienst nutzen, um Kosten und
             Kapazität zu planen (Art. 6 Abs. 1 lit. f DSGVO). Du kannst die Kennung jederzeit löschen, indem du die
             Websitedaten im Browser bzw. die App-Daten auf deinem Gerät löschst.
