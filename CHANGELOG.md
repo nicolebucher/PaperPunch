@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.17.0 – 6 November 2026 (website; the app part ships with the next app build)
+
+Unique users per website and app, and a period picker on the cost dashboard.
+
+| Area | Change |
+| --- | --- |
+| Website + App · Tech | Unique users: the visit report (POST /api/visit-stat) now also carries the random device ID that web and app already use for the weekly quota. The server stores only its own one-way hash in HyperLogLog counters per source, day and month (Upstash stat:users:<src>:<day>, stat:users:<src>:m:<month>, 400 days); no ID is stored. /api/admin/stats returns users per day and month, plus unique users and unique creators over the last 7/30/90 days and the whole window (userRanges) |
+| Website | Privacy policy section 8 (DE/EN) describes the hashed device ID for counting unique users (legal basis Art. 6(1)(f) GDPR); version of 6 November 2026 |
+| Cost dashboard | Period picker (last 7/30/90 days, this month, since counting began; default last 30 days) for all figures, tables and charts; new card "Unique users: website and app" with a daily chart; costs by request type now per day so they follow the period |
+
 ## v0.16.0 – 6 November 2026 (Android: version code 13, includes the app part of v0.15.0)
 
 Tester wish: rename materials.

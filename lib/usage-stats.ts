@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { berlinDay, quotaEnabled, redis, weekKey } from "@/lib/quota";
 
 // Echte Nutzungs- und Kostenzahlen fürs Kosten-Dashboard (Upstash Redis, nur Summen, keine Inhalte):
@@ -70,21 +71,41 @@ export function durationBucket(sec: number): string {
   return b === undefined ? "600+" : `<${b}`;
 }
 
-export async function recordVisit(src: "web" | "app", pages: number, seconds: number): Promise<void> {
+// Eindeutige Nutzer:innen je Quelle (seit v0.17.0): Website und App schicken die zufällige Geräte-ID mit, die es
+// fürs Kontingent ohnehin gibt. Gespeichert wird nur ein eigener, nicht umkehrbarer Hash davon in HyperLogLogs
+// (stat:users:<src>:<Tag> und stat:users:<src>:m:<Monat>) – daraus lässt sich nur die Anzahl lesen, keine Kennung.
+// Über mehrere Tage zählt PFCOUNT die Vereinigung, also echte eindeutige Geräte für 7/30/90 Tage.
+const DEVICE_RE = /^[\w-]{8,64}$/;
+
+export function userSubject(device: unknown): string | null {
+  if (typeof device !== "string" || !DEVICE_RE.test(device)) return null;
+  return createHash("sha256").update(`pp-users:${device}`).digest("hex").slice(0, 24);
+}
+
+export async function recordVisit(src: "web" | "app", pages: number, seconds: number, user: string | null = null): Promise<void> {
   if (!quotaEnabled()) return;
   try {
     const day = berlinDay();
     const key = `stat:visit:${day}`;
     const p = Math.max(1, Math.min(200, Math.round(pages)));
     const sec = Math.max(0, Math.min(3600, Math.round(seconds)));
-    await redis([
+    const cmds: (string | number)[][] = [
       ["HINCRBY", key, `${src}:visits`, 1],
       ["HINCRBY", key, `${src}:bounces`, p <= 1 ? 1 : 0],
       ["HINCRBY", key, `${src}:pages`, p],
       ["HINCRBY", key, `${src}:sec`, sec],
       ["HINCRBY", key, `${src}:d:${durationBucket(sec)}`, 1],
       ["EXPIRE", key, TTL],
-    ]);
+    ];
+    if (user) {
+      cmds.push(
+        ["PFADD", `stat:users:${src}:${day}`, user],
+        ["EXPIRE", `stat:users:${src}:${day}`, TTL],
+        ["PFADD", `stat:users:${src}:m:${month(day)}`, user],
+        ["EXPIRE", `stat:users:${src}:m:${month(day)}`, TTL],
+      );
+    }
+    await redis(cmds);
   } catch {
     /* egal */
   }
@@ -135,6 +156,18 @@ export interface DayStats {
   visits: { web: VisitStats; app: VisitStats };
   /** Drucken vs. online: z. B. "web:print:worksheet" → Anzahl (gibt es seit 5. Nov. 2026 abends) */
   use: Record<string, number>;
+  /** Eindeutige Geräte mit mindestens einem Besuch an diesem Tag, je Quelle (gibt es seit 6. Nov. 2026) */
+  users: { web: number; app: number };
+}
+
+export interface UserRange {
+  /** Anzahl Tage bis heute (7, 30, 90) bzw. das ganze abgefragte Fenster */
+  days: number;
+  /** eindeutige Geräte mit mindestens einem Besuch, je Quelle */
+  web: number;
+  app: number;
+  /** eindeutige Geräte, die etwas erstellt haben (Website + App) */
+  creators: number;
 }
 
 function lastDays(n: number): string[] {
@@ -149,7 +182,6 @@ const toObj = (arr: unknown): Record<string, string> => {
   return o;
 };
 
-/** Zahlen der letzten `n` Tage plus eindeutige Ersteller:innen pro Monat. */
 /** Kontingent dieser Woche: wie viele Geräte wie viele Materialien erstellt haben (gibt es seit 4. Nov. 2026). */
 async function weekQuota(): Promise<{ week: string; devices: number; creations: number }> {
   const week = weekKey();
@@ -161,7 +193,7 @@ async function weekQuota(): Promise<{ week: string; devices: number; creations: 
   return { week, devices: list.length, creations };
 }
 
-export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number }[]; week: { week: string; devices: number; creations: number } } | null> {
+export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number; users: { web: number; app: number } }[]; userRanges: UserRange[]; week: { week: string; devices: number; creations: number } } | null> {
   if (!quotaEnabled()) return null;
   const days = lastDays(Math.min(Math.max(n, 1), 120));
   const cmds: (string | number)[][] = [];
@@ -169,12 +201,20 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
     cmds.push(["HGETALL", `stat:ai:${d}`], ["HGETALL", `stat:gen:${d}`], ["PFCOUNT", `stat:creators:${d}`]);
     cmds.push(["GET", `stat:consent:${d}:shown`], ["GET", `stat:consent:${d}:granted`], ["GET", `stat:consent:${d}:denied`]);
     cmds.push(["HGETALL", `stat:visit:${d}`], ["HGETALL", `stat:use:${d}`]);
+    cmds.push(["PFCOUNT", `stat:users:web:${d}`], ["PFCOUNT", `stat:users:app:${d}`]);
   }
   const months = [...new Set(days.map(month))];
-  for (const m of months) cmds.push(["PFCOUNT", `stat:creators:m:${m}`]);
+  for (const m of months) cmds.push(["PFCOUNT", `stat:creators:m:${m}`], ["PFCOUNT", `stat:users:web:m:${m}`], ["PFCOUNT", `stat:users:app:m:${m}`]);
+  // Eindeutige Geräte über mehrere Tage: PFCOUNT über mehrere Schlüssel zählt die Vereinigung
+  const spans = [...new Set([7, 30, 90, days.length].filter((x) => x <= days.length))];
+  for (const span of spans) {
+    const last = days.slice(-span);
+    cmds.push(["PFCOUNT", ...last.map((d) => `stat:users:web:${d}`)], ["PFCOUNT", ...last.map((d) => `stat:users:app:${d}`)]);
+    cmds.push(["PFCOUNT", ...last.map((d) => `stat:creators:${d}`)]);
+  }
   const r = await redis(cmds);
   if (!r) return null;
-  const PER = 8;
+  const PER = 10;
   const out: DayStats[] = days.map((day, i) => {
     const ai = toObj(r[i * PER]);
     const gen = toObj(r[i * PER + 1]);
@@ -207,8 +247,21 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
       consent: { shown: Number(r[i * PER + 3]) || 0, granted: Number(r[i * PER + 4]) || 0, denied: Number(r[i * PER + 5]) || 0 },
       visits: { web: visitStats(toObj(r[i * PER + 6]), "web"), app: visitStats(toObj(r[i * PER + 6]), "app") },
       use: Object.fromEntries(Object.entries(toObj(r[i * PER + 7])).map(([k, v]) => [k, Number(v) || 0])),
+      users: { web: Number(r[i * PER + 8]) || 0, app: Number(r[i * PER + 9]) || 0 },
     };
   });
   const base = days.length * PER;
-  return { days: out, months: months.map((m, j) => ({ month: m, creators: Number(r[base + j]) || 0 })), week: await weekQuota() };
+  const monthStats = months.map((m, j) => ({
+    month: m,
+    creators: Number(r[base + j * 3]) || 0,
+    users: { web: Number(r[base + j * 3 + 1]) || 0, app: Number(r[base + j * 3 + 2]) || 0 },
+  }));
+  const spanBase = base + months.length * 3;
+  const userRanges = spans.map((span, j) => ({
+    days: span,
+    web: Number(r[spanBase + j * 3]) || 0,
+    app: Number(r[spanBase + j * 3 + 1]) || 0,
+    creators: Number(r[spanBase + j * 3 + 2]) || 0,
+  }));
+  return { days: out, months: monthStats, userRanges, week: await weekQuota() };
 }

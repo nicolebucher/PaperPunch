@@ -2,10 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { deviceId } from "@/lib/webapp/groups";
 
-// Misst anonym Besuchsdauer und Absprünge (eine Seite = Absprung) fürs Kosten-Dashboard.
-// Keine Kennung, kein Cookie, nichts im Browser gespeichert: Zähler nur im Arbeitsspeicher, beim ersten
-// Verlassen/Verstecken des Tabs einmal an /api/visit-stat. Gezählt wird nur die Zeit, in der der Tab sichtbar ist.
+// Misst Besuchsdauer und Absprünge (eine Seite = Absprung) fürs Kosten-Dashboard, ohne Cookie: Zähler nur im
+// Arbeitsspeicher, beim ersten Verlassen/Verstecken des Tabs einmal an /api/visit-stat. Gezählt wird nur die Zeit,
+// in der der Tab sichtbar ist. Mitgeschickt wird die zufällige Geräte-ID (dieselbe wie fürs Kontingent), damit der
+// Server eindeutige Nutzer:innen zählen kann; er speichert davon nur einen nicht umkehrbaren Hash.
 export function VisitBeacon() {
   const pathname = usePathname();
   const pages = useRef(new Set<string>());
@@ -24,7 +26,7 @@ export function VisitBeacon() {
       visibleSince.current = null;
       if (sent.current) return;
       sent.current = true;
-      const body = JSON.stringify({ src: "web", pages: Math.max(1, pages.current.size), seconds: Math.round(activeMs.current / 1000) });
+      const body = JSON.stringify({ src: "web", pages: Math.max(1, pages.current.size), seconds: Math.round(activeMs.current / 1000), device: deviceId() });
       try {
         if (!navigator.sendBeacon?.("/api/visit-stat", body)) {
           void fetch("/api/visit-stat", { method: "POST", body, keepalive: true });

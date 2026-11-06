@@ -12,7 +12,7 @@ function PrivacyEn() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Privacy Policy</h1>
       <DraftNotice>
-        Version of 4 November 2026.
+        Version of 6 November 2026.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
@@ -90,7 +90,18 @@ function PrivacyEn() {
             aggregated and no individual profile is built. We also count, per day and without any identifier, how often
             the cookie banner was shown, accepted or declined. In the same way, the website and the app report once per
             visit how long it lasted and how many pages or screens were viewed, and count whether materials are opened as PDF or solved online; we store only daily totals, without any
-            identifier, cookie or data on your device.
+            identifier and without a cookie.
+          </p>
+          <p className="mt-2">
+            To know how many different people use the website and the app, this visit report also includes the
+            random ID generated on your device (the same one used for the weekly limit, stored in your browser&apos;s
+            local storage or in the app). Our server immediately turns it into a one-way hash and adds it only to a
+            counting structure (HyperLogLog) with Upstash, Inc. (data centre in Frankfurt), our processor. From it we
+            can only read how many different devices visited on a day, in a month or over several days, never which
+            ones; the ID itself is not stored. The counters are deleted automatically after 400 days. Legal basis:
+            our legitimate interest in understanding how many people use the service so we can plan costs and
+            capacity (Art. 6(1)(f) GDPR). You can delete the ID at any time by clearing this site&apos;s data in your
+            browser or the app&apos;s data on your device.
           </p>
           <p className="mt-2">
             Only if you click “Accept” in the cookie banner do we also use Google Analytics 4 (Google Ireland
@@ -187,7 +198,7 @@ function PrivacyDe() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Datenschutzerklärung</h1>
       <DraftNotice>
-        Stand: 4. November 2026.
+        Stand: 6. November 2026.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
@@ -271,7 +282,19 @@ function PrivacyDe() {
             individuelles Profil erstellt. Außerdem zählen wir pro Tag und ohne jede Kennung, wie oft das Cookie-Banner
             angezeigt, akzeptiert oder abgelehnt wurde. Ebenso melden Website und App einmal pro Besuch, wie lange er
             gedauert hat und wie viele Seiten bzw. Bildschirme aufgerufen wurden, und zählen, ob Materialien als PDF geöffnet oder online gelöst werden; gespeichert werden nur Tagessummen,
-            ohne Kennung, ohne Cookie und ohne Daten auf deinem Gerät.
+            ohne Kennung und ohne Cookie.
+          </p>
+          <p className="mt-2">
+            Um zu wissen, wie viele verschiedene Menschen Website und App nutzen, enthält diese Besuchsmeldung
+            außerdem die zufällige, auf deinem Gerät erzeugte Kennung (dieselbe wie fürs Wochen-Kontingent,
+            gespeichert im lokalen Speicher deines Browsers bzw. in der App). Unser Server macht daraus sofort einen
+            nicht umkehrbaren Hash und fügt ihn nur einer Zählstruktur (HyperLogLog) bei Upstash, Inc.
+            (Rechenzentrum Frankfurt) als Auftragsverarbeiter hinzu. Daraus können wir nur ablesen, wie viele
+            verschiedene Geräte an einem Tag, in einem Monat oder über mehrere Tage da waren, nie welche; die Kennung
+            selbst wird nicht gespeichert. Die Zähler werden nach 400 Tagen automatisch gelöscht. Rechtsgrundlage:
+            unser berechtigtes Interesse, zu verstehen, wie viele Menschen den Dienst nutzen, um Kosten und
+            Kapazität zu planen (Art. 6 Abs. 1 lit. f DSGVO). Du kannst die Kennung jederzeit löschen, indem du die
+            Websitedaten im Browser bzw. die App-Daten auf deinem Gerät löschst.
           </p>
           <p className="mt-2">
             Nur wenn du im Cookie-Banner auf „Akzeptieren“ klickst, nutzen wir zusätzlich Google Analytics 4
