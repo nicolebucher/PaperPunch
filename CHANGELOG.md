@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.16.0 – 6 November 2026 (website; the app part ships with the next app build)
+
+Tester wish: rename materials.
+
+| Area | Change |
+| --- | --- |
+| App + Website | Materials and games can be renamed: tap the title on the result screen (pencil icon), edit, save. The new title is stored in the material itself, so lists, study groups and challenges use it; an already generated PDF keeps its original title (hint shown for worksheets/tests) |
+
 ## v0.15.0 – 5 November 2026 (website; the app part ships with the next app build)
 
 Visit duration, bounce rate and print vs. online for the cost dashboard.

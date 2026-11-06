@@ -10,7 +10,7 @@ import { buildStandaloneGameHtml } from "@/lib/game/build-standalone-game-html";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { shareOrDownloadFile } from "@/lib/share";
 import { slugify } from "@/lib/slugify";
-import type { WebMaterial } from "@/lib/webapp/store";
+import { saveMaterial, type WebMaterial } from "@/lib/webapp/store";
 import { AppIcon, useAppText } from "./ui";
 import { RatingCard } from "./RatingCard";
 import { GroupCreate } from "./GroupCreate";
@@ -30,8 +30,26 @@ const CONFETTI: [number, number, number, string, number][] = [
 ];
 
 /** Ergebnis wie in der App (E3): Erfolgsmoment, dann "Wie willst du üben?" mit großen Optionen. */
-export function ResultView({ material }: { material: WebMaterial }) {
+export function ResultView({ material: initial }: { material: WebMaterial }) {
   const tx = useAppText();
+  // Titel lässt sich umbenennen: steckt auch im Spiel/Arbeitsblatt selbst, damit Lerngruppen und Challenges ihn übernehmen
+  const [material, setMaterial] = useState(initial);
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState("");
+  function rename() {
+    const title = draft.replace(/\s+/g, " ").trim().slice(0, 80);
+    setRenaming(false);
+    if (!title || title === material.title) return;
+    const next: WebMaterial = {
+      ...material,
+      title,
+      ...(material.game ? { game: { ...material.game, gameTitle: title } } : {}),
+      ...(material.sheet ? { sheet: { ...material.sheet, data: { ...material.sheet.data, title } } } : {}),
+    };
+    saveMaterial(next);
+    setMaterial(next);
+    track("material_renamed", { format: material.format });
+  }
   const { locale } = useLanguage();
   const [view, setView] = useState<"home" | "practice" | "pdf" | "play">("home");
   const [challengeOpen, setChallengeOpen] = useState(false);
@@ -146,7 +164,28 @@ export function ResultView({ material }: { material: WebMaterial }) {
         <div className="relative z-10 flex flex-col items-center gap-2.5 text-center">
           <span className="mb-1.5 grid h-[76px] w-[76px] place-items-center rounded-[26px] bg-[#1fd6ea] text-[#062a2f] shadow-[0_0_0_8px_rgba(31,214,234,0.12)]"><AppIcon name="check" size={36} stroke={2.6} /></span>
           <span className="text-[13px] font-extrabold text-zinc-400">{tx.ready(formatName)}</span>
-          <h1 className="text-[30px] font-black leading-tight tracking-tight">{material.title}</h1>
+          {renaming ? (
+            <form onSubmit={(e) => { e.preventDefault(); rename(); }} className="flex w-full max-w-md flex-col gap-2">
+              <input
+                value={draft}
+                maxLength={80}
+                autoFocus
+                aria-label={tx.renameLabel}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") setRenaming(false); }}
+                className="min-h-12 w-full rounded-2xl bg-[#1b1d22] px-4 text-center text-xl font-extrabold text-white outline-none ring-1 ring-white/10 focus:ring-[#1fd6ea]"
+              />
+              {material.sheet && <span className="text-xs font-semibold text-zinc-500">{tx.renamePdfNote}</span>}
+              <span className="flex justify-center gap-2">
+                <button type="button" onClick={() => setRenaming(false)} className="min-h-11 rounded-xl px-4 text-sm font-extrabold text-zinc-300 ring-1 ring-white/10">{tx.renameCancel}</button>
+                <button type="submit" disabled={!draft.trim()} className="min-h-11 rounded-xl bg-[#1fd6ea] px-4 text-sm font-extrabold text-black disabled:opacity-40">{tx.renameSave}</button>
+              </span>
+            </form>
+          ) : (
+            <button type="button" onClick={() => { setDraft(material.title); setRenaming(true); }} aria-label={tx.renameLabel} className="text-[30px] font-black leading-tight tracking-tight">
+              {material.title} <span className="inline-block align-middle text-zinc-500"><AppIcon name="edit" size={20} /></span>
+            </button>
+          )}
           <span className="text-[15px] font-bold text-zinc-400">{meta}</span>
         </div>
       </div>

@@ -64,8 +64,11 @@ export function Result({
   rated = true,
   onRate,
   challengePct,
+  onRename,
 }: {
   result: GenerateResult;
+  /** Titel ändern (nur gespeicherte Materialien). */
+  onRename?: (title: string) => void;
   from?: SessionRef;
   say: (msg: string) => void;
   onPlay: (game: GameResult["game"]) => void;
@@ -92,6 +95,8 @@ export function Result({
   const [menuOpen, setMenuOpen] = useState(false);
   const [nickname, setNickname] = useState(savedNickname);
   const [challengeBusy, setChallengeBusy] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [draft, setDraft] = useState("");
 
   const isSheet = result.format === "worksheet" || result.format === "test";
   const title = result.format === "game" ? result.game.gameTitle : result.format === "podcast" ? result.title : result.data.title;
@@ -211,7 +216,41 @@ export function Result({
         <div className="result-e-head">
           <span className="result-e-check"><Icon name="check" size={36} stroke={2.6} /></span>
           <span className="result-e-ready">{t.resultReady(result.format)}</span>
-          <h1 className="result-e-title">{title}</h1>
+          {renaming && onRename ? (
+            <form
+              className="rename-box"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const next = draft.replace(/\s+/g, " ").trim();
+                if (next && next !== title) {
+                  onRename(next);
+                  say(t.renameSaved);
+                }
+                setRenaming(false);
+              }}
+            >
+              <input
+                className="input set rename-input"
+                value={draft}
+                maxLength={80}
+                autoFocus
+                aria-label={t.renameLabel}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Escape") setRenaming(false); }}
+              />
+              {isSheet && <span className="rename-note">{t.renamePdfNote}</span>}
+              <span className="rename-actions">
+                <button type="button" className="btn ghost small" onClick={() => setRenaming(false)}>{t.renameCancel}</button>
+                <button type="submit" className="btn primary small" disabled={!draft.trim()}>{t.renameSave}</button>
+              </span>
+            </form>
+          ) : onRename ? (
+            <button type="button" className="result-e-title rename-btn" onClick={() => { setDraft(title); setRenaming(true); }} aria-label={t.renameLabel}>
+              {title} <Icon name="edit" size={20} stroke={2.2} />
+            </button>
+          ) : (
+            <h1 className="result-e-title">{title}</h1>
+          )}
           {meta && <span className="result-e-meta">{meta}</span>}
           {isSheet && (
             <span className="result-e-chips">

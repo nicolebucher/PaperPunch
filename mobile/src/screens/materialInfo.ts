@@ -1,9 +1,20 @@
 import type { Dict } from "../i18n";
 import type { StoredMaterial } from "../storage";
+import type { GenerateResult } from "../types";
 
 export function materialTitle(m: StoredMaterial): string {
   const r = m.result;
   return r.format === "game" ? r.game.gameTitle : r.format === "podcast" ? r.title : r.data.title;
+}
+
+/** Material umbenennen: der Titel steckt im Ergebnis selbst (Spiel, Arbeitsblatt/Test, Podcast) –
+ *  so übernehmen Lerngruppen, Challenges und Listen den neuen Namen. Das fertige PDF bleibt unverändert. */
+export function withTitle(r: GenerateResult, title: string): GenerateResult {
+  const t = title.replace(/\s+/g, " ").trim().slice(0, 80);
+  if (!t) return r;
+  if (r.format === "game") return { ...r, game: { ...r.game, gameTitle: t } };
+  if (r.format === "podcast") return { ...r, title: t };
+  return { ...r, data: { ...r.data, title: t } } as GenerateResult;
 }
 
 /** Kurzer Stand: "Aufgabe 4 von 10", "Level 2 von 4", "Fertig" oder "Noch nicht angefangen". */

@@ -9,7 +9,7 @@ import { inviteShares, shareInvite } from "./invite";
 import { loadReminderSettings, requestReminderPermission, rescheduleReminders, saveReminderSettings } from "./reminders";
 import { Materials } from "./screens/Materials";
 import { Splash } from "./screens/Splash";
-import { materialTitle } from "./screens/materialInfo";
+import { materialTitle, withTitle } from "./screens/materialInfo";
 import { daysBetween, todayISO } from "./dates";
 import type { ActivePlan, GameResult, GenerateResult, MaterialFormat, Profile, QuizOutcome, StoredSession } from "./types";
 import { Onboarding } from "./screens/Onboarding";
@@ -450,6 +450,17 @@ function AppInner() {
           }
           rated={!view.materialId || !!materialById(view.materialId)?.rating || !materialById(view.materialId)}
           onRate={(stars, text) => rate(view.materialId, view.result, stars, text)}
+          onRename={
+            view.materialId && materialById(view.materialId)
+              ? (title) => {
+                  const id = view.materialId!;
+                  const next = withTitle(view.result, title);
+                  void updateMaterial(id, { result: next });
+                  setMaterials((list) => list.map((x) => (x.id === id ? { ...x, result: next } : x)));
+                  setView({ ...view, result: next });
+                }
+              : undefined
+          }
           sourcesCount={materialById(view.materialId)?.sources?.length ?? 0}
           challengePct={challengePctOf(materialById(view.materialId))}
           onShareSources={() => void shareSources(view.materialId)}

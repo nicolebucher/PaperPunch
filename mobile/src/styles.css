@@ -775,6 +775,12 @@ h1 .beta { position: relative; top: -3px; }
 .result-e-check { width: 76px; height: 76px; border-radius: 26px; display: grid; place-items: center; background: var(--teal); color: #062a2f; box-shadow: 0 0 0 8px rgba(31, 214, 234, 0.12); margin-bottom: 6px; }
 .result-e-ready { font-size: 13px; font-weight: 800; color: var(--muted); letter-spacing: 0.02em; }
 .result-e-title { margin: 0; font-size: 30px; font-weight: 900; letter-spacing: -0.025em; line-height: 1.1; text-wrap: balance; }
+.rename-btn { background: none; border: 0; padding: 0; color: inherit; font-family: inherit; text-align: center; cursor: pointer; display: inline; }
+.rename-btn svg { display: inline-block; vertical-align: 2px; margin-left: 4px; opacity: .55; }
+.rename-box { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 420px; }
+.rename-input { font-size: 20px; font-weight: 800; text-align: center; }
+.rename-note { font-size: 12px; font-weight: 600; opacity: .7; text-align: center; }
+.rename-actions { display: flex; gap: 8px; justify-content: center; }
 .result-e-meta { font-size: 15px; font-weight: 700; color: var(--muted); }
 .result-e-punches { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 999px; background: rgba(31, 214, 234, 0.14); color: var(--teal-text); font-size: 13px; font-weight: 800; }
 .result-e-options { display: flex; flex-direction: column; gap: 10px; }
