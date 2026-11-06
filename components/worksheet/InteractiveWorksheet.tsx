@@ -55,6 +55,81 @@ function isTaskCorrect(task: Task, value: string): boolean {
   return false;
 }
 
+/** Farben für verbundene Paare (wie in der App). */
+const MATCH_COLORS = ["#1FD6EA", "#F23A8E", "#A8E43A", "#F59E0B", "#8B5CF6", "#14B8A6", "#EF4444", "#3B82F6"];
+
+/** Zuordnen durch Antippen: links tippen, dann rechts (oder umgekehrt) – das Paar bekommt eine Farbe; nochmal tippen löst es. */
+function MatchBoard({ lefts, rights, answers, onChange }: { lefts: string[]; rights: string[]; answers: Record<number, string>; onChange: (a: Record<number, string>) => void }) {
+  const { locale } = useLanguage();
+  const [selLeft, setSelLeft] = useState<number | null>(null);
+  const [selRight, setSelRight] = useState<number | null>(null);
+  const ownerOf = (r: number) => Object.keys(answers).map(Number).find((l) => answers[l] === rights[r]);
+  function connect(l: number, r: number) {
+    const next: Record<number, string> = {};
+    for (const k of Object.keys(answers).map(Number)) if (k !== l && answers[k] !== rights[r]) next[k] = answers[k];
+    next[l] = rights[r];
+    onChange(next);
+    setSelLeft(null);
+    setSelRight(null);
+  }
+  function tapLeft(l: number) {
+    if (selRight !== null) return connect(l, selRight);
+    if (answers[l] !== undefined) {
+      const next = { ...answers };
+      delete next[l];
+      onChange(next);
+      setSelLeft(l);
+      return;
+    }
+    setSelLeft((s) => (s === l ? null : l));
+  }
+  function tapRight(r: number) {
+    if (selLeft !== null) return connect(selLeft, r);
+    const owner = ownerOf(r);
+    if (owner !== undefined) {
+      const next = { ...answers };
+      delete next[owner];
+      onChange(next);
+      setSelRight(r);
+      return;
+    }
+    setSelRight((s) => (s === r ? null : r));
+  }
+  const item = (sel: boolean, color: string | undefined) =>
+    `min-h-12 w-full rounded-xl border-2 px-3 py-2.5 text-left text-sm font-bold leading-snug text-zinc-900 transition active:scale-[0.98] ${sel ? "ring-4 ring-zinc-900/10" : ""} ${color ? "" : sel ? "border-zinc-900 bg-zinc-50" : "border-zinc-200 bg-zinc-50 hover:border-zinc-400"}`;
+  const style = (color: string | undefined) => (color ? { borderColor: color, background: `color-mix(in srgb, ${color} 16%, #ffffff)` } : undefined);
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-xs font-semibold text-zinc-500">
+        {locale === "de" ? "Tippe links, dann rechts – so verbindest du ein Paar. Nochmal tippen löst es." : "Tap left, then right to connect a pair. Tap again to undo."}
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
+          {lefts.map((l, i) => {
+            const color = answers[i] !== undefined ? MATCH_COLORS[i % MATCH_COLORS.length] : undefined;
+            return (
+              <button key={i} type="button" aria-pressed={selLeft === i} onClick={() => tapLeft(i)} className={item(selLeft === i, color)} style={style(color)}>
+                {l}
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex flex-col gap-2">
+          {rights.map((r, j) => {
+            const owner = ownerOf(j);
+            const color = owner !== undefined ? MATCH_COLORS[owner % MATCH_COLORS.length] : undefined;
+            return (
+              <button key={j} type="button" aria-pressed={selRight === j} onClick={() => tapRight(j)} className={item(selRight === j, color)} style={style(color)}>
+                {r}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TaskInput({
   task,
   revealed,
@@ -101,35 +176,23 @@ function TaskInput({
 
   if (task.type === "zuordnen" && task.pairs) {
     const answers: Record<number, string> = value ? JSON.parse(value) : {};
-    return (
-      <div className="flex flex-col gap-2">
-        {task.pairs.map((pair, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="min-w-[10rem]">{pair.left}</span>
-            <select
-              disabled={revealed}
-              value={answers[i] ?? ""}
-              onChange={(e) => onChange(JSON.stringify({ ...answers, [i]: e.target.value }))}
-              className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-70"
-            >
-              <option value="">{t.practice.chooseOption}</option>
-              {rightOptions.map((option, j) => (
-                <option key={j} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            {revealed && (
-              <span
-                className={answers[i] === pair.right ? "text-green-400" : "text-orange-400"}
-              >
+    if (revealed) {
+      return (
+        <div className="flex flex-col gap-2">
+          {task.pairs.map((pair, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="min-w-[10rem]">{pair.left}</span>
+              <span className="text-zinc-500">→</span>
+              <span>{answers[i] ?? "–"}</span>
+              <span className={answers[i] === pair.right ? "text-green-400" : "text-orange-400"}>
                 {answers[i] === pair.right ? "✓" : `→ ${pair.right}`}
               </span>
-            )}
-          </div>
-        ))}
-      </div>
-    );
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return <MatchBoard lefts={task.pairs.map((p) => p.left)} rights={rightOptions} answers={answers} onChange={(a) => onChange(JSON.stringify(a))} />;
   }
 
   // "offen" und "lueckentext"

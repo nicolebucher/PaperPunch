@@ -1078,6 +1078,14 @@ h1 .beta { position: relative; top: -3px; }
 .pair.match.ok { border-color: #65a30d; background: #f0fdf4; }
 .pair.match.no { border-color: #ea580c; background: #fff7ed; }
 .pair.match s { margin-right: 4px; }
+.match-hint { font-size: 13px; font-weight: 700; margin: 0 0 2px; }
+.match-board { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.match-col { display: flex; flex-direction: column; gap: 8px; }
+.match-item { min-height: 52px; padding: 10px 12px; border-radius: 14px; border: 2px solid #e4e4e7; background: #fafafa; color: #111214; font: inherit; font-weight: 700; font-size: 15px; text-align: left; line-height: 1.25; cursor: pointer; transition: transform .12s ease, border-color .15s ease, background .15s ease; overflow-wrap: anywhere; }
+.match-item:active { transform: scale(.97); }
+.match-item.sel { border-color: #111214; box-shadow: 0 0 0 3px rgba(17, 18, 20, .12); }
+.match-item.linked { border-color: var(--mc); background: color-mix(in srgb, var(--mc) 16%, #fff); }
+.match-item.linked.sel { box-shadow: 0 0 0 3px color-mix(in srgb, var(--mc) 35%, transparent); }
 
 /* "⋯"-Menü (Material löschen) und Rückgängig-Toast */
 .menu-backdrop { position: fixed; inset: 0; z-index: 20; }

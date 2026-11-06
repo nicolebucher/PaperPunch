@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.22.0 – 6 November 2026 (website; the app part ships with the next app build)
+
+Matching tasks: tap to connect.
+
+| Area | Change |
+| --- | --- |
+| App + Website | Matching tasks (“Ordne … zu”) are solved by tapping instead of drop-down lists: tap a left item, then a right one (or the other way round) – the pair gets its own colour; tapping a connected item undoes it. Check, second try and correction work as before. Note: in app versions before 0.13.0 matching tasks could not be answered at all (only “→ ?”); fixed since 4 Nov 2026 |
+
 ## v0.21.0 – 6 November 2026 (website; app visits counted from app 0.16.0)
 
 Where users come from.

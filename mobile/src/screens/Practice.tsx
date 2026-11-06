@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { useT } from "../i18n";
 import { MathText } from "../math";
 import { Icon } from "../ui";
@@ -24,6 +24,9 @@ function shuffledRights(task: Task): string[] {
   const seed = task.question.length + task.number * 7;
   return rights.map((v, i) => ({ v, k: (i * 9301 + seed * 49297) % 233280 })).sort((a, b) => a.k - b.k).map((x) => x.v);
 }
+
+/** Farben für verbundene Paare (linke Zeile bestimmt die Farbe). */
+const MATCH_COLORS = ["#1FD6EA", "#F23A8E", "#A8E43A", "#F59E0B", "#8B5CF6", "#14B8A6", "#EF4444", "#3B82F6"];
 
 /**
  * Arbeitsblatt oder Test online lösen: eine Aufgabe nach der anderen. Auswahl- und Lückenaufgaben werden
@@ -60,12 +63,46 @@ export function Practice({
   const [checkFailedOnce, setCheckFailedOnce] = useState(false);
   const [finished, setFinished] = useState(false);
   // Zuordnen: gewählte rechte Seite je Zeile
-  const [match, setMatch] = useState<Record<number, string>>({});
+  // Zuordnen: linke Zeile → Index in der gemischten rechten Spalte (Antippen zum Verbinden)
+  const [link, setLink] = useState<Record<number, number>>({});
+  const [selLeft, setSelLeft] = useState<number | null>(null);
+  const [selRight, setSelRight] = useState<number | null>(null);
 
   const task = list[index];
   const last = index === list.length - 1;
   const rights = useMemo(() => shuffledRights(task), [task]);
-  const allMatched = !!task.pairs?.length && task.pairs.every((_, i) => !!match[i]);
+  const match: Record<number, string> = Object.fromEntries(Object.entries(link).map(([l, r]) => [l, rights[r]]));
+  const allMatched = !!task.pairs?.length && task.pairs.every((_, i) => link[i] !== undefined);
+  /** Verbindet linke Zeile l mit rechtem Feld r (eine bestehende Verbindung des rechten Felds wird gelöst). */
+  function connect(l: number, r: number) {
+    setLink((m) => {
+      const next: Record<number, number> = {};
+      for (const [k, v] of Object.entries(m)) if (v !== r && Number(k) !== l) next[Number(k)] = v;
+      next[l] = r;
+      return next;
+    });
+    setSelLeft(null);
+    setSelRight(null);
+  }
+  function tapLeft(l: number) {
+    if (selRight !== null) return connect(l, selRight);
+    if (link[l] !== undefined) {
+      setLink((m) => { const n = { ...m }; delete n[l]; return n; });
+      setSelLeft(l);
+      return;
+    }
+    setSelLeft((s) => (s === l ? null : l));
+  }
+  function tapRight(r: number) {
+    if (selLeft !== null) return connect(selLeft, r);
+    const owner = Object.entries(link).find(([, v]) => v === r);
+    if (owner) {
+      setLink((m) => { const n = { ...m }; delete n[Number(owner[0])]; return n; });
+      setSelRight(r);
+      return;
+    }
+    setSelRight((s) => (s === r ? null : r));
+  }
   const auto = autoCheck(task);
   const answered = results.length > index;
   const ok = results[index];
@@ -164,7 +201,9 @@ export function Practice({
     }
     setIndex((i) => i + 1);
     setTyped("");
-    setMatch({});
+    setLink({});
+    setSelLeft(null);
+    setSelRight(null);
     setPicked(null);
     setRevealed(false);
     setStatus("open");
@@ -251,24 +290,46 @@ export function Practice({
           </div>
         ) : task.type === "zuordnen" && task.pairs ? (
           <div className="stack" style={{ gap: 8 }}>
-            {task.pairs.map((p, i) => {
-              const done = answered || revealed;
-              const okRow = normalize(match[i] ?? "") === normalize(p.right);
-              return (
-                <div key={i} className={done ? (okRow ? "pair match ok" : "pair match no") : "pair match"}>
-                  <span><MathText text={p.left} /></span>
-                  <span className="muted">→</span>
-                  {done ? (
+            {answered || revealed ? (
+              task.pairs.map((p, i) => {
+                const okRow = normalize(match[i] ?? "") === normalize(p.right);
+                return (
+                  <div key={i} className={okRow ? "pair match ok" : "pair match no"}>
+                    <span><MathText text={p.left} /></span>
+                    <span className="muted">→</span>
                     <span>{okRow ? <MathText text={p.right} /> : <><s className="muted">{match[i] ?? "–"}</s> <MathText text={p.right} /></>}</span>
-                  ) : (
-                    <select className="match-select" value={match[i] ?? ""} onChange={(e) => setMatch((m) => ({ ...m, [i]: e.target.value }))} aria-label={p.left}>
-                      <option value="">{t.matchPick}</option>
-                      {rights.map((rv, ri) => <option key={ri} value={rv}>{rv}</option>)}
-                    </select>
-                  )}
+                  </div>
+                );
+              })
+            ) : (
+              <>
+                <p className="muted match-hint">{t.matchTapHint}</p>
+                <div className="match-board">
+                  <div className="match-col">
+                    {task.pairs.map((p, i) => {
+                      const r = link[i];
+                      const color = r !== undefined ? MATCH_COLORS[i % MATCH_COLORS.length] : undefined;
+                      return (
+                        <button key={i} type="button" className={`match-item${selLeft === i ? " sel" : ""}${color ? " linked" : ""}`} style={color ? ({ "--mc": color } as CSSProperties) : undefined} aria-pressed={selLeft === i} onClick={() => tapLeft(i)}>
+                          <MathText text={p.left} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="match-col">
+                    {rights.map((rv, ri) => {
+                      const owner = Object.entries(link).find(([, v]) => v === ri);
+                      const color = owner ? MATCH_COLORS[Number(owner[0]) % MATCH_COLORS.length] : undefined;
+                      return (
+                        <button key={ri} type="button" className={`match-item right${selRight === ri ? " sel" : ""}${color ? " linked" : ""}`} style={color ? ({ "--mc": color } as CSSProperties) : undefined} aria-pressed={selRight === ri} onClick={() => tapRight(ri)}>
+                          <MathText text={rv} />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              );
-            })}
+              </>
+            )}
             {!answered && !revealed && (
               <button type="button" className="btn dark block" disabled={!allMatched} onClick={checkMatch}>
                 {status === "retry" ? t.checkAgain : t.check}
