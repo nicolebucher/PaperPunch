@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 async function create(request: NextRequest) {
   if (!groupsEnabled()) return NextResponse.json({ error: "groups disabled" }, { status: 503 });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!checkRateLimit(`group:${ip}`, 10)) return NextResponse.json({ error: "rate limit" }, { status: 429 });
+  if (!(await checkRateLimit(`group:${ip}`, 10))) return NextResponse.json({ error: "rate limit" }, { status: 429 });
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());

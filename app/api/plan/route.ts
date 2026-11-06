@@ -55,7 +55,7 @@ async function handlePlan(request: NextRequest) {
   const messages = t(locale).serverErrors;
 
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`plan:${ip}`)) {
+  if (!(await checkRateLimit(`plan:${ip}`, 20)) || !(await checkRateLimit(`plan-day:${ip}`, 100, 86400))) {
     return NextResponse.json({ error: messages.tooManyRequests }, { status: 429 });
   }
 

@@ -12,7 +12,7 @@ const EVENTS = new Set(["shown", "granted", "denied"]);
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(`consent:${ip}`, 10)) return new NextResponse(null, { status: 204 });
+  if (!(await checkRateLimit(`consent:${ip}`, 60))) return new NextResponse(null, { status: 204 });
   let event = "";
   try {
     event = String(((await request.json()) as { event?: unknown }).event ?? "");

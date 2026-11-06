@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 async function create(request: NextRequest) {
   if (!challengesEnabled()) return NextResponse.json({ error: "challenges disabled" }, { status: 503 });
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!checkRateLimit(`challenge:${ip}`, 10)) return NextResponse.json({ error: "rate limit" }, { status: 429 });
+  if (!(await checkRateLimit(`challenge:${ip}`, 30))) return NextResponse.json({ error: "rate limit" }, { status: 429 });
 
   let body: z.infer<typeof bodySchema>;
   try {

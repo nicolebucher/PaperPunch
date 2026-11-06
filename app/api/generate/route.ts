@@ -14,8 +14,9 @@ import { generateSpellingFollowup } from "@/lib/generators/spelling-followup";
 import { synthesizeSpeech } from "@/lib/ai/tts/elevenlabs";
 import { renderWorksheetPdf } from "@/lib/pdf/render-worksheet-pdf";
 import { renderTestPdf } from "@/lib/pdf/render-test-pdf";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { countCreation, getQuota, quotaSubject } from "@/lib/quota";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
+import { releaseCreation, reserveCreation, quotaSubject } from "@/lib/quota";
+import { createFollowupToken, verifyFollowupToken } from "@/lib/followup-token";
 import { recordCreation } from "@/lib/usage-stats";
 import { slugify } from "@/lib/slugify";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
@@ -60,8 +61,11 @@ async function handleGenerate(request: NextRequest) {
   const locale = parseLocale(formData.get("locale"));
   const messages = t(locale).serverErrors;
 
-  const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(ip)) {
+  const ip = clientIp(request);
+  // 20 pro Minute und ein Tageslimit pro IP – unabhängig von der Geräte-ID, die der Client frei wählen kann.
+  // Großzügig, weil eine ganze Schulklasse hinter einer IP sitzen kann (GENERATE_PER_IP_PER_DAY, Standard 150).
+  const perDay = Math.max(1, Number(process.env.GENERATE_PER_IP_PER_DAY) || 150);
+  if (!(await checkRateLimit(`gen:${ip}`, 20)) || !(await checkRateLimit(`gen-day:${ip}`, perDay, 86400))) {
     return NextResponse.json({ error: messages.tooManyRequests }, { status: 429 });
   }
 
@@ -101,17 +105,32 @@ async function handleGenerate(request: NextRequest) {
   }
 
   // Wochen-Kontingent (Beta: 10 neue Materialien pro Woche). Die zweite Phase des Rechtschreib-Checks
-  // gehört zum selben Material und zählt nicht extra.
+  // gehört zum selben Material und zählt nicht extra – aber nur mit dem Token aus Phase 1 (lib/followup-token.ts).
+  // Der Platz wird vor dem Erstellen reserviert und bei einem Fehler zurückgegeben.
   const quotaKey = quotaSubject(formData.get("device"), ip);
-  const counts = formData.get("phase") !== "followup";
+  const isFollowup = formData.get("phase") === "followup";
+  const counts = !(isFollowup && verifyFollowupToken(formData.get("followupToken"), quotaKey));
+  let reserved = false;
   if (counts) {
-    const quota = await getQuota(quotaKey);
-    if (quota.enforced && quota.remaining <= 0) {
+    const reservation = await reserveCreation(quotaKey);
+    if (!reservation.ok) {
+      const quota = reservation.state;
       return NextResponse.json({ error: messages.quotaReached.replace("{n}", String(quota.limit)), code: "quota", quota }, { status: 429 });
     }
+    reserved = reservation.reserved;
   }
+  const release = async () => {
+    if (!reserved) return;
+    reserved = false; // nur einmal zurückgeben
+    await releaseCreation(quotaKey).catch(() => undefined);
+  };
   const countIfOk = async (res: NextResponse) => {
-    if (counts && res.ok) await Promise.all([countCreation(quotaKey), recordCreation(quotaKey, String(format), isAppOrigin(request.headers.get("origin")) ? "app" : "web")]);
+    if (res.ok) {
+      reserved = false; // Platz bleibt verbraucht
+      if (counts) await recordCreation(quotaKey, String(format), isAppOrigin(request.headers.get("origin")) ? "app" : "web");
+    } else {
+      await release();
+    }
     return res;
   };
 
@@ -175,7 +194,7 @@ async function handleGenerate(request: NextRequest) {
 
       const diagnostic = await generateSpellingDiagnostic(profile, fileBlocks, locale);
       await track("Material generated", { format: "spelling-diagnostic" });
-      return NextResponse.json({ diagnostic });
+      return NextResponse.json({ diagnostic, followupToken: createFollowupToken(quotaKey) });
     } catch (error) {
       console.error("Generation failed:", error instanceof Error ? error.message : error);
       return NextResponse.json({ error: messages.generationFailed }, { status: 500 });
@@ -197,6 +216,7 @@ async function handleGenerate(request: NextRequest) {
         );
       } catch (error) {
         console.error("[jobs] generation failed:", error instanceof Error ? error.message : error);
+        await release();
         await saveJob(jobId, { status: "error", error: messages.generationFailed }).catch(() => undefined);
       }
     });

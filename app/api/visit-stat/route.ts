@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
 async function handle(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!checkRateLimit(`visit:${ip}`, 20)) return new NextResponse(null, { status: 204 });
+  if (!(await checkRateLimit(`visit:${ip}`, 120))) return new NextResponse(null, { status: 204 });
   let body: { src?: unknown; pages?: unknown; seconds?: unknown; device?: unknown; rem?: unknown; pushDelivered?: unknown; pushTapped?: unknown } = {};
   try {
     // sendBeacon schickt text/plain – deshalb selbst parsen

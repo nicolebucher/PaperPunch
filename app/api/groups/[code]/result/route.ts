@@ -29,7 +29,7 @@ export async function POST(request: NextRequest, { params }: Ctx) {
   const { code } = await params;
   if (!isGroupCode(code)) return withCors(request, NextResponse.json({ error: "invalid" }, { status: 400 }));
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!checkRateLimit(`group-result:${ip}`, 20)) return withCors(request, NextResponse.json({ error: "rate limit" }, { status: 429 }));
+  if (!(await checkRateLimit(`group-result:${ip}`, 120))) return withCors(request, NextResponse.json({ error: "rate limit" }, { status: 429 }));
   let body: z.infer<typeof bodySchema>;
   try {
     body = bodySchema.parse(await request.json());
