@@ -44,11 +44,17 @@ export async function recordAiUsage(model: string, kind: string, inputTokens: nu
 }
 
 /** Nach jedem erfolgreich erstellten Material (subject = gehashte Geräte-/IP-Kennung aus quotaSubject). */
-export async function recordCreation(subject: string, format: string): Promise<void> {
+export async function recordCreation(subject: string, format: string, src: "web" | "app" = "web"): Promise<void> {
   if (!quotaEnabled()) return;
   try {
     const day = berlinDay();
+    const week = weekKey();
     await redis([
+      // Kontingent-Woche nach Quelle (seit v0.19.0): eindeutige Geräte und Anzahl Materialien
+      ["PFADD", `stat:quota:${src}:${week}`, subject],
+      ["EXPIRE", `stat:quota:${src}:${week}`, 30 * 86400],
+      ["HINCRBY", `stat:quotac:${week}`, src, 1],
+      ["EXPIRE", `stat:quotac:${week}`, 30 * 86400],
       ["HINCRBY", `stat:gen:${day}`, format.slice(0, 30), 1],
       ["EXPIRE", `stat:gen:${day}`, TTL],
       ["PFADD", `stat:creators:${day}`, subject],
@@ -263,17 +269,28 @@ const toObj = (arr: unknown): Record<string, string> => {
 };
 
 /** Kontingent dieser Woche: wie viele Geräte wie viele Materialien erstellt haben (gibt es seit 4. Nov. 2026). */
-async function weekQuota(): Promise<{ week: string; devices: number; creations: number }> {
-  const week = weekKey();
-  const keys = (await redis([["KEYS", `quota:${week}:*`]]))?.[0];
-  const list = Array.isArray(keys) ? (keys as string[]).slice(0, 2000) : [];
-  if (!list.length) return { week, devices: 0, creations: 0 };
-  const vals = (await redis([["MGET", ...list]]))?.[0];
-  const creations = Array.isArray(vals) ? vals.reduce((s: number, v) => s + (Number(v) || 0), 0) : 0;
-  return { week, devices: list.length, creations };
+interface WeekQuota {
+  week: string;
+  devices: number;
+  creations: number;
+  /** nach Quelle, gezählt seit v0.19.0 (6. Nov. 2026) */
+  split: { devicesWeb: number; devicesApp: number; creationsWeb: number; creationsApp: number };
 }
 
-export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number; users: { web: number; app: number }; remDevices: number }[]; userRanges: UserRange[]; retention: RetentionRow[]; week: { week: string; devices: number; creations: number } } | null> {
+async function weekQuota(): Promise<WeekQuota> {
+  const week = weekKey();
+  const r0 = await redis([["KEYS", `quota:${week}:*`], ["PFCOUNT", `stat:quota:web:${week}`], ["PFCOUNT", `stat:quota:app:${week}`], ["HGETALL", `stat:quotac:${week}`]]);
+  const c = toObj(r0?.[3]);
+  const split = { devicesWeb: Number(r0?.[1]) || 0, devicesApp: Number(r0?.[2]) || 0, creationsWeb: Number(c.web) || 0, creationsApp: Number(c.app) || 0 };
+  const keys = r0?.[0];
+  const list = Array.isArray(keys) ? (keys as string[]).slice(0, 2000) : [];
+  if (!list.length) return { week, devices: 0, creations: 0, split };
+  const vals = (await redis([["MGET", ...list]]))?.[0];
+  const creations = Array.isArray(vals) ? vals.reduce((s: number, v) => s + (Number(v) || 0), 0) : 0;
+  return { week, devices: list.length, creations, split };
+}
+
+export async function readStats(n: number): Promise<{ days: DayStats[]; months: { month: string; creators: number; users: { web: number; app: number }; remDevices: number }[]; userRanges: UserRange[]; retention: RetentionRow[]; week: WeekQuota } | null> {
   if (!quotaEnabled()) return null;
   const days = lastDays(Math.min(Math.max(n, 1), 120));
   const cmds: (string | number)[][] = [];

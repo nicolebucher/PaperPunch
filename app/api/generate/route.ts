@@ -19,7 +19,7 @@ import { countCreation, getQuota, quotaSubject } from "@/lib/quota";
 import { recordCreation } from "@/lib/usage-stats";
 import { slugify } from "@/lib/slugify";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
-import { preflight, withCors } from "@/lib/cors";
+import { preflight, withCors, isAppOrigin } from "@/lib/cors";
 
 export const runtime = "nodejs";
 // Lernspiel (viele Level/Fragen) und Podcast (Skript + sequenzielle TTS-Chunks) brauchen bei
@@ -111,7 +111,7 @@ async function handleGenerate(request: NextRequest) {
     }
   }
   const countIfOk = async (res: NextResponse) => {
-    if (counts && res.ok) await Promise.all([countCreation(quotaKey), recordCreation(quotaKey, String(format))]);
+    if (counts && res.ok) await Promise.all([countCreation(quotaKey), recordCreation(quotaKey, String(format), isAppOrigin(request.headers.get("origin")) ? "app" : "web")]);
     return res;
   };
 

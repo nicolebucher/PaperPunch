@@ -23,6 +23,12 @@ function isAppPreview(origin: string): boolean {
   }
 }
 
+/** true, wenn die Anfrage von der Android-App kommt (Capacitor-Origin oder App-Vorschau), sonst Website. */
+export function isAppOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  return BUILT_IN.includes(origin) || isAppPreview(origin);
+}
+
 export function corsHeaders(origin: string | null): Record<string, string> {
   if (!origin || !(allowedOrigins().includes(origin) || isAppPreview(origin))) return {};
   return {

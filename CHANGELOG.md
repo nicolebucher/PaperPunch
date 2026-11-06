@@ -7,6 +7,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.19.0 – 6 November 2026 (website only)
+
+Beta quota split by website and app.
+
+| Area | Change |
+| --- | --- |
+| Website · Tech | Each created material is now also counted by source (app = request from the Capacitor app origin, otherwise website): unique devices per source and week as HyperLogLog (Upstash stat:quota:<src>:<week>) and materials per source (stat:quotac:<week>), kept 30 days. /api/admin/stats returns them as week.split |
+| Cost dashboard | Beta quota this week shows the web/app split in brackets for devices and materials (counted since 6 Nov 2026); "Per request" column in costs by request type |
+
 ## v0.18.0 – 6 November 2026 (website; the app part ships with the next app build)
 
 Push statistics and retention with vs. without study plan reminders; custom dates on the cost dashboard.
