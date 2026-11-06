@@ -7,7 +7,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.22.0 – 6 November 2026 (website; the app part ships with the next app build)
+## v0.22.0 – 6 November 2026 (Android: version code 14, closed + internal test; includes the app parts of v0.17.0 and v0.18.0)
 
 Matching tasks: tap to connect.
 
@@ -42,7 +42,7 @@ Beta quota split by website and app.
 | Website · Tech | Each created material is now also counted by source (app = request from the Capacitor app origin, otherwise website): unique devices per source and week as HyperLogLog (Upstash stat:quota:<src>:<week>) and materials per source (stat:quotac:<week>), kept 30 days. /api/admin/stats returns them as week.split |
 | Cost dashboard | Beta quota this week shows the web/app split in brackets for devices and materials (counted since 6 Nov 2026); "Per request" column in costs by request type |
 
-## v0.18.0 – 6 November 2026 (website; the app part ships with the next app build)
+## v0.18.0 – 6 November 2026 (website; app part shipped in v0.22.0, version code 14)
 
 Push statistics and retention with vs. without study plan reminders; custom dates on the cost dashboard.
 
@@ -54,7 +54,7 @@ Push statistics and retention with vs. without study plan reminders; custom date
 | Cost dashboard | Pick any dates (from/to) besides the presets, plus today, yesterday, this/last week and last month; unique counts are exact for presets, single days and whole months, otherwise shown as a range. New cards: study plan reminders (devices with reminders on, delivered per device, tap rate) and retention with vs. without reminders |
 | Cost dashboard | New chart "Visits per day: website and app" (visits/sessions per day and source for the picked period) |
 
-## v0.17.0 – 6 November 2026 (website; the app part ships with the next app build)
+## v0.17.0 – 6 November 2026 (website; app part shipped in v0.22.0, version code 14)
 
 Unique users per website and app, and a period picker on the cost dashboard.
 
