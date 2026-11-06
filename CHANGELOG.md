@@ -7,6 +7,17 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.22.1 – 6 November 2026 (website; app answer check ships with the next app build)
+
+Security and answer-check fixes from the security review.
+
+| Area | Change |
+| --- | --- |
+| Tech · Security | Next.js 16.3.4 → 16.4.5 (fixes known critical advisories incl. remote code execution and SSRF); zod ≥ 4.6.7 (also inside @vercel/blob via override); package-lock.json back in sync with package.json; mobile/ now has a package-lock.json |
+| Tech · Costs | /api/generate rejects the podcast format unless PODCAST_ENABLED=true and ELEVENLABS_API_KEY are set – before, it paid for the Claude script and then failed at text-to-speech |
+| App + Website | Answer check no longer accepts wrong numbers with units (“13 cm” for “12 cm”, “x = 6” for “x = 5”), no longer splits units at “/” (“h” for “km/h”), and reads “1.000” as one thousand (“1000” right, “1” wrong) |
+| Tech | `npm test`: unit tests for the answer check (node:test), including a check that the app copy matches the website copy |
+
 ## v0.22.0 – 6 November 2026 (Android: version code 14, closed + internal test; includes the app parts of v0.17.0 and v0.18.0)
 
 Matching tasks: tap to connect.
