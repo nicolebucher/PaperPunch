@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { readGroup } from "@/lib/groups";
 import { GroupPlay } from "@/components/group/GroupPlay";
+import { ReportContentLink } from "@/components/share/ReportContentLink";
 
 // Lerngruppen-Links werden bei jedem Aufruf frisch gelesen.
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export default async function GroupPage({ params }: PageProps<"/g/[code]">) {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
       <GroupPlay code={group.code} name={group.name} lang={group.lang} endsAt={group.endsAt} game={group.game} homework={!!group.homework} />
+      <ReportContentLink kind="group" code={group.code} lang={group.lang} />
     </main>
   );
 }

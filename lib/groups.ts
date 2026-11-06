@@ -1,15 +1,48 @@
-import { del, list, put } from "@vercel/blob";
+import { del, get, list, put, type ListBlobResultBlob } from "@vercel/blob";
 import type { GameData } from "@/types/generation";
 import { cleanName } from "@/lib/challenges";
 import { isBlockedName } from "@/lib/name-filter";
 
 // Lerngruppen per Link (paper-punch.com/g/CODE): alle spielen dasselbe Lernspiel, eine gemeinsame Rangliste.
 // Ohne Konto: Spitznamen, ein Eintrag pro Gerät (zufällige Geräte-ID), nur der erste Versuch zählt.
-// Öffentlicher Blob-Store (paperpunch-jobs, Frankfurt): groups/CODE/meta.json + groups/CODE/p-GERÄT.json.
-// Jeder Eintrag ist eine eigene Datei – so gibt es keine Schreibkonflikte, und "nur der erste Versuch"
-// ist garantiert (zweites Schreiben auf dieselbe Datei schlägt fehl). Nach 30 Tagen gelöscht.
+// Speicher: groups/CODE/meta.json + groups/CODE/p-GERÄT.json. Jeder Eintrag ist eine eigene Datei – so gibt es
+// keine Schreibkonflikte, und "nur der erste Versuch" ist garantiert (zweites Schreiben auf dieselbe Datei
+// schlägt fehl). Nach 30 Tagen gelöscht.
+// Seit v0.22.3 liegen neue Gruppen im PRIVATEN Blob-Store (BLOB_STORE_ID, Anmeldung per OIDC, wie das Feedback):
+// Die Einträge enthalten Spitznamen und Antworten von Kindern, die nur die Lehrkraft sehen soll. Ältere Gruppen
+// liegen noch im öffentlichen Store (paperpunch-jobs) und werden dort weiter gelesen und beschrieben, bis sie
+// nach 30 Tagen auslaufen. Ohne BLOB_STORE_ID (lokal) wird wie früher der öffentliche Store genutzt.
 
 const PUBLIC_TOKEN = () => process.env.BLOB_READ_WRITE_TOKEN;
+const PRIVATE_STORE = () => process.env.BLOB_STORE_ID;
+type Backend = "private" | "public";
+
+const storeOpts = (b: Backend) => (b === "private" ? { storeId: PRIVATE_STORE() } : { token: PUBLIC_TOKEN() });
+const newGroupBackend = (): Backend => (PRIVATE_STORE() ? "private" : "public");
+
+async function listBlobs(prefix: string, b: Backend, limit = 200): Promise<ListBlobResultBlob[]> {
+  return (await list({ prefix, limit, ...storeOpts(b) })).blobs;
+}
+
+async function readJson<T>(blob: ListBlobResultBlob, b: Backend): Promise<T | null> {
+  if (b === "public") {
+    const r = await fetch(blob.url);
+    return r.ok ? ((await r.json()) as T) : null;
+  }
+  // Dateien werden nie überschrieben – der CDN-Cache darf sie also behalten
+  const r = await get(blob.pathname, { access: "private", storeId: PRIVATE_STORE() });
+  if (!r || r.statusCode !== 200) return null;
+  return (await new Response(r.stream).json()) as T;
+}
+
+async function writeJson(pathname: string, data: unknown, b: Backend): Promise<void> {
+  await put(pathname, JSON.stringify(data), {
+    access: b,
+    addRandomSuffix: false,
+    contentType: "application/json",
+    ...storeOpts(b),
+  });
+}
 const PREFIX = "groups/";
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
@@ -81,31 +114,41 @@ export function rank(entries: GroupEntry[]): GroupEntry[] {
 }
 
 // Ranglisten werden kurz zwischengespeichert, damit nicht jeder Aufruf den Speicher abfragt.
-const cache = new Map<string, { at: number; meta: GroupMeta; entries: GroupEntry[] }>();
+const cache = new Map<string, { at: number; meta: GroupMeta; entries: GroupEntry[]; backend: Backend }>();
 const CACHE_MS = 15_000;
 
-async function load(code: string, fresh = false): Promise<{ meta: GroupMeta; entries: GroupEntry[] } | null> {
+async function load(code: string, fresh = false): Promise<{ meta: GroupMeta; entries: GroupEntry[]; backend: Backend } | null> {
   const hit = cache.get(code);
   if (!fresh && hit && Date.now() - hit.at < CACHE_MS) return hit;
-  const { blobs } = await list({ prefix: `${PREFIX}${code}/`, limit: 200, token: PUBLIC_TOKEN() });
+  // Erst der private Store (neue Gruppen), dann der öffentliche (Gruppen von vor v0.22.3)
+  const backends: Backend[] = PRIVATE_STORE() ? ["private", "public"] : ["public"];
+  let backend: Backend | null = null;
+  let blobs: ListBlobResultBlob[] = [];
+  for (const b of backends) {
+    blobs = await listBlobs(`${PREFIX}${code}/`, b);
+    if (blobs.some((x) => x.pathname.endsWith("/meta.json"))) {
+      backend = b;
+      break;
+    }
+  }
   const metaBlob = blobs.find((b) => b.pathname.endsWith("/meta.json"));
-  if (!metaBlob) return null;
+  if (!backend || !metaBlob) return null;
   if (Date.now() - new Date(metaBlob.uploadedAt).getTime() > MAX_AGE_MS) return null;
-  const meta = (await (await fetch(metaBlob.url)).json()) as GroupMeta;
+  const meta = await readJson<GroupMeta>(metaBlob, backend);
+  if (!meta) return null;
   const entryBlobs = blobs.filter((b) => b.pathname.includes("/p-"));
   const entries = (
     await Promise.all(
       entryBlobs.map(async (b) => {
         try {
-          const r = await fetch(b.url);
-          return r.ok ? ((await r.json()) as GroupEntry) : null;
+          return await readJson<GroupEntry>(b, backend);
         } catch {
           return null;
         }
       })
     )
   ).filter((e): e is GroupEntry => !!e);
-  const value = { at: Date.now(), meta, entries };
+  const value = { at: Date.now(), meta, entries, backend };
   cache.set(code, value);
   return value;
 }
@@ -168,12 +211,7 @@ export async function createGroup(input: { name: string; by: string; lang: "de" 
   };
   const teacherKey = newTeacherKey();
   meta.teacherHash = await sha256(`pp-teacher:${meta.code}:${teacherKey}`);
-  await put(`${PREFIX}${meta.code}/meta.json`, JSON.stringify(meta), {
-    access: "public",
-    addRandomSuffix: false,
-    contentType: "application/json",
-    token: PUBLIC_TOKEN(),
-  });
+  await writeJson(`${PREFIX}${meta.code}/meta.json`, meta, newGroupBackend());
   return { ...meta, teacherKey };
 }
 
@@ -199,16 +237,11 @@ export async function submitResult(code: string, device: string, r: { name: stri
     entry.qs = r.answers.slice(0, 200).map((x) => [Math.round(x.l), Math.round(x.i), x.ok ? 1 : 0, (x.a ?? "").replace(/\s+/g, " ").trim().slice(0, 60)]);
   }
   try {
-    await put(`${PREFIX}${code}/p-${me}.json`, JSON.stringify(entry), {
-      access: "public",
-      addRandomSuffix: false,
-      contentType: "application/json",
-      token: PUBLIC_TOKEN(),
-    });
+    await writeJson(`${PREFIX}${code}/p-${me}.json`, entry, data.backend);
   } catch {
     return "already"; // Datei gibt es schon: dieses Gerät hat bereits gespielt
   }
-  cache.set(code, { at: Date.now(), meta: data.meta, entries: [...data.entries, entry] });
+  cache.set(code, { at: Date.now(), meta: data.meta, entries: [...data.entries, entry], backend: data.backend });
   return "ok";
 }
 
@@ -217,12 +250,15 @@ export async function myTag(device: string): Promise<string> {
 }
 
 export async function cleanupOldGroups(): Promise<void> {
-  try {
-    const { blobs } = await list({ prefix: PREFIX, limit: 500, token: PUBLIC_TOKEN() });
-    const old = blobs.filter((b) => Date.now() - new Date(b.uploadedAt).getTime() > MAX_AGE_MS + MAX_DURATION_MS);
-    if (old.length) await del(old.map((b) => b.url), { token: PUBLIC_TOKEN() });
-  } catch (error) {
-    console.error("[groups] cleanup failed:", error instanceof Error ? error.message : error);
+  const backends: Backend[] = PRIVATE_STORE() ? ["private", "public"] : ["public"];
+  for (const b of backends) {
+    try {
+      const blobs = await listBlobs(PREFIX, b, 500);
+      const old = blobs.filter((x) => Date.now() - new Date(x.uploadedAt).getTime() > MAX_AGE_MS + MAX_DURATION_MS);
+      if (old.length) await del(old.map((x) => x.url), storeOpts(b));
+    } catch (error) {
+      console.error(`[groups] cleanup (${b}) failed:`, error instanceof Error ? error.message : error);
+    }
   }
 }
 
