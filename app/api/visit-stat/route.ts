@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
-import { recordVisit, userSubject } from "@/lib/usage-stats";
+import { recordCountry, recordVisit, userSubject } from "@/lib/usage-stats";
 
 // Besuchsdauer und Absprünge fürs Kosten-Dashboard: Website (components/VisitBeacon.tsx) und App
 // (mobile/src/visitBeacon.ts) melden beim Verlassen einmal {src, pages, seconds, device}. Gespeichert werden nur
@@ -38,6 +38,8 @@ async function handle(request: NextRequest) {
       delivered: Number(body.pushDelivered) || 0,
       tapped: Number(body.pushTapped) || 0,
     });
+    // Land nur als Tageszähler (Vercel-Header, keine IP gespeichert)
+    await recordCountry(src, request.headers.get("x-vercel-ip-country"));
   }
   return new NextResponse(null, { status: 204 });
 }

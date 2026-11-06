@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.21.0 – 6 November 2026 (website; app visits counted from app 0.16.0)
+
+Where users come from.
+
+| Area | Change |
+| --- | --- |
+| Website + App · Tech | Country per visit: POST /api/visit-stat reads the country code from the Vercel header x-vercel-ip-country and stores only a daily counter per source and country (Upstash stat:country:<day>, e.g. web:DE, app:AT); no IP address stored. /api/admin/stats returns it as countries |
+| Website | Privacy policy section 8 (DE/EN) mentions the country count |
+| Cost dashboard | New card "Where users come from": country list with website visits (live from Vercel Web Analytics) and app sessions (own count) for the picked period |
+
 ## v0.20.0 – 6 November 2026 (website only)
 
 Loading screen like the app.

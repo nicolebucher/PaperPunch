@@ -370,3 +370,39 @@ export async function readStats(n: number): Promise<{ days: DayStats[]; months: 
   }));
   return { days: out, months: monthStats, userRanges, retention: await readRetention(berlinDay()), week: await weekQuota() };
 }
+
+// Herkunft nach Land (Website und App): beim Besuchsbericht liest der Server das Land aus dem Vercel-Header
+// x-vercel-ip-country (zweistelliger Code). Gespeichert wird nur ein Tageszähler je Quelle und Land –
+// keine IP-Adresse, keine Kennung (stat:country:<Tag>, Felder "web:DE", "app:AT" …).
+export async function recordCountry(src: "web" | "app", country: string | null): Promise<void> {
+  if (!quotaEnabled()) return;
+  const cc = (country ?? "").toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return;
+  try {
+    const key = `stat:country:${berlinDay()}`;
+    await redis([["HINCRBY", key, `${src}:${cc}`, 1], ["EXPIRE", key, TTL]]);
+  } catch {
+    /* egal */
+  }
+}
+
+/** Besuche je Tag, Quelle und Land für die letzten `n` Tage (gibt es seit 6. Nov. 2026). */
+export async function readCountries(n: number): Promise<{ day: string; src: string; country: string; visits: number }[]> {
+  if (!quotaEnabled()) return [];
+  const days: string[] = [];
+  for (let i = Math.min(Math.max(n, 1), 120) - 1; i >= 0; i--) days.push(berlinDay(new Date(Date.now() - i * 86400000)));
+  const uniq = [...new Set(days)];
+  const r = await redis(uniq.map((d) => ["HGETALL", `stat:country:${d}`]));
+  if (!r) return [];
+  const out: { day: string; src: string; country: string; visits: number }[] = [];
+  uniq.forEach((day, i) => {
+    const arr = r[i];
+    if (!Array.isArray(arr)) return;
+    for (let j = 0; j + 1 < arr.length; j += 2) {
+      const [src, country] = String(arr[j]).split(":");
+      const visits = Number(arr[j + 1]) || 0;
+      if (src && country && visits) out.push({ day, src, country, visits });
+    }
+  });
+  return out;
+}
