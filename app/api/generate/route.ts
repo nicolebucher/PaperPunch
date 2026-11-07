@@ -101,6 +101,8 @@ async function handleGenerate(request: NextRequest) {
     grade: nullToUndefined(formData.get("grade")),
     subject: nullToUndefined(formData.get("subject")),
     notes: nullToUndefined(formData.get("notes")),
+    foreignLanguage: nullToUndefined(formData.get("foreignLanguage")),
+    langYear: nullToUndefined(formData.get("langYear")),
   });
   if (!profileResult.success) {
     return NextResponse.json({ error: messages.invalidProfile }, { status: 400 });

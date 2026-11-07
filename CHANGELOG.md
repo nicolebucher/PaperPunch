@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.28.0 – 7 November 2026 (website; the app part ships with the next app build)
+
+Year of learning for foreign languages.
+
+| Area | Change |
+| --- | --- |
+| Website + App | When creating, a new row “Fremdsprache? / Foreign language?” (No · English · French · Spanish · Latin · Italian) with “Lernjahr / Year of learning” 1–5+. The language is detected from topic, note or a teacher's single subject; the year is remembered per language on the device (localStorage paperpunch-langyear). English isn't offered as a foreign language when the interface is English |
+| Website · AI | New profile fields foreignLanguage + langYear: the prompt pitches vocabulary, grammar and sentence length to the year of learning (1 ≈ A1 … 5+ ≈ B1) while topics and tone stay right for the grade – e.g. Spanish from grade 8 = beginner level, but not childish |
+| Website + App | “What's new” entry 2 about the year of learning |
+
 ## v0.27.3 – 7 November 2026 (website; the app part ships with the next app build)
 
 Two fixes from testing the new app.

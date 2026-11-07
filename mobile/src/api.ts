@@ -88,6 +88,8 @@ export async function generateMaterial(opts: {
   files: File[];
   subject?: string;
   notes?: string;
+  /** Fremdsprache + Lernjahr (1-5) – Sprachniveau unabhängig von der Klasse */
+  language?: { lang: string; year: number };
   onJob?: (job: PendingJob) => void;
 }): Promise<GenerateResult> {
   const body = new FormData();
@@ -98,6 +100,10 @@ export async function generateMaterial(opts: {
   body.set("device", deviceId());
   if (opts.subject) body.set("subject", opts.subject.slice(0, 60));
   if (opts.notes) body.set("notes", opts.notes.slice(0, 300));
+  if (opts.language) {
+    body.set("foreignLanguage", opts.language.lang);
+    body.set("langYear", String(opts.language.year));
+  }
   opts.files.forEach((f) => body.append("file", f, f.name));
   const json = await post<Record<string, unknown>>("/api/generate", body);
   if (typeof json.jobId === "string") {

@@ -140,3 +140,12 @@ test("stripAnswerLeak removes brackets that give the answer away", async () => {
   assert.equal(stripAnswerLeak("Der ___ bellt (Hund).", "der Hund", ["Hund"]), "Der ___ bellt.");
   assert.equal(stripAnswerLeak("3 + 4 = ___ (Tipp: zähle weiter)", "7"), "3 + 4 = ___ (Tipp: zähle weiter)");
 });
+
+test("detectForeignLanguage", async () => {
+  const { detectForeignLanguage } = await import("../lib/answer-match.ts");
+  assert.equal(detectForeignLanguage("Spanisch Vokabeln Unidad 3", "de"), "es");
+  assert.equal(detectForeignLanguage("Englisch: simple past", "de"), "en");
+  assert.equal(detectForeignLanguage("English grammar", "en"), null);
+  assert.equal(detectForeignLanguage("Latein Lektion 5", "de"), "la");
+  assert.equal(detectForeignLanguage("Bruchrechnen", "de"), null);
+});

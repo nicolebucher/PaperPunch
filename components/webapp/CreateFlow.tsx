@@ -4,6 +4,8 @@ import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { LangYearPicker } from "./LangYearPicker";
+import { detectForeignLanguage, rememberedLangYear, rememberLangYear, type ForeignLanguage } from "@/lib/answer-match";
 import imageCompression from "browser-image-compression";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { MAX_FILES, MAX_TOTAL_SIZE } from "@/lib/files/extract-input";
@@ -34,6 +36,16 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
   const [format, setFormat] = useState<WebFormat>(initialFormat ?? "worksheet");
   const [grade, setGrade] = useState("");
   const [schoolType, setSchoolType] = useState("");
+  // Fremdsprache + Lernjahr: aus Fach/Notiz erkannt, Lernjahr je Sprache gemerkt
+  const [lang, setLang] = useState<ForeignLanguage | null>(null);
+  const [langYear, setLangYear] = useState(1);
+  const [langTouched, setLangTouched] = useState(false);
+  useEffect(() => {
+    if (step !== "format" || langTouched) return;
+    const found = detectForeignLanguage(`${subject} ${notes}`, locale);
+    setLang(found);
+    if (found) setLangYear(rememberedLangYear(found) ?? 1);
+  }, [step, langTouched, subject, notes, locale]);
   const [error, setError] = useState("");
   const [quotaHit, setQuotaHit] = useState(false);
   const quota = useQuota();
@@ -104,6 +116,11 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     if (schoolType) body.set("schoolType", schoolType);
     if (subject.trim()) body.set("subject", subject.trim().slice(0, 60));
     if (notes.trim()) body.set("notes", notes.trim().slice(0, 300));
+    if (lang) {
+      body.set("foreignLanguage", lang);
+      body.set("langYear", String(langYear));
+      rememberLangYear(lang, langYear);
+    }
     files.forEach((f) => body.append("file", f));
     try {
       const res = await fetch("/api/generate", { method: "POST", body });
@@ -209,6 +226,13 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
           </label>
         </div>
         <span className="px-1 text-xs font-semibold text-zinc-500">{tx.remembered}</span>
+        <LangYearPicker
+          locale={locale}
+          lang={lang}
+          year={langYear}
+          onLang={(l) => { setLangTouched(true); setLang(l); if (l) setLangYear(rememberedLangYear(l) ?? 1); }}
+          onYear={setLangYear}
+        />
         <div className="mt-4"><QuotaLine quota={quota} /></div>
         {quotaGone ? (
           <QuotaEmpty limit={quota?.limit ?? 10} />

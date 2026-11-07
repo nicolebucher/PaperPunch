@@ -30,8 +30,14 @@ export const profileSchema = z.object({
   grade: z.coerce.number().int().min(1).max(13).optional(),
   subject: z.string().trim().min(2).max(60).optional(),
   notes: z.string().trim().min(1).max(300).optional(),
+  // Fremdsprache und Lernjahr (1-5, 5 = fünftes Jahr oder länger): Sprachniveau unabhängig von der Klasse
+  foreignLanguage: z.enum(["en", "fr", "es", "la", "it"]).optional(),
+  langYear: z.coerce.number().int().min(1).max(5).optional(),
 });
 export type Profile = z.infer<typeof profileSchema>;
+
+const LANG_NAMES: Record<string, string> = { en: "English", fr: "French", es: "Spanish", la: "Latin", it: "Italian" };
+const LANG_YEAR_CEFR = ["", "A1 (absolute beginner)", "A1-A2", "A2", "A2-B1", "B1"];
 
 // Nur für den (englischen) System-Prompt gedacht - beschreibt die Zielgruppe fürs Modell,
 // unabhängig von der später gewählten Ausgabesprache des generierten Inhalts. Wenn Angaben
@@ -52,6 +58,12 @@ export function describeProfile(profile: Profile, hasMaterial = true): string {
         : "grade not given - estimate the appropriate grade level yourself from the topic"
   );
   if (profile.subject) parts.push(`subject: ${profile.subject}`);
+  if (profile.langYear) {
+    const lang = profile.foreignLanguage ? LANG_NAMES[profile.foreignLanguage] : "the foreign language";
+    parts.push(
+      `${lang} as a foreign language in year ${profile.langYear}${profile.langYear >= 5 ? " or later" : ""} of learning it (about CEFR ${LANG_YEAR_CEFR[profile.langYear]}) - pitch the ${lang} vocabulary, grammar and sentence length to this level (the grade alone does not tell the language level), while topics, tone and examples stay right for the age/grade`
+    );
+  }
   if (profile.notes) parts.push(`the student's own note/request: "${profile.notes}" (take this into account for topic focus and content selection, as long as it doesn't conflict with the instructions above)`);
   return parts.join(", ");
 }

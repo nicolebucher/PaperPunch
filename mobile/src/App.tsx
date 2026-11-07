@@ -232,7 +232,7 @@ function AppInner() {
 
   // profile: die beim Erstellen gewählte Klasse/Schulart (setProfile wirkt erst beim nächsten Rendern –
   // ohne Übergabe wurde mit der alten Klasse aus den Einstellungen erstellt)
-  type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View; profile?: Profile };
+  type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View; profile?: Profile; language?: { lang: string; year: number } };
 
   /** Fertiges Ergebnis übernehmen: Zwischentest direkt starten, sonst speichern und anzeigen. */
   async function finishGeneration(result: GenerateResult, opts: GenOpts) {
@@ -410,12 +410,12 @@ function AppInner() {
           initialFormat={view.format}
           say={say}
           onBack={() => setView({ name: "home" })}
-          onCreate={(format, files, topic, p, notes) => {
+          onCreate={(format, files, topic, p, notes, language) => {
             if (p.grade !== profile!.grade || p.schoolType !== profile!.schoolType || p.childId !== profile!.childId || p.grade !== profile!.grade || JSON.stringify(p.children) !== JSON.stringify(profile!.children)) {
               setProfile(p);
               saveProfile(p);
             }
-            void runGenerate({ format, files, subject: topic || undefined, notes: notes || undefined, back: { name: "capture", mode: view.mode }, profile: p });
+            void runGenerate({ format, files, subject: topic || undefined, notes: notes || undefined, back: { name: "capture", mode: view.mode }, profile: p, language });
           }}
         />
       );

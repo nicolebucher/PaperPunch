@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { detectForeignLanguage, FOREIGN_LANGUAGES, rememberedLangYear, rememberLangYear, type ForeignLanguage } from "../answerMatch";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "../i18n";
 import { addFiles, formatMb, isNative, MAX_BYTES, MAX_FILES, takeNativePhoto, totalBytes, type FileError } from "../files";
 import { FileChips, FilePick, FORMATS, Icon, ProfileSelects, TopBar } from "../ui";
@@ -22,7 +23,7 @@ export function Capture({
   initialFormat?: MaterialFormat;
   say: (msg: string) => void;
   onBack: () => void;
-  onCreate: (format: MaterialFormat, files: File[], topic: string, profile: Profile, notes: string) => void;
+  onCreate: (format: MaterialFormat, files: File[], topic: string, profile: Profile, notes: string, language?: { lang: ForeignLanguage; year: number }) => void;
 }) {
   const { t, lang } = useT();
   const [mode, setMode] = useState(initialMode);
@@ -32,6 +33,17 @@ export function Capture({
   const [notes, setNotes] = useState("");
   const [format, setFormat] = useState<MaterialFormat | null>(initialFormat ?? null);
   const [profile, setProfile] = useState(initialProfile);
+  // Fremdsprache + Lernjahr (Klasse ≠ Sprachniveau): aus Thema/Notiz/Fach erkannt, Lernjahr je Sprache gemerkt
+  const [flang, setFlang] = useState<ForeignLanguage | null>(null);
+  const [langYear, setLangYear] = useState(1);
+  const [langTouched, setLangTouched] = useState(false);
+  useEffect(() => {
+    if (langTouched) return;
+    const found = detectForeignLanguage(`${topic} ${notes} ${teacherSubjects.length === 1 ? teacherSubjects[0] : ""}`, lang);
+    setFlang(found);
+    if (found) setLangYear(rememberedLangYear(found) ?? 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topic, notes, langTouched, lang]);
   const sheetTopicRef = useRef<HTMLInputElement | null>(null);
   // Lehrkräfte: eigene Fächer statt Beispiel-Ideen (Antippen setzt "Mathe: " – dann das Thema dahinter tippen)
   const teacherSubjects = initialProfile.role === "teacher" ? initialProfile.subjects ?? [] : [];
@@ -259,6 +271,29 @@ export function Capture({
               )}
               <ProfileSelects profile={profile} onChange={(p) => setProfile(syncActive(p))} />
 
+              <div className="stack" style={{ gap: 8 }}>
+                <span className="field-label">{t.langQ}</span>
+                <div className="kid-chips">
+                  <button type="button" className={!flang ? "kid-chip on" : "kid-chip"} aria-pressed={!flang} onClick={() => { setLangTouched(true); setFlang(null); }}>{t.langNo}</button>
+                  {FOREIGN_LANGUAGES.filter((l) => !(l.key === "en" && lang === "en")).map((l) => (
+                    <button key={l.key} type="button" className={flang === l.key ? "kid-chip on" : "kid-chip"} aria-pressed={flang === l.key} onClick={() => { setLangTouched(true); setFlang(l.key); setLangYear(rememberedLangYear(l.key) ?? 1); }}>
+                      {lang === "de" ? l.de : l.en}
+                    </button>
+                  ))}
+                </div>
+                {flang && (
+                  <>
+                    <span className="field-label">{t.langYearLabel}</span>
+                    <div className="kid-chips">
+                      {[1, 2, 3, 4, 5].map((y) => (
+                        <button key={y} type="button" className={langYear === y ? "kid-chip on" : "kid-chip"} aria-pressed={langYear === y} onClick={() => setLangYear(y)}>{y === 5 ? "5+" : y}</button>
+                      ))}
+                    </div>
+                    <span className="muted" style={{ fontSize: 13 }}>{t.langYearHint}</span>
+                  </>
+                )}
+              </div>
+
               <QuotaLine quota={quota} />
               {quotaGone ? (
                 <QuotaEmpty limit={quota.limit} />
@@ -274,7 +309,8 @@ export function Capture({
                       else say(blocker);
                       return;
                     }
-                    if (format) onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim());
+                    if (flang) rememberLangYear(flang, langYear);
+                    if (format) onCreate(format, mode === "photo" ? files : [], mode === "topic" ? topic.trim() : "", profile, notes.trim(), flang ? { lang: flang, year: langYear } : undefined);
                   }}
                 >
                   {blocker || t.create}

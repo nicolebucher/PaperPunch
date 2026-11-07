@@ -288,3 +288,41 @@ export function stripAnswerLeak(prompt: string, answer: string, accepted: string
   const out = prompt.replace(/\s*\(([^()]*)\)/g, (m, inner: string) => (answers.some((a) => key(inner).includes(a)) ? "" : m));
   return out === prompt ? prompt : out.replace(/\s+([.,!?;:])/g, "$1").replace(/\s{2,}/g, " ").trim();
 }
+
+/** Fremdsprachen, für die beim Erstellen das Lernjahr abgefragt wird (Klasse ≠ Sprachniveau, z. B. Spanisch ab Klasse 8). */
+export const FOREIGN_LANGUAGES = [
+  { key: "en", de: "Englisch", en: "English", re: /\b(englisch|english)\b/i },
+  { key: "fr", de: "Französisch", en: "French", re: /(französisch|franzoesisch|french|français|francais)/i },
+  { key: "es", de: "Spanisch", en: "Spanish", re: /(spanisch|spanish|español|espanol)/i },
+  { key: "la", de: "Latein", en: "Latin", re: /\b(latein|latin|lateinisch)\b/i },
+  { key: "it", de: "Italienisch", en: "Italian", re: /(italienisch|italian|italiano)/i },
+] as const;
+export type ForeignLanguage = (typeof FOREIGN_LANGUAGES)[number]["key"];
+
+/** Fremdsprache aus Fach/Thema/Notiz erkennen. Englisch zählt bei englischer Oberfläche nicht als Fremdsprache. */
+export function detectForeignLanguage(text: string, uiLang: string): ForeignLanguage | null {
+  for (const l of FOREIGN_LANGUAGES) {
+    if (l.key === "en" && uiLang === "en") continue;
+    if (l.re.test(text)) return l.key;
+  }
+  return null;
+}
+
+const LANG_YEAR_KEY = "paperpunch-langyear";
+/** Zuletzt gewähltes Lernjahr je Sprache (nur auf diesem Gerät). */
+export function rememberedLangYear(lang: ForeignLanguage): number | null {
+  try {
+    const v = (JSON.parse(localStorage.getItem(LANG_YEAR_KEY) ?? "{}") as Record<string, number>)[lang];
+    return v >= 1 && v <= 5 ? v : null;
+  } catch {
+    return null;
+  }
+}
+export function rememberLangYear(lang: ForeignLanguage, year: number): void {
+  try {
+    const all = JSON.parse(localStorage.getItem(LANG_YEAR_KEY) ?? "{}") as Record<string, number>;
+    localStorage.setItem(LANG_YEAR_KEY, JSON.stringify({ ...all, [lang]: year }));
+  } catch {
+    // ohne Speicher wird nur nichts vorausgewählt
+  }
+}

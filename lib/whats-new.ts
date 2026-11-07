@@ -12,6 +12,18 @@ export interface WhatsNewEntry {
 
 export const WHATS_NEW: WhatsNewEntry[] = [
   {
+    id: 2,
+    date: "2026-11-07",
+    de: {
+      title: "Neu bei PaperPunch ✨",
+      items: ["🌍 Lernjahr bei Fremdsprachen: Sag, wie lange du die Sprache schon lernst – dann passen Wörter und Grammatik zu dir"],
+    },
+    en: {
+      title: "New in PaperPunch ✨",
+      items: ["🌍 Year of learning for foreign languages: tell us how long you've been learning the language – words and grammar will fit you"],
+    },
+  },
+  {
     id: 1,
     date: "2026-11-07",
     de: {
