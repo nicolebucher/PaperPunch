@@ -135,3 +135,13 @@ export async function fetchTeacherReport(code: string, key: string): Promise<{ s
   const res = await fetch(`/api/groups/${code}/report`, { headers: { "x-teacher-key": key }, cache: "no-store" });
   return res.ok ? { status: 200, report: await res.json() } : { status: res.status };
 }
+
+/** Lehrkraft entfernt einen Eintrag (id aus der Auswertung). */
+export async function removeGroupEntry(code: string, key: string, id: string): Promise<boolean> {
+  const res = await fetch(`/api/groups/${code}/report`, {
+    method: "DELETE",
+    headers: { "x-teacher-key": key, "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
+  return res.ok;
+}

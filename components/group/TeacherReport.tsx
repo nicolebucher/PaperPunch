@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { TeacherReport } from "@/lib/groups";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { track } from "@/lib/analytics";
-import { fetchTeacherReport, fmtTime, saveGroup, timeLeft } from "@/lib/webapp/groups";
+import { fetchTeacherReport, fmtTime, removeGroupEntry, saveGroup, timeLeft } from "@/lib/webapp/groups";
 
 // Lehrkraft-Auswertung einer Lerngruppe: Kennzahlen, Level, schwierigste Fragen, Ergebnisse.
 // Bewusst ohne Schwächen-Auswertung pro Kind – nur Ergebnisse pro Spitzname.
@@ -52,6 +52,9 @@ const TEXT = {
     missing: "Lerngruppe nicht gefunden – der Link ist abgelaufen oder falsch.",
     error: "Das hat nicht geklappt. Versuch es noch einmal.",
     play: "Zur Lerngruppe",
+    remove: "Eintrag entfernen",
+    removeConfirm: (name: string) => `Eintrag „${name}“ entfernen? Das Gerät kann danach noch einmal mitspielen.`,
+    removed: "Eintrag entfernt",
   },
   en: {
     eyebrow: "Study group · Results for teachers",
@@ -94,6 +97,9 @@ const TEXT = {
     missing: "Study group not found – the link has expired or is wrong.",
     error: "That didn't work. Please try again.",
     play: "Open study group",
+    remove: "Remove entry",
+    removeConfirm: (name: string) => `Remove “${name}”? That device can then play again.`,
+    removed: "Entry removed",
   },
 };
 
@@ -154,6 +160,17 @@ export function TeacherReportView({ code }: { code: string }) {
       setTimeout(() => setNote(""), 2500);
     } catch {
       setNote(playerUrl);
+    }
+  }
+
+  async function remove(id: string, name: string) {
+    if (!window.confirm(t.removeConfirm(name))) return;
+    const ok = await removeGroupEntry(r.meta.code, key, id).catch(() => false);
+    setNote(ok ? t.removed : t.error);
+    setTimeout(() => setNote(""), 2500);
+    if (ok) {
+      track("teacher_remove_entry");
+      void load(key);
     }
   }
 
@@ -266,17 +283,19 @@ export function TeacherReportView({ code }: { code: string }) {
 
           <div className={`${card} flex flex-col gap-2`}>
             <b className="text-[15px]">{r.meta.homework ? t.ranking : t.results}</b>
-            <div className="grid grid-cols-[minmax(0,1fr)_64px_64px_70px] gap-x-3 gap-y-1.5 text-sm">
+            <div className="grid grid-cols-[minmax(0,1fr)_64px_64px_70px_24px] gap-x-3 gap-y-1.5 text-sm">
               <span className="text-xs font-bold text-zinc-500">{t.nick}</span>
               <span className="text-right text-xs font-bold text-zinc-500">{t.right}</span>
               <span className="text-right text-xs font-bold text-zinc-500">{t.points}</span>
               <span className="text-right text-xs font-bold text-zinc-500">{t.duration}</span>
+              <span />
               {r.entries.map((e, i) => (
                 <div key={i} className="contents">
                   <span className="truncate font-semibold">{e.name}</span>
                   <span className={`text-right font-bold ${e.pct < 50 ? "text-orange-300" : ""}`}>{e.pct} %</span>
                   <span className="text-right text-zinc-400">{e.correct}/{e.total}</span>
                   <span className="text-right text-zinc-400">{fmtTime(e.ms).replace(" Min.", "") || "–"}</span>
+                  <button type="button" onClick={() => void remove(e.id, e.name)} aria-label={t.remove} title={t.remove} className="text-right font-bold text-zinc-500 hover:text-orange-300">×</button>
                 </div>
               ))}
             </div>

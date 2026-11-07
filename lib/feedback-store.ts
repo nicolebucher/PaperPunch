@@ -1,4 +1,5 @@
 import { put } from "@vercel/blob";
+import { sheetSafeRow } from "@/lib/sheet-safe";
 
 // Rückmeldungen (Bewertungen aus App/Web und das Feedback-Formular) gehen an zwei Stellen:
 // 1. als Sicherung in einen privaten Vercel Blob Store (Frankfurt) unter feedback/JJJJ-MM-TT/…json – damit nichts verloren geht,
@@ -35,7 +36,8 @@ export async function storeFeedback(kind: FeedbackKind, row: Record<string, unkn
       const res = await fetch(webhook, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(record),
+        // Sicherung im Blob bleibt wörtlich, ins Sheet nur ohne Formel-Anfang (lib/sheet-safe.ts)
+        body: JSON.stringify(sheetSafeRow(record)),
         redirect: "follow",
       });
       if (!res.ok) throw new Error(`webhook ${res.status}`);

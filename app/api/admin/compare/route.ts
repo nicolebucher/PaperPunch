@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import type { Profile } from "@/types/generation";
 import { generateWorksheet } from "@/lib/generators/worksheet";
@@ -21,8 +22,12 @@ const SAMPLES: { profile: Profile; locale: Locale }[] = [
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const key = process.env.MODEL_COMPARE_KEY;
-  if (!key || params.get("key") !== key) return NextResponse.json({ error: "not found" }, { status: 404 });
+  // Schlüssel per Header x-compare-key (bevorzugt, landet nicht in Logs) oder ?key=; zeitkonstant verglichen
+  const key = process.env.MODEL_COMPARE_KEY ?? "";
+  const given = request.headers.get("x-compare-key") ?? params.get("key") ?? "";
+  if (key.length < 16 || given.length !== key.length || !timingSafeEqual(Buffer.from(given), Buffer.from(key))) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
 
   const format = params.get("format") ?? "worksheet";
   const base = SAMPLES[Number(params.get("sample") ?? "0")];

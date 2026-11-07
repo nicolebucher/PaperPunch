@@ -37,6 +37,11 @@ export async function POST(request: NextRequest, { params }: Ctx) {
     return withCors(request, NextResponse.json({ error: "invalid" }, { status: 400 }));
   }
   if (!isDeviceId(body.device)) return withCors(request, NextResponse.json({ error: "invalid" }, { status: 400 }));
+  // Höchstens 40 Einträge pro IP und Gruppe (eine ganze Klasse hinter einer Schul-IP passt, eine Flut erfundener
+  // Geräte-IDs nicht). Das Fenster deckt die Laufzeit einer Gruppe ab.
+  if (!(await checkRateLimit(`group-entry:${code}:${ip}`, 40, 45 * 86400))) {
+    return withCors(request, NextResponse.json({ error: "rate limit" }, { status: 429 }));
+  }
   try {
     const outcome = await submitResult(code, body.device, body);
     if (outcome === "missing") return withCors(request, NextResponse.json({ error: "not found" }, { status: 404 }));

@@ -214,6 +214,13 @@ async function handleGenerate(request: NextRequest) {
   // gesperrt wird. Das Ergebnis holt die App über /api/jobs/<id> ab.
   if (formData.get("async") === "1" && jobsEnabled()) {
     const jobId = randomUUID();
+    // Sofort einen "running"-Eintrag schreiben: Bricht die Funktion ab, bevor das Ergebnis gespeichert ist,
+    // meldet /api/jobs/<id> nach ein paar Minuten einen Fehler statt endlos "running" (lib/jobs.ts).
+    try {
+      await saveJob(jobId, { status: "running", startedAt: Date.now(), staleError: messages.generationFailed });
+    } catch (error) {
+      console.error("[jobs] start record failed:", error instanceof Error ? error.message : error);
+    }
     after(async () => {
       await cleanupOldJobs();
       try {

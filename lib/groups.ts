@@ -2,6 +2,7 @@ import { del, get, list, put, type ListBlobResultBlob } from "@vercel/blob";
 import type { GameData } from "@/types/generation";
 import { cleanName } from "@/lib/challenges";
 import { isBlockedName } from "@/lib/name-filter";
+import { scoreGroupResult } from "@/lib/group-score";
 
 // Lerngruppen per Link (paper-punch.com/g/CODE): alle spielen dasselbe Lernspiel, eine gemeinsame Rangliste.
 // Ohne Konto: Spitznamen, ein Eintrag pro Gerät (zufällige Geräte-ID), nur der erste Versuch zählt.
@@ -239,17 +240,19 @@ export async function submitResult(code: string, device: string, r: { name: stri
   if (isEnded(data.meta)) return "ended";
   const me = await deviceTag(device);
   if (data.entries.some((e) => e.me === me)) return "already";
+  // Punkte legt der Server fest, nicht der Browser (lib/group-score.ts)
+  const score = scoreGroupResult(data.meta.game, r);
   const entry: GroupEntry = {
     name: cleanName(r.name) || (data.meta.lang === "en" ? "Player" : "Spieler:in"),
-    pct: Math.max(0, Math.min(100, Math.round(r.pct))),
-    correct: Math.max(0, Math.round(r.correct)),
-    total: Math.max(1, Math.round(r.total)),
+    pct: score.pct,
+    correct: score.correct,
+    total: score.total,
     ms: Math.max(0, Math.round(r.ms)),
     at: new Date().toISOString(),
     me,
   };
-  if (r.answers?.length) {
-    entry.qs = r.answers.slice(0, 200).map((x) => [Math.round(x.l), Math.round(x.i), x.ok ? 1 : 0, (x.a ?? "").replace(/\s+/g, " ").trim().slice(0, 60)]);
+  if (score.answers.length) {
+    entry.qs = score.answers.map((x) => [x.l, x.i, x.ok ? 1 : 0, (x.a ?? "").replace(/\s+/g, " ").trim().slice(0, 60)]);
   }
   try {
     await writeJson(`${PREFIX}${code}/p-${me}.json`, entry, data.backend);
@@ -277,6 +280,22 @@ export async function cleanupOldGroups(): Promise<void> {
   }
 }
 
+/**
+ * Lehrkraft entfernt einen Eintrag (z. B. erfundener Name oder gefälschtes Ergebnis). id = Kennung aus der
+ * Auswertung. Danach kann dasselbe Gerät noch einmal mitspielen.
+ */
+export async function removeEntry(code: string, key: string, id: string): Promise<"ok" | "denied" | null> {
+  if (!isGroupCode(code) || !/^[0-9a-f]{8,32}$/.test(id)) return null;
+  const data = await load(code, true);
+  if (!data) return null;
+  if (!(await checkTeacherKey(data.meta, key))) return "denied";
+  const blobs = await listBlobs(`${PREFIX}${code}/p-${id}.json`, data.backend, 5);
+  if (!blobs.length) return null;
+  await del(blobs.map((b) => b.url), storeOpts(data.backend));
+  cache.delete(code);
+  return "ok";
+}
+
 export interface TeacherQuestion {
   level: number;
   levelTitle: string;
@@ -297,7 +316,7 @@ export interface TeacherReport {
   levels: { id: number; title: string; pct: number | null }[];
   questions: TeacherQuestion[];
   /** Ergebnisse pro Kind – bewusst ohne Schwächen-Auswertung pro Kind. */
-  entries: { name: string; pct: number; correct: number; total: number; ms: number; at: string }[];
+  entries: { id: string; name: string; pct: number; correct: number; total: number; ms: number; at: string }[];
   /** Anzahl Einträge mit Antworten pro Frage (ältere Apps senden nur die Summe). */
   detailed: number;
 }
@@ -363,7 +382,7 @@ export async function teacherReport(code: string, key: string): Promise<TeacherR
       return { id: l.id, title: l.title, pct: a && a.n ? Math.round((a.ok / a.n) * 100) : null };
     }),
     questions,
-    entries: ranked.map((e) => ({ name: e.name, pct: e.pct, correct: e.correct, total: e.total, ms: e.ms, at: e.at })),
+    entries: ranked.map((e) => ({ id: e.me, name: e.name, pct: e.pct, correct: e.correct, total: e.total, ms: e.ms, at: e.at })),
     detailed,
   };
 }

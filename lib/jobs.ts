@@ -10,8 +10,24 @@ const PUBLIC_TOKEN = () => process.env.BLOB_READ_WRITE_TOKEN;
 // alles, was älter als 24 Stunden ist, wird beim nächsten neuen Job aufgeräumt.
 
 export type JobRecord =
+  | { status: "running"; startedAt: number; staleError: string }
   | { status: "done"; result: unknown }
   | { status: "error"; error: string };
+
+/** Ein Job, der so lange ohne Ergebnis "running" ist, ist abgebrochen (Funktions-Limit 300 s plus Puffer). */
+export const STALE_AFTER_MS = 6 * 60 * 1000;
+
+/**
+ * Was /api/jobs/<id> antwortet: Ein Lauf ohne Ergebnis nach STALE_AFTER_MS gilt als Fehler, damit die App nicht
+ * 10 Minuten wartet, wenn die Funktion abgebrochen wurde (Timeout, Absturz) und saveJob nie lief.
+ */
+export function jobStatus(job: JobRecord | null, now = Date.now()): Exclude<JobRecord, { status: "running" }> | { status: "running" } {
+  if (!job) return { status: "running" };
+  if (job.status === "running") {
+    return now - job.startedAt > STALE_AFTER_MS ? { status: "error", error: job.staleError } : { status: "running" };
+  }
+  return job;
+}
 
 const PREFIX = "jobs/";
 const MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -33,6 +49,7 @@ export async function saveJob(id: string, record: JobRecord): Promise<void> {
 export async function readJob(id: string): Promise<JobRecord | null> {
   const { blobs } = await list({ prefix: `${PREFIX}${id}`, token: PUBLIC_TOKEN() });
   if (!blobs.length) return null;
+  // Erst steht dort der "running"-Eintrag vom Start, später das Ergebnis: der neueste gilt.
   const latest = blobs.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime())[0];
   const res = await fetch(latest.url, { cache: "no-store" });
   if (!res.ok) return null;
