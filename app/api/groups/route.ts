@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sharedGameSchema } from "@/types/generation";
+import { checkSharedGame } from "@/lib/content-filter";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
 import { cleanupOldGroups, createGroup, groupUrl, groupsEnabled, isDeviceId, submitResult, teacherUrl } from "@/lib/groups";
@@ -49,6 +50,12 @@ async function create(request: NextRequest) {
     const issues = error instanceof z.ZodError ? error.issues.slice(0, 3).map((i) => `${i.path.join(".")}: ${i.code}`).join("; ") : "bad json";
     console.warn("[groups] invalid body:", issues);
     return NextResponse.json({ error: "invalid" }, { status: 400 });
+  }
+  // Spiel wird öffentlich per Link sichtbar: Längen, Links und Beleidigungen prüfen (lib/content-filter.ts)
+  const problem = checkSharedGame(body.game);
+  if (problem) {
+    console.warn("[share] game rejected:", problem);
+    return NextResponse.json({ error: "content", code: problem }, { status: 422 });
   }
   try {
     const meta = await createGroup({ name: body.name, by: body.by, lang: body.lang, endsAt: body.endsAt, game: body.game, homework: body.homework });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sharedGameSchema } from "@/types/generation";
+import { checkSharedGame } from "@/lib/content-filter";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
 import { challengeUrl, challengesEnabled, cleanName, cleanupOldChallenges, saveChallenge } from "@/lib/challenges";
@@ -34,6 +35,12 @@ async function create(request: NextRequest) {
     body = bodySchema.parse(await request.json());
   } catch {
     return NextResponse.json({ error: "invalid" }, { status: 400 });
+  }
+  // Spiel wird öffentlich per Link sichtbar: Längen, Links und Beleidigungen prüfen (lib/content-filter.ts)
+  const problem = checkSharedGame(body.game);
+  if (problem) {
+    console.warn("[share] game rejected:", problem);
+    return NextResponse.json({ error: "content", code: problem }, { status: 422 });
   }
   const name = cleanName(body.name) || (body.lang === "en" ? "A friend" : "Jemand");
   try {

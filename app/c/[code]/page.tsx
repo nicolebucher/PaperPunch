@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { readChallenge } from "@/lib/challenges";
 import { ChallengePlay } from "@/components/challenge/ChallengePlay";
+import { ReportContentLink } from "@/components/share/ReportContentLink";
 
 // Challenge-Links werden nie vorab gebaut, sondern bei jedem Aufruf frisch aus dem Speicher gelesen.
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ export default async function ChallengePage({ params }: PageProps<"/c/[code]">) 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
       <ChallengePlay challenge={challenge} />
+      <ReportContentLink kind="challenge" code={challenge.code} lang={challenge.lang} />
     </main>
   );
 }
