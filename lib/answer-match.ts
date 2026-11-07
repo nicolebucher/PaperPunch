@@ -240,15 +240,21 @@ export function orderTiles(items: string[], seedText: string): string[] {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  // Gut gemischt = höchstens ein Drittel steht an seinem richtigen Platz und (ab 3 Einträgen) nicht der erste vorne –
+  // sonst wäre die Aufgabe halb gelöst. Wie beim Zuordnen bis zu 20-mal neu mischen, notfalls um eins verschieben.
+  const good = (a: string[]) =>
+    a.join("\u0000") !== words.join("\u0000") &&
+    a.filter((v, i) => v === words[i]).length <= Math.floor(words.length / 3) &&
+    (words.length < 3 || a[0] !== words[0]);
   let out = [...words];
-  for (let tries = 0; tries < 12 && (tries === 0 || out.join(" ") === words.join(" ")); tries++) {
+  for (let tries = 0; tries < 20 && (tries === 0 || !good(out)); tries++) {
     out = [...words];
     for (let i = out.length - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));
       [out[i], out[j]] = [out[j], out[i]];
     }
   }
-  if (out.join(" ") === words.join(" ")) out = [...words.slice(1), words[0]];
+  if (!good(out)) out = [...words.slice(1), words[0]];
   return out;
 }
 

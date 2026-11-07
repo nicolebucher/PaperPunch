@@ -118,3 +118,16 @@ test("order: tiles shuffled, exact order required", async () => {
   assert.ok(orderMatches(["eiszeit", "Römer", "Mittelalter", "Neuzeit"], items));
   assert.ok(!orderMatches(["Römer", "Eiszeit", "Mittelalter", "Neuzeit"], items));
 });
+
+test("order/sentence shuffle: at most a third in place, first entry never first", async () => {
+  const { orderTiles, sentenceTiles } = await import("../lib/answer-match.ts");
+  for (let n = 3; n <= 9; n++) {
+    const items = Array.from({ length: n }, (_, i) => `w${i}`);
+    for (let s = 0; s < 200; s++) {
+      const t = orderTiles(items, `seed-${n}-${s}`);
+      assert.ok(t.filter((v, i) => v === items[i]).length <= Math.floor(n / 3), `n=${n} s=${s}`);
+      assert.notEqual(t[0], items[0]);
+    }
+  }
+  assert.notEqual(sentenceTiles("Ich spiele gern Fußball.", "a")[0], "Ich");
+});

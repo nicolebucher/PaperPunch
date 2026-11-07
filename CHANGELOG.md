@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.25.1 – 7 November 2026 (website; the app part ships with the next app build)
+
+Better shuffle for sentence and ordering tiles.
+
+| Area | Change |
+| --- | --- |
+| App + Website | Sentence and ordering tiles are shuffled like matching: at most a third of the tiles may sit in their right place and (from 3 tiles) the first word/card is never shown first, so the task is never half solved. Same code in app and website (lib/answer-match.ts = mobile/src/answerMatch.ts), new unit test over 1,400 seeds |
+
 ## v0.25.0 – 7 November 2026 (website; the app part ships with the next app build)
 
 Sentence building and ordering questions in learning games.
