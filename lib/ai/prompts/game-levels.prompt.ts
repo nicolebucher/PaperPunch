@@ -35,7 +35,10 @@ events, steps of a process or experiment, stages of a cycle, steps of a calculat
   - "reihenfolge": "prompt" says what to order and in which direction, e.g. "Bringe die Epochen in die richtige
     Reihenfolge – von früh nach spät." "items" holds 3-6 short entries (max. ~8 words each) in the CORRECT order;
     the game shuffles them. There must be exactly one correct order. Leave out options/correctIndex/correctAnswer/pairs.
-  - at most 2 "reihenfolge" questions per level, none in the boss round, and only when the content has a clear sequence.
+  - this fits only a few topics (history timelines, processes and cycles in biology/geography, experiment steps,
+    calculation steps, sorting numbers or sizes). Most games should have NO "reihenfolge" question at all: use it only
+    when the material itself is about a sequence, at most 1 per level, none in the boss round. Never invent an order
+    for things that have none (vocabulary, definitions, unrelated facts).
 `;
 
 export function buildGameLevelsSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean, match = false, sentence = false, order = false): string {

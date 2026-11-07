@@ -16,7 +16,7 @@ Sentence building and ordering questions in learning games.
 | Website + App | New question type “Satz bauen”: the words of a sentence come as shuffled tiles, tap them into the right order (tap again to take a word back). Case and punctuation don't count; other correct word orders are accepted |
 | Website + App | New question type “Reihenfolge”: 3–6 cards (timeline, steps of a process, stages of a cycle …) tapped into a numbered list in the right order |
 | Website + App | Both: full points when right (half on the second try); on the first mistake the correct start stays and you redo the rest; after the second try the solution is shown. Same fixed shuffle on website and app |
-| Website · AI | New games get up to 2 of each per level where it fits – sentence building only in language subjects, ordering only where the material has a clear sequence; none in the boss round. Clients ask for new types via a “gameTypes” field; older app versions get games without them. The downloadable HTML game and the app's quick quiz leave them out. New unit tests |
+| Website · AI | New games get up to 2 of each per level where it fits – sentence building only in language subjects, ordering only when the material itself is about a sequence (timeline, process, cycle, experiment or calculation steps – most games get none, max. 1 per level); none in the boss round. Clients ask for new types via a “gameTypes” field; older app versions get games without them. The downloadable HTML game and the app's quick quiz leave them out. New unit tests |
 
 ## v0.24.0 – 7 November 2026 (website; the app part ships with the next app build)
 
