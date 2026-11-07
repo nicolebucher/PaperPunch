@@ -1,6 +1,7 @@
 "use client";
 
 import { splitBlank } from "@/lib/split-blank";
+import { splitLanguageNote } from "@/lib/answer-match";
 import { useLanguage } from "@/lib/i18n/language-context";
 
 export function FillBlankCard({
@@ -25,10 +26,13 @@ export function FillBlankCard({
   onSubmit: () => void;
 }) {
   const { t } = useLanguage();
-  const [before, after] = splitBlank(prompt);
+  // Sprachhinweis ("auf Spanisch") klein über der Frage statt im großen Fragetext
+  const { text, note } = splitLanguageNote(prompt);
+  const [before, after] = splitBlank(text);
 
   return (
     <div className="rounded-[28px] bg-white p-5 text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.25)] sm:p-6">
+      {note && <h2 className="mb-2 text-sm font-extrabold text-zinc-500">🌐 {note}</h2>}
       <p className="flex flex-wrap items-center gap-2 text-xl font-bold leading-relaxed">
         <span>{before}</span>
         <input

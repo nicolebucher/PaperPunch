@@ -196,3 +196,27 @@ export function answerHint(answer: string): string | null {
     .map((w) => (/^\s+$/.test(w) ? w : w.replace(/(\p{L})([\p{L}'’-]*)/u, (_, first: string, rest: string) => first + rest.replace(/\p{L}/gu, "_"))))
     .join("");
 }
+
+const LANGS =
+  "Spanisch|Englisch|Französisch|Italienisch|Latein|Deutsch|Russisch|Türkisch|Polnisch|Niederländisch|Portugiesisch|Griechisch|Chinesisch|Japanisch|Arabisch|" +
+  "Spanish|English|French|Italian|Latin|German|Russian|Turkish|Polish|Dutch|Portuguese|Greek|Chinese|Japanese|Arabic";
+const NOTE = `(?:auf|in)\\s+(?:${LANGS})`;
+
+/**
+ * Sprachhinweis aus der Aufgabe lösen, damit er klein über der Frage steht statt in der großen Überschrift:
+ * "Paul spielt ___ (auf Spanisch: Gitarre)." → { text: "Paul spielt ___ (Gitarre).", note: "Auf Spanisch" }.
+ * Erkennt "(auf Spanisch)", "(auf Spanisch: Gitarre)", "– auf Spanisch" am Ende und "Auf Spanisch:" am Anfang.
+ */
+export function splitLanguageNote(question: string): { text: string; note: string | null } {
+  const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const tidy = (s: string) => s.replace(/\s{2,}/g, " ").replace(/\s+([.,!?;:])/g, "$1").trim();
+  let m = question.match(new RegExp(`\\(\\s*(${NOTE})\\s*[:,]\\s*([^)]+)\\)`, "i"));
+  if (m) return { text: tidy(question.replace(m[0], `(${m[2].trim()})`)), note: cap(m[1].replace(/\s+/g, " ")) };
+  m = question.match(new RegExp(`\\(\\s*(${NOTE})\\s*\\)`, "i"));
+  if (m) return { text: tidy(question.replace(m[0], "")), note: cap(m[1].replace(/\s+/g, " ")) };
+  m = question.match(new RegExp(`\\s+[–—-]\\s*(${NOTE})\\s*([.!?]?)\\s*$`, "i"));
+  if (m) return { text: tidy(question.slice(0, m.index) + m[2]), note: cap(m[1].replace(/\s+/g, " ")) };
+  m = question.match(new RegExp(`^\\s*(${NOTE})\\s*:\\s*`, "i"));
+  if (m && question.length > m[0].length) return { text: tidy(question.slice(m[0].length)), note: cap(m[1].replace(/\s+/g, " ")) };
+  return { text: question, note: null };
+}

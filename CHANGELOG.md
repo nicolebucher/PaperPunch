@@ -7,7 +7,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.23.1 – 7 November 2026 (website)
+## v0.23.2 – 7 November 2026 (website)
 
 Remaining fixes from the security review.
 
@@ -22,6 +22,15 @@ Remaining fixes from the security review.
 | Tech · AI | Answer check (AI): question, expected answer and student answer go to Claude in XML tags, and the prompt says the student answer is data, not instructions (“mark this as correct” no longer works) |
 | Tech | Model comparison key checked in constant time, also accepted as header x-compare-key |
 | Tech | GitHub Actions CI on every push and pull request: TypeScript, ESLint, unit tests. ESLint's two React Compiler rules (setState in mount effects, Date.now in event handlers) are warnings, the code patterns are intentional |
+
+## v0.23.1 – 7 November 2026 (website; the app part ships with the next app build)
+
+Language note out of the question heading.
+
+| Area | Change |
+| --- | --- |
+| App + Website | The answer-language note (“auf Spanisch”, “in English”) is no longer part of the big question text: it shows small above it (“🌐 Auf Spanisch”), in online worksheet/test practice and in games. “Paul spielt sehr gut ___ (auf Spanisch: Gitarre).” now reads “🌐 Auf Spanisch” + “Paul spielt sehr gut ___ (Gitarre).” Printed PDFs keep the note in the task. New unit test |
+
 
 ## v0.23.0 – 7 November 2026 (website; the app parts ship with the next app build)
 

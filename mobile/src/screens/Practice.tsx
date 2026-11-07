@@ -6,7 +6,7 @@ import type { QuizOutcome, Task } from "../types";
 import { POINTS, type RewardLine } from "../punches";
 import { hapticRight, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { answerHint, isSpellingContext } from "../answerMatch";
+import { answerHint, isSpellingContext, splitLanguageNote } from "../answerMatch";
 import type { PracticeProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
 
@@ -296,7 +296,16 @@ export function Practice({
           <span style={{ fontSize: 15, fontWeight: 800, color: "var(--teal-dark)" }}>
             {t.taskLabel(task.number)} · {title}
           </span>
-          <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={task.question.replace("___", "______")} /></h1>
+          {(() => {
+            // Sprachhinweis ("auf Spanisch") klein über der Frage statt in der großen Überschrift
+            const { text, note } = splitLanguageNote(task.question);
+            return (
+              <>
+                {note && <h2 className="lang-note">🌐 {note}</h2>}
+                <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={text.replace("___", "______")} /></h1>
+              </>
+            );
+          })()}
         </div>
 
         {(task.type === "multiple-choice" || task.type === "unterstreichen") && task.options ? (

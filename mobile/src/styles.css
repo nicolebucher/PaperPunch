@@ -1078,6 +1078,13 @@ h1 .beta { position: relative; top: -3px; }
 .pair.match.ok { border-color: #65a30d; background: #f0fdf4; }
 .pair.match.no { border-color: #ea580c; background: #fff7ed; }
 .pair.match s { margin-right: 4px; }
+.lang-note {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--muted, #71717a);
+}
+
 .hint-btn { align-self: flex-start; }
 .hint-box { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 16px; background: #ecfeff; color: #083344; }
 .hint-box small { font-size: 12px; font-weight: 700; opacity: .8; }
