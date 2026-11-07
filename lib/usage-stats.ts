@@ -441,3 +441,48 @@ export async function readShares(n: number): Promise<{ day: string; src: string;
   });
   return out;
 }
+
+// App-Versionen (seit App 0.30.0): Die App schickt ihre Version mit dem Besuch. Gezählt werden Sitzungen je Tag und
+// Version (stat:appver:<Tag>) und eindeutige Geräte je Version und Tag als HyperLogLog über den Geräte-Hash
+// (stat:appver:u:<Version>:<Tag>). Ältere Builds schicken keine Version: sie laufen unter "0.27.0 or older".
+const VER_RE = /^\d{1,2}\.\d{1,3}\.\d{1,3}$/;
+export const OLD_APP = "0.27.0 or older";
+
+export async function recordAppVersion(ver: string | null, user: string | null): Promise<void> {
+  if (!quotaEnabled()) return;
+  const v = ver && VER_RE.test(ver) ? ver : OLD_APP;
+  try {
+    const day = berlinDay();
+    const cmds: (string | number)[][] = [["HINCRBY", `stat:appver:${day}`, v, 1], ["EXPIRE", `stat:appver:${day}`, TTL], ["SADD", "stat:appvers", v]];
+    if (user) cmds.push(["PFADD", `stat:appver:u:${v}:${day}`, user], ["EXPIRE", `stat:appver:u:${v}:${day}`, TTL]);
+    await redis(cmds);
+  } catch {
+    /* egal */
+  }
+}
+
+/** App-Versionen: eindeutige Geräte der letzten 7 und 30 Tage und Sitzungen der letzten 30 Tage je Version. */
+export async function readAppVersions(): Promise<{ version: string; devices7: number; devices30: number; sessions30: number }[]> {
+  if (!quotaEnabled()) return [];
+  const first = await redis([["SMEMBERS", "stat:appvers"]]);
+  const versions = (Array.isArray(first?.[0]) ? (first[0] as unknown[]) : []).map(String).slice(0, 40);
+  if (!versions.length) return [];
+  const days = [...new Set(Array.from({ length: 30 }, (_, i) => berlinDay(new Date(Date.now() - i * 86400000))))];
+  const cmds: (string | number)[][] = [];
+  for (const v of versions) {
+    cmds.push(["PFCOUNT", ...days.slice(0, 7).map((d) => `stat:appver:u:${v}:${d}`)]);
+    cmds.push(["PFCOUNT", ...days.map((d) => `stat:appver:u:${v}:${d}`)]);
+  }
+  for (const d of days) cmds.push(["HGETALL", `stat:appver:${d}`]);
+  const r = await redis(cmds);
+  if (!r) return [];
+  const sessions = new Map<string, number>();
+  r.slice(versions.length * 2).forEach((arr) => {
+    if (!Array.isArray(arr)) return;
+    for (let j = 0; j + 1 < arr.length; j += 2) sessions.set(String(arr[j]), (sessions.get(String(arr[j])) ?? 0) + (Number(arr[j + 1]) || 0));
+  });
+  return versions
+    .map((version, i) => ({ version, devices7: Number(r[i * 2]) || 0, devices30: Number(r[i * 2 + 1]) || 0, sessions30: sessions.get(version) ?? 0 }))
+    .filter((x) => x.devices30 || x.sessions30)
+    .sort((a, b) => b.devices30 - a.devices30 || b.sessions30 - a.sessions30);
+}

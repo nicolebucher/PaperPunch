@@ -13,6 +13,12 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 | --- | --- |
 | Tech | Temporary: the cost-dashboard endpoint /api/admin/stats answers without the STATS_KEY until Monday 9 November, so the daily Cost Cockpit refresh keeps running (the scheduled task could no longer read the key from Vercel). It only returns sums (costs, counts, countries), no personal data. Monday: new key, endpoint locked again |
 
+## v0.30.1 – 7 November 2026 (website; the app part ships with the next app build)
+
+| Area | Change |
+| --- | --- |
+| Website + App | Which app versions are in use: the app sends its version (new mobile/src/version.ts, bump with every build together with versionName) with its visit report; the server counts sessions per version and day and unique devices per version (HyperLogLog over the device hash). Builds before 0.30.0 send no version and show as “0.27.0 or older”. /api/admin/stats returns `appVersions` {version, devices7, devices30, sessions30} for the dashboard |
+
 ## v0.30.0 – 7 November 2026 (website; the app part ships with the next app build)
 
 Counting recommendations.

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { preflight, withCors } from "@/lib/cors";
-import { recordCountry, recordVisit, userSubject } from "@/lib/usage-stats";
+import { recordAppVersion, recordCountry, recordVisit, userSubject } from "@/lib/usage-stats";
 
 // Besuchsdauer und Absprünge fürs Kosten-Dashboard: Website (components/VisitBeacon.tsx) und App
 // (mobile/src/visitBeacon.ts) melden beim Verlassen einmal {src, pages, seconds, device}. Gespeichert werden nur
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 async function handle(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
   if (!(await checkRateLimit(`visit:${ip}`, 120))) return new NextResponse(null, { status: 204 });
-  let body: { src?: unknown; pages?: unknown; seconds?: unknown; device?: unknown; rem?: unknown; pushDelivered?: unknown; pushTapped?: unknown } = {};
+  let body: { src?: unknown; pages?: unknown; seconds?: unknown; device?: unknown; rem?: unknown; pushDelivered?: unknown; pushTapped?: unknown; ver?: unknown } = {};
   try {
     // sendBeacon schickt text/plain – deshalb selbst parsen
     body = JSON.parse(await request.text()) as typeof body;
@@ -40,6 +40,8 @@ async function handle(request: NextRequest) {
     });
     // Land nur als Tageszähler (Vercel-Header, keine IP gespeichert)
     await recordCountry(src, request.headers.get("x-vercel-ip-country"));
+    // App-Version (ab App 0.30.0; ältere Builds schicken keine)
+    if (src === "app") await recordAppVersion(typeof body.ver === "string" ? body.ver : null, userSubject(body.device));
   }
   return new NextResponse(null, { status: 204 });
 }

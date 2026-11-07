@@ -1,6 +1,7 @@
 import { API_BASE } from "./api";
 import { deviceId } from "./device";
 import { listenReminderTaps, takePushStat } from "./reminders";
+import { APP_VERSION } from "./version";
 
 // Nutzungsdauer und "Absprünge" der App fürs Kosten-Dashboard (Gegenstück: app/api/visit-stat).
 // Eine Sitzung = App im Vordergrund bis sie in den Hintergrund geht. Gemeldet werden nur
@@ -26,7 +27,7 @@ function send() {
   if (seconds < 1) return;
   try {
     const push = takePushStat();
-    const body = JSON.stringify({ src: "app", pages, seconds, device: deviceId(), rem: push.rem, pushDelivered: push.delivered, pushTapped: push.tapped });
+    const body = JSON.stringify({ src: "app", pages, seconds, device: deviceId(), rem: push.rem, pushDelivered: push.delivered, pushTapped: push.tapped, ver: APP_VERSION });
     void fetch(`${API_BASE}/api/visit-stat`, { method: "POST", body, keepalive: true }).catch(() => undefined);
   } catch {
     /* egal */
