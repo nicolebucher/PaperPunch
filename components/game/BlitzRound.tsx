@@ -84,7 +84,8 @@ export function BlitzRound({
   const [link, setLink] = useState<Record<number, number>>({});
   const [oldRecord, setOldRecord] = useState(0);
   const endsAt = useRef(0);
-  const result = useRef({ points: 0, newRecord: false });
+  // Ergebnis der Runde als State (nicht als Ref – Refs dürfen beim Rendern nicht gelesen werden)
+  const [result, setResult] = useState({ points: 0, newRecord: false });
 
   useEffect(() => setOldRecord(blitzRecord(gameKey)), [gameKey]);
 
@@ -100,7 +101,7 @@ export function BlitzRound({
   useEffect(() => {
     if (phase === "play" && left === 0 && !flash) {
       const points = Math.max(0, correct - oldRecord) * BLITZ_PUNCHES;
-      result.current = { points, newRecord: correct > oldRecord };
+      setResult({ points, newRecord: correct > oldRecord });
       if (correct > oldRecord) saveBlitzRecord(gameKey, correct);
       if (points > 0) onPunches(points);
       setPhase("end");
@@ -168,7 +169,7 @@ export function BlitzRound({
   }
 
   if (phase === "end") {
-    const { points, newRecord } = result.current;
+    const { points, newRecord } = result;
     return shell(
       <div className="flex flex-col gap-4">
         <div className={`${card} flex flex-col items-center gap-2 text-center`}>

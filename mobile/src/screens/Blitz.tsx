@@ -41,7 +41,8 @@ export function BlitzPlay({
   const [link, setLink] = useState<Record<number, number>>({});
   const endsAt = useRef(0);
   const oldRecord = useMemo(() => blitzRecord(gameKey), [gameKey]);
-  const result = useRef<{ points: number; newRecord: boolean }>({ points: 0, newRecord: false });
+  // Ergebnis der Runde als State (nicht als Ref – Refs dürfen beim Rendern nicht gelesen werden)
+  const [result, setResult] = useState({ points: 0, newRecord: false });
 
   const item = deck[idx % Math.max(1, deck.length)];
   const rights = useMemo(() => (item?.kind === "match" ? matchRights(item.pairs, item.prompt) : []), [item]);
@@ -78,7 +79,7 @@ export function BlitzPlay({
   function finish() {
     const record = Math.max(oldRecord, correct);
     const points = Math.max(0, correct - oldRecord) * BLITZ_PUNCHES;
-    result.current = { points, newRecord: correct > oldRecord };
+    setResult({ points, newRecord: correct > oldRecord });
     if (correct > oldRecord) saveBlitzRecord(gameKey, record);
     setPhase("end");
     hapticWin();
@@ -143,7 +144,7 @@ export function BlitzPlay({
   }
 
   if (phase === "end") {
-    const { points, newRecord } = result.current;
+    const { points, newRecord } = result;
     return (
       <div className="screen level-end">
         <div className="stack" style={{ alignItems: "center", textAlign: "center", gap: 12, marginTop: 32 }}>
