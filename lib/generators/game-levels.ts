@@ -10,11 +10,12 @@ import mockLevelsDe from "./mock/mock-levels.de.json";
 
 const MOCKS: Record<Locale, unknown> = { en: mockLevelsEn, de: mockLevelsDe };
 
-export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFileBlock[], locale: Locale): Promise<GameData> {
+/** match: Zuordnen-Fragen erlaubt (der Client kann sie anzeigen). Ohne Flag werden sie sicherheitshalber entfernt. */
+export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFileBlock[], locale: Locale, match = false): Promise<GameData> {
   const data = isMockMode()
     ? gameSchema.parse(MOCKS[locale])
     : await generateStructuredOutput({
-        system: buildGameLevelsSystemPrompt(profile, locale, fileBlocks.length > 0),
+        system: buildGameLevelsSystemPrompt(profile, locale, fileBlocks.length > 0, match),
         userContent: [...fileBlocks, { type: "text", text: fileBlocks.length > 0 ? "Create the levels for the learning game from this material." : "Create the levels for the learning game for this topic." }],
         schema: gameSchema,
         toolName: "create_game_levels",
@@ -26,8 +27,8 @@ export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFil
   const { boss, ...rest } = data;
   return {
     ...rest,
-    levels: data.levels.map((level) => ({ ...level, questions: shuffleQuestionOptions(level.questions) })),
-    ...bossRound(boss),
+    levels: data.levels.map((level) => ({ ...level, questions: shuffleQuestionOptions(match ? level.questions : level.questions.filter((q) => q.type !== "zuordnen")) })),
+    ...bossRound(boss?.filter((q) => q.type !== "zuordnen")),
   };
 }
 

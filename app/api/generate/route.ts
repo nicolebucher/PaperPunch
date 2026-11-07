@@ -164,7 +164,8 @@ async function handleGenerate(request: NextRequest) {
       }
 
       if (format === "game") {
-        const game = await generateGameLevels(profile, fileBlocks, locale);
+        // "match=1": Website und neue App können Zuordnen-Fragen im Spiel anzeigen
+        const game = await generateGameLevels(profile, fileBlocks, locale, formData.get("match") === "1");
         await track("Material generated", { format });
         return NextResponse.json({ game });
       }

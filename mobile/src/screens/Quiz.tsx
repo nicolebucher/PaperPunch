@@ -17,7 +17,8 @@ const normalize = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ").rep
 export function Quiz({ game, checkpoint, inPlan, onClose, onFinish }: { game: GameResult["game"]; checkpoint: boolean; inPlan: boolean; onClose: () => void; onFinish: (o: QuizOutcome) => void }) {
   const { t } = useT();
   const questions = useMemo(() => {
-    const all = game.levels.flatMap((l) => l.questions.map((q) => ({ ...q, level: l.title })));
+    // Zuordnen-Fragen gibt es nur im Spiel selbst, nicht im Zwischentest
+    const all = game.levels.flatMap((l) => l.questions.filter((q) => q.type !== "zuordnen").map((q) => ({ ...q, level: l.title })));
     if (!checkpoint) return all;
     // gleichmäßig über die Level verteilt statt nur die ersten Fragen
     const step = Math.max(1, all.length / CHECKPOINT_MAX);

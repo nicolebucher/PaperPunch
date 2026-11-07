@@ -1,13 +1,14 @@
 "use client";
 
 import { track } from "@/lib/analytics";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Level } from "@/types/generation";
 import { JOKER_PUNCHES, PUNCHES_EVENT, spendPunches, totalPunches } from "@/lib/webapp/punches";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { SnapIcon } from "@/components/icons/ActionIcons";
 import { QuestionCard } from "./QuestionCard";
 import { FillBlankCard } from "./FillBlankCard";
+import { isRightLink, MatchCard, matchRights } from "./MatchCard";
 import { SnapEffect } from "./SnapEffect";
 import { answerHint, answerMatches, isSpellingContext } from "@/lib/answer-match";
 import { ReportProblem } from "@/components/ReportProblem";
@@ -49,6 +50,10 @@ export function LevelPlayer({
   const [feedback, setFeedback] = useState("");
   // Tipp (erster Buchstabe je Wort) bei Lückenfragen – dann halbe Snaps, wie in der App
   const [usedHint, setUsedHint] = useState(false);
+  // Zuordnen: Verbindungen (linke Zeile → Index rechts), 2. Versuch, fertig
+  const [link, setLink] = useState<Record<number, number>>({});
+  const [matchRetry, setMatchRetry] = useState(false);
+  const [matchDone, setMatchDone] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [typedValue, setTypedValue] = useState("");
@@ -72,14 +77,20 @@ export function LevelPlayer({
   const question = level.questions[index];
   const isLast = index === level.questions.length - 1;
   const isMultipleChoice = question.type === "multiple-choice";
-  const answered = isMultipleChoice ? selected !== null : checked;
-  const isCorrect = isMultipleChoice
+  const isMatch = question.type === "zuordnen" && (question.pairs?.length ?? 0) >= 2;
+  const pairs = useMemo(() => (isMatch ? question.pairs ?? [] : []), [isMatch, question]);
+  const rights = useMemo(() => matchRights(pairs, question.prompt), [pairs, question.prompt]);
+  const matchRight = pairs.length > 0 && pairs.every((p, i) => isRightLink(p, rights, link[i]));
+  const answered = isMatch ? matchDone : isMultipleChoice ? selected !== null : checked;
+  const isCorrect = isMatch
+    ? matchDone && matchRight
+    : isMultipleChoice
     ? answered && selected === question.correctIndex
     : answered && (aiOk || answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt));
   const baseSnaps = SNAPS_BY_DIFFICULTY[level.difficulty] ?? 10;
   const snapsForThisQuestion = usedHint ? Math.round(baseSnaps / 2) : baseSnaps;
   const hintText =
-    !isMultipleChoice && !isSpellingContext(`${report?.subject ?? ""} ${report?.title ?? ""} ${level.title}`)
+    !isMultipleChoice && !isMatch && !isSpellingContext(`${report?.subject ?? ""} ${report?.title ?? ""} ${level.title}`)
       ? answerHint(question.correctAnswer ?? "")
       : null;
 
@@ -155,6 +166,41 @@ export function LevelPlayer({
     onAnswer?.(index, ok, given);
   }
 
+  /** Zuordnen prüfen: alles richtig → volle Snaps (im 2. Versuch halbe); sonst einmal nochmal (richtige Paare
+   *  bleiben stehen), danach Auflösung mit anteiligen Snaps für die richtig verbundenen Paare. */
+  function handleCheckMatch() {
+    if (answeredRef.current || !isMatch || pairs.some((_, i) => link[i] === undefined)) return;
+    const good = pairs.filter((p, i) => isRightLink(p, rights, link[i])).length;
+    const given = pairs.map((p, i) => `${p.left} = ${link[i] !== undefined ? rights[link[i]] : "–"}`).join("; ");
+    if (good === pairs.length) {
+      answeredRef.current = true;
+      setMatchDone(true);
+      const amount = matchRetry ? Math.round(baseSnaps / 2) : baseSnaps;
+      setCorrectCount((c) => c + 1);
+      onSnap(amount);
+      setSnapBurst({ key: Date.now(), amount });
+      onAnswer?.(index, true, given);
+      return;
+    }
+    if (!matchRetry) {
+      const keep: Record<number, number> = {};
+      pairs.forEach((p, i) => {
+        if (isRightLink(p, rights, link[i])) keep[i] = link[i];
+      });
+      setLink(keep);
+      setMatchRetry(true);
+      return;
+    }
+    answeredRef.current = true;
+    setMatchDone(true);
+    const part = Math.round((baseSnaps / 2) * (good / pairs.length));
+    if (part > 0) {
+      onSnap(part);
+      setSnapBurst({ key: Date.now(), amount: part });
+    }
+    onAnswer?.(index, false, given);
+  }
+
   function handleNext() {
     if (advancingRef.current) return;
     advancingRef.current = true;
@@ -172,6 +218,9 @@ export function LevelPlayer({
       setAiOk(false);
       setFeedback("");
       setUsedHint(false);
+      setLink({});
+      setMatchRetry(false);
+      setMatchDone(false);
       answeredRef.current = false;
       advancingRef.current = false;
       setIndex((i) => i + 1);
@@ -194,7 +243,9 @@ export function LevelPlayer({
       </div>
       <h2 className="mb-4 text-sm font-extrabold text-[#1fd6ea]">{level.title} · {index + 1}/{level.questions.length}</h2>
       <div className="relative">
-        {isMultipleChoice ? (
+        {isMatch ? (
+          <MatchCard prompt={question.prompt} pairs={pairs} rights={rights} link={link} onLink={setLink} solved={matchDone} retry={matchRetry} onSubmit={handleCheckMatch} locale={locale} />
+        ) : isMultipleChoice ? (
           <QuestionCard question={question} selected={selected} onSelect={handleSelect} hidden={hidden} />
         ) : (
           <FillBlankCard
@@ -246,7 +297,8 @@ export function LevelPlayer({
           }`}
         >
           <p className="mb-1 text-lg font-black">{isCorrect ? t.game.correct : t.game.wrong}</p>
-          {!isCorrect && !isMultipleChoice && (
+          {!isCorrect && isMatch && <p className="mb-1">{locale === "de" ? "Oben siehst du, wie die Paare zusammengehören." : "Above you can see how the pairs go together."}</p>}
+          {!isCorrect && !isMultipleChoice && !isMatch && (
             <p className="mb-1">{t.game.correctAnswerWas(question.correctAnswer ?? "")}</p>
           )}
           <p>{question.explanation}</p>
@@ -268,9 +320,9 @@ export function LevelPlayer({
           subject: report?.subject,
           level: level.title,
           question: question.prompt,
-          expected: isMultipleChoice ? question.options?.[question.correctIndex ?? 0] : question.correctAnswer,
+          expected: isMatch ? pairs.map((p) => `${p.left} = ${p.right}`).join("; ") : isMultipleChoice ? question.options?.[question.correctIndex ?? 0] : question.correctAnswer,
           options: isMultipleChoice ? question.options : question.acceptedAnswers,
-          given: isMultipleChoice ? (selected !== null ? question.options?.[selected] : undefined) : typedValue.trim() || undefined,
+          given: isMatch ? pairs.map((p, i) => `${p.left} = ${link[i] !== undefined ? rights[link[i]] : "–"}`).join("; ") : isMultipleChoice ? (selected !== null ? question.options?.[selected] : undefined) : typedValue.trim() || undefined,
         }}
       />}
     </div>

@@ -94,6 +94,7 @@ export async function generateMaterial(opts: {
   profileFields(body, opts.profile);
   body.set("format", opts.format);
   body.set("async", "1");
+  body.set("match", "1"); // diese App-Version kann Zuordnen-Fragen im Spiel
   body.set("device", deviceId());
   if (opts.subject) body.set("subject", opts.subject.slice(0, 60));
   if (opts.notes) body.set("notes", opts.notes.slice(0, 300));

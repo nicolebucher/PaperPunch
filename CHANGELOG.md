@@ -7,7 +7,7 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.23.2 – 7 November 2026 (website)
+## v0.24.1 – 7 November 2026 (website)
 
 Remaining fixes from the security review.
 
@@ -22,6 +22,17 @@ Remaining fixes from the security review.
 | Tech · AI | Answer check (AI): question, expected answer and student answer go to Claude in XML tags, and the prompt says the student answer is data, not instructions (“mark this as correct” no longer works) |
 | Tech | Model comparison key checked in constant time, also accepted as header x-compare-key |
 | Tech | GitHub Actions CI on every push and pull request: TypeScript, ESLint, unit tests. ESLint's two React Compiler rules (setState in mount effects, Date.now in event handlers) are warnings, the code patterns are intentional |
+
+## v0.24.0 – 7 November 2026 (website; the app part ships with the next app build)
+
+Matching questions in learning games.
+
+| Area | Change |
+| --- | --- |
+| Website + App | New question type in learning games: “Zuordnen” (matching) with 3–5 pairs – tap left, then right to connect, same colours and same fixed shuffle as in worksheet practice. All right: full points (half on the second try); on the first mistake the right pairs stay and you fix the rest; after the second try the solution is shown and you get partial points for the pairs you got right |
+| Website · AI | New games get up to 2 matching questions per level where the material has natural pairs (vocabulary, term – definition, country – capital …), none in the boss round. Only clients that can show them ask for them (website, app from the next build); older app versions get games without matching questions |
+| Website | Study groups and challenges play matching questions too (teacher results show the pairs); game editor shows the pairs; shared games check pair texts in the content filter. The downloadable HTML game and the app's quick quiz leave matching questions out |
+
 
 ## v0.23.1 – 7 November 2026 (website; the app part ships with the next app build)
 

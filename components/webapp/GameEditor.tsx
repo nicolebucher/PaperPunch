@@ -34,6 +34,7 @@ function withQuestions(game: GameData, tab: Tab, questions: Question[]): GameDat
 }
 
 function answerOf(q: Question): { right: string; others: string[] } {
+  if (q.type === "zuordnen") return { right: (q.pairs ?? []).map((p) => `${p.left} = ${p.right}`).join(" · "), others: [] };
   if (q.type === "multiple-choice") {
     const opts = q.options ?? [];
     return { right: opts[q.correctIndex ?? 0] ?? "", others: opts.filter((_, i) => i !== q.correctIndex) };
