@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { noteScreen } from "./visitBeacon";
-import { countUse } from "./useStat";
+import { countShareClick, countUse } from "./useStat";
 import { DICTS, LangProvider, deviceLang } from "./i18n";
 import { clearPendingJob, clearPlanFiles, deleteMaterial, loadPendingJob, PENDING_FILES_KEY, savePendingJob, savePlanFiles, fromStoredFiles, listMaterials, toStoredFiles, loadPlanFiles, loadPlans, loadProfile, newPlanId, saveMaterial, savePlans, saveProfile, updateMaterial, type StoredMaterial } from "./storage";
 import { adjustPlan, ApiError, generateMaterial, sendRating, waitForJob } from "./api";
@@ -181,6 +181,7 @@ function AppInner() {
     const first = inviteShares() === 0;
     const outcome = await shareInvite(t.inviteTitle, t.inviteText);
     if (outcome === "cancelled") return;
+    countShareClick();
     if (first) reward("invite", [{ source: "invite", amount: POINTS.invite }], undefined, () => undefined);
     else say(outcome === "copied" ? t.inviteCopied : t.inviteThanks);
   }

@@ -13,6 +13,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 | --- | --- |
 | Tech | Temporary: the cost-dashboard endpoint /api/admin/stats answers without the STATS_KEY until Monday 9 November, so the daily Cost Cockpit refresh keeps running (the scheduled task could no longer read the key from Vercel). It only returns sums (costs, counts, countries), no personal data. Monday: new key, endpoint locked again |
 
+## v0.30.0 – 7 November 2026 (website; the app part ships with the next app build)
+
+Counting recommendations.
+
+| Area | Change |
+| --- | --- |
+| Website + App | Anonymous daily counts of recommendations (no cookie, no identifier; stat:share:<day> in Upstash, new /api/share-stat): “click” = “Weiterempfehlen” (website) or “Einladen” (app) actually shared or copied; “arrive” = someone opened the website via an invitation link (?ref=, once per browser); “create” = such a person then created a material (once per browser). The website's recommend link now carries ?ref=web so arrivals can be counted. /api/admin/stats returns them as `shares` for the dashboard |
+| Website | Privacy policy section on own measurement mentions the recommendation counts |
+
 ## v0.29.0 – 7 November 2026 (app; ships with the next app build)
 
 Feedback from testers: notifications while creating, getting out of sheets.

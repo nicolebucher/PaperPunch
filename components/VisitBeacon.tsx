@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { deviceId } from "@/lib/webapp/groups";
+import { noteRefArrival } from "@/lib/webapp/share-stat";
 
 // Misst Besuchsdauer und Absprünge (eine Seite = Absprung) fürs Kosten-Dashboard, ohne Cookie: Zähler nur im
 // Arbeitsspeicher, beim ersten Verlassen/Verstecken des Tabs einmal an /api/visit-stat. Gezählt wird nur die Zeit,
@@ -18,6 +19,9 @@ export function VisitBeacon() {
   useEffect(() => {
     if (pathname) pages.current.add(pathname);
   }, [pathname]);
+
+  // Über einen Einladungslink gekommen? (einmal je Browser zählen)
+  useEffect(() => noteRefArrival(), []);
 
   useEffect(() => {
     if (document.visibilityState === "visible") visibleSince.current = Date.now();

@@ -1,5 +1,6 @@
 "use client";
 
+import { noteRefCreate } from "@/lib/webapp/share-stat";
 import { useState } from "react";
 import { ProfileForm } from "@/components/form/ProfileForm";
 import { FileUpload } from "@/components/form/FileUpload";
@@ -141,6 +142,7 @@ export function CreationWizard({
         );
       }
 
+      noteRefCreate(); // kam diese Person über einen Einladungslink?
       if (format === "game") {
         setGame(json.game);
         setStep("result-game");

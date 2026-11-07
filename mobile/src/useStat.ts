@@ -16,3 +16,12 @@ export function countUse(action: "print" | "online", format: string, materialId?
     /* egal */
   }
 }
+
+/** "Einladen" geteilt (Gegenstück: app/api/share-stat). */
+export function countShareClick(): void {
+  try {
+    void fetch(`${API_BASE}/api/share-stat`, { method: "POST", body: JSON.stringify({ src: "app", kind: "click" }), keepalive: true }).catch(() => undefined);
+  } catch {
+    /* egal */
+  }
+}

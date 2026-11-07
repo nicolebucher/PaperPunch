@@ -406,3 +406,38 @@ export async function readCountries(n: number): Promise<{ day: string; src: stri
   });
   return out;
 }
+
+// Weiterempfehlen (seit v0.30.0): Klicks auf "Weiterempfehlen"/"Einladen" (Website, App), Ankünfte über einen
+// Einladungslink (?ref=, Website) und wie viele davon danach selbst etwas erstellen. Nur Tageszähler stat:share:<Tag>.
+export type ShareKind = "click" | "arrive" | "create";
+
+export async function recordShare(src: "web" | "app", kind: ShareKind): Promise<void> {
+  if (!quotaEnabled()) return;
+  try {
+    const key = `stat:share:${berlinDay()}`;
+    await redis([["HINCRBY", key, `${src}:${kind}`, 1], ["EXPIRE", key, TTL]]);
+  } catch {
+    /* egal */
+  }
+}
+
+/** Weiterempfehlungen je Tag, Quelle und Art für die letzten `n` Tage. */
+export async function readShares(n: number): Promise<{ day: string; src: string; kind: string; count: number }[]> {
+  if (!quotaEnabled()) return [];
+  const days: string[] = [];
+  for (let i = Math.min(Math.max(n, 1), 120) - 1; i >= 0; i--) days.push(berlinDay(new Date(Date.now() - i * 86400000)));
+  const uniq = [...new Set(days)];
+  const r = await redis(uniq.map((d) => ["HGETALL", `stat:share:${d}`]));
+  if (!r) return [];
+  const out: { day: string; src: string; kind: string; count: number }[] = [];
+  uniq.forEach((day, i) => {
+    const arr = r[i];
+    if (!Array.isArray(arr)) return;
+    for (let j = 0; j + 1 < arr.length; j += 2) {
+      const [src, kind] = String(arr[j]).split(":");
+      const count = Number(arr[j + 1]) || 0;
+      if (src && kind && count) out.push({ day, src, kind, count });
+    }
+  });
+  return out;
+}

@@ -1,5 +1,6 @@
 "use client";
 
+import { countShareClick } from "@/lib/webapp/share-stat";
 import { track } from "@/lib/analytics";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
@@ -126,14 +127,17 @@ export function RecommendButton({ className }: { className: string }) {
   const [copied, setCopied] = useState(false);
   async function recommend() {
     track("recommend");
-    const url = "https://paper-punch.com";
+    // ?ref=web: Ankünfte über diesen Link werden gezählt (lib/webapp/share-stat.ts)
+    const url = "https://paper-punch.com/?ref=web";
     const text = tx.recommendText;
     try {
       if (navigator.share) {
         await navigator.share({ title: "PaperPunch", text, url });
+        countShareClick();
         return;
       }
       await navigator.clipboard.writeText(`${text} ${url}`);
+      countShareClick();
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2500);
     } catch {

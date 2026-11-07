@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { LangYearPicker } from "./LangYearPicker";
+import { noteRefCreate } from "@/lib/webapp/share-stat";
 import { detectForeignLanguage, rememberedLangYear, rememberLangYear, type ForeignLanguage } from "@/lib/answer-match";
 import imageCompression from "browser-image-compression";
 import { useLanguage } from "@/lib/i18n/language-context";
@@ -133,6 +134,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
           ? { id, createdAt: Date.now(), format, title: json.game.gameTitle, subject: json.game.subject, game: json.game }
           : { id, createdAt: Date.now(), format, title: json.data.title, subject: subject.trim() || undefined, sheet: { data: json.data, pdfBase64: json.pdfBase64, filename: json.filename } };
       saveMaterial(material);
+      noteRefCreate(); // kam diese Person über einen Einladungslink?
       track("material_created", { format, mode, from_plan: !!planId, seconds: Math.round((Date.now() - started) / 1000) });
       if (planId && session !== undefined) {
         const p = getPlan(planId);

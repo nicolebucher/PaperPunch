@@ -12,7 +12,7 @@ function PrivacyEn() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Privacy Policy</h1>
       <DraftNotice>
-        Version of 6 November 2026.
+        Version of 7 November 2026.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
@@ -89,7 +89,7 @@ function PrivacyEn() {
             cookie-free and does not use persistent identifiers to track you across visits or sites; data is
             aggregated and no individual profile is built. We also count, per day and without any identifier, how often
             the cookie banner was shown, accepted or declined. In the same way, the website and the app report once per
-            visit how long it lasted and how many pages or screens were viewed, and count whether materials are opened as PDF or solved online, plus the country of each visit (derived from the IP address by our host; the IP address itself is not stored); we store only daily totals, without any
+            visit how long it lasted and how many pages or screens were viewed, and count whether materials are opened as PDF or solved online and how often PaperPunch is recommended (shared, arrived via an invitation link, created something afterwards), plus the country of each visit (derived from the IP address by our host; the IP address itself is not stored); we store only daily totals, without any
             identifier and without a cookie.
           </p>
           <p className="mt-2">
@@ -202,7 +202,7 @@ function PrivacyDe() {
     <>
       <h1 className="mb-2 text-2xl font-bold">Datenschutzerklärung</h1>
       <DraftNotice>
-        Stand: 6. November 2026.
+        Stand: 7. November 2026.
       </DraftNotice>
       <div className="flex flex-col gap-6 text-sm leading-relaxed text-zinc-300">
         <section>
@@ -285,7 +285,7 @@ function PrivacyDe() {
             über Besuche oder Websites hinweg zu verfolgen; die Daten werden aggregiert, es wird kein
             individuelles Profil erstellt. Außerdem zählen wir pro Tag und ohne jede Kennung, wie oft das Cookie-Banner
             angezeigt, akzeptiert oder abgelehnt wurde. Ebenso melden Website und App einmal pro Besuch, wie lange er
-            gedauert hat und wie viele Seiten bzw. Bildschirme aufgerufen wurden, und zählen, ob Materialien als PDF geöffnet oder online gelöst werden, sowie das Land des Besuchs (von unserem Hoster aus der IP-Adresse abgeleitet; die IP-Adresse selbst speichern wir nicht); gespeichert werden nur Tagessummen,
+            gedauert hat und wie viele Seiten bzw. Bildschirme aufgerufen wurden, und zählen, ob Materialien als PDF geöffnet oder online gelöst werden und wie oft PaperPunch weiterempfohlen wird (geteilt, über einen Einladungslink gekommen, danach etwas erstellt), sowie das Land des Besuchs (von unserem Hoster aus der IP-Adresse abgeleitet; die IP-Adresse selbst speichern wir nicht); gespeichert werden nur Tagessummen,
             ohne Kennung und ohne Cookie.
           </p>
           <p className="mt-2">
