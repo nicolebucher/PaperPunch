@@ -7,21 +7,24 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
-## v0.24.1 – 7 November 2026 (website)
+## v0.25.1 – 7 November 2026 (website; the app part ships with the next app build)
 
-Remaining fixes from the security review.
+Better shuffle for sentence and ordering tiles.
 
 | Area | Change |
 | --- | --- |
-| Website + App | Background jobs (app creates material while the phone is locked): the server now writes a “running” record at the start. If the function is cut off before the result is saved, the app gets an error after 6 minutes and can retry, instead of waiting 10 minutes for a timeout |
-| Tech · Security | Feedback, ratings and reports: texts that start like a formula (=, +, -, @) get an apostrophe before they go into the Google Sheet, so they can't run as formulas there. The private Blob backup stays word for word |
-| Website + App · Study groups | Scores are worked out on the server: total = questions in the group's game, multiple-choice answers are checked against the game, each question counts once, pct is calculated – a hand-made request can no longer post 100 %. At most 40 entries per IP per group |
-| Website · Study groups | Teachers can remove an entry in the results view (×), e.g. a made-up name or a faked result |
-| Tech · Security | Security headers on all pages: X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS, no X-Powered-By; Content-Security-Policy in report-only mode first (browser only reports, blocks nothing) |
-| Tech · Security | CORS: http://localhost and the Vite dev server are no longer allowed in production (the Android app uses https://localhost) |
-| Tech · AI | Answer check (AI): question, expected answer and student answer go to Claude in XML tags, and the prompt says the student answer is data, not instructions (“mark this as correct” no longer works) |
-| Tech | Model comparison key checked in constant time, also accepted as header x-compare-key |
-| Tech | GitHub Actions CI on every push and pull request: TypeScript, ESLint, unit tests. ESLint's two React Compiler rules (setState in mount effects, Date.now in event handlers) are warnings, the code patterns are intentional |
+| App + Website | Sentence and ordering tiles are shuffled like matching: at most a third of the tiles may sit in their right place and (from 3 tiles) the first word/card is never shown first, so the task is never half solved. Same code in app and website (lib/answer-match.ts = mobile/src/answerMatch.ts), new unit test over 1,400 seeds |
+
+## v0.25.0 – 7 November 2026 (website; the app part ships with the next app build)
+
+Sentence building and ordering questions in learning games.
+
+| Area | Change |
+| --- | --- |
+| Website + App | New question type “Satz bauen”: the words of a sentence come as shuffled tiles, tap them into the right order (tap again to take a word back). Case and punctuation don't count; other correct word orders are accepted |
+| Website + App | New question type “Reihenfolge”: 3–6 cards (timeline, steps of a process, stages of a cycle …) tapped into a numbered list in the right order |
+| Website + App | Both: full points when right (half on the second try); on the first mistake the correct start stays and you redo the rest; after the second try the solution is shown. Same fixed shuffle on website and app |
+| Website · AI | New games get up to 2 of each per level where it fits – sentence building only in language subjects, ordering only when the material itself is about a sequence (timeline, process, cycle, experiment or calculation steps – most games get none, max. 1 per level); none in the boss round. Clients ask for new types via a “gameTypes” field; older app versions get games without them. The downloadable HTML game and the app's quick quiz leave them out. New unit tests |
 
 ## v0.24.0 – 7 November 2026 (website; the app part ships with the next app build)
 
@@ -33,7 +36,6 @@ Matching questions in learning games.
 | Website · AI | New games get up to 2 matching questions per level where the material has natural pairs (vocabulary, term – definition, country – capital …), none in the boss round. Only clients that can show them ask for them (website, app from the next build); older app versions get games without matching questions |
 | Website | Study groups and challenges play matching questions too (teacher results show the pairs); game editor shows the pairs; shared games check pair texts in the content filter. The downloadable HTML game and the app's quick quiz leave matching questions out |
 
-
 ## v0.23.1 – 7 November 2026 (website; the app part ships with the next app build)
 
 Language note out of the question heading.
@@ -41,7 +43,6 @@ Language note out of the question heading.
 | Area | Change |
 | --- | --- |
 | App + Website | The answer-language note (“auf Spanisch”, “in English”) is no longer part of the big question text: it shows small above it (“🌐 Auf Spanisch”), in online worksheet/test practice and in games. “Paul spielt sehr gut ___ (auf Spanisch: Gitarre).” now reads “🌐 Auf Spanisch” + “Paul spielt sehr gut ___ (Gitarre).” Printed PDFs keep the note in the task. New unit test |
-
 
 ## v0.23.0 – 7 November 2026 (website; the app parts ship with the next app build)
 
