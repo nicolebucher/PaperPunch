@@ -7,6 +7,22 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.27.1 – 7 November 2026 (website)
+
+Remaining fixes from the security review.
+
+| Area | Change |
+| --- | --- |
+| Website + App | Background jobs (app creates material while the phone is locked): the server now writes a “running” record at the start. If the function is cut off before the result is saved, the app gets an error after 6 minutes and can retry, instead of waiting 10 minutes for a timeout |
+| Tech · Security | Feedback, ratings and reports: texts that start like a formula (=, +, -, @) get an apostrophe before they go into the Google Sheet, so they can't run as formulas there. The private Blob backup stays word for word |
+| Website + App · Study groups | Scores are worked out on the server: total = questions in the group's game, multiple-choice answers are checked against the game, each question counts once, pct is calculated – a hand-made request can no longer post 100 %. At most 40 entries per IP per group |
+| Website · Study groups | Teachers can remove an entry in the results view (×), e.g. a made-up name or a faked result |
+| Tech · Security | Security headers on all pages: X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS, no X-Powered-By; Content-Security-Policy in report-only mode first (browser only reports, blocks nothing) |
+| Tech · Security | CORS: http://localhost and the Vite dev server are no longer allowed in production (the Android app uses https://localhost) |
+| Tech · AI | Answer check (AI): question, expected answer and student answer go to Claude in XML tags, and the prompt says the student answer is data, not instructions (“mark this as correct” no longer works) |
+| Tech | Model comparison key checked in constant time, also accepted as header x-compare-key |
+| Tech | GitHub Actions CI on every push and pull request: TypeScript, ESLint, unit tests. ESLint's two React Compiler rules (setState in mount effects, Date.now in event handlers) are warnings, the code patterns are intentional |
+
 ## v0.27.0 – 7 November 2026 (website; the app part ships with the next app build)
 
 “What's new” message.
