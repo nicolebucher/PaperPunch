@@ -7,6 +7,12 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.28.2 – 7 November 2026 (website)
+
+| Area | Change |
+| --- | --- |
+| Tech | Temporary: the cost-dashboard endpoint /api/admin/stats answers without the STATS_KEY until Monday 9 November, so the daily Cost Cockpit refresh keeps running (the scheduled task could no longer read the key from Vercel). It only returns sums (costs, counts, countries), no personal data. Monday: new key, endpoint locked again |
+
 ## v0.28.1 – 7 November 2026 (website)
 
 | Area | Change |

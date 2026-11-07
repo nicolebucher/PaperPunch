@@ -7,6 +7,10 @@ import { readCountries, readStats } from "@/lib/usage-stats";
 
 export const runtime = "nodejs";
 
+// VORÜBERGEHEND (7.–9. Nov. 2026): ohne Schlüssel offen, damit der tägliche Dashboard-Refresh läuft.
+// Am Montag wieder auf false setzen (neuer STATS_KEY).
+const TEMP_PUBLIC = true;
+
 function allowed(request: NextRequest): boolean {
   const expected = process.env.STATS_KEY ?? "";
   const given = request.headers.get("x-stats-key") ?? request.nextUrl.searchParams.get("key") ?? "";
@@ -15,7 +19,7 @@ function allowed(request: NextRequest): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  if (!allowed(request)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!TEMP_PUBLIC && !allowed(request)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const days = Number(request.nextUrl.searchParams.get("days") ?? "30") || 30;
   const stats = await readStats(days);
   if (!stats) return NextResponse.json({ error: "no store" }, { status: 503 });
