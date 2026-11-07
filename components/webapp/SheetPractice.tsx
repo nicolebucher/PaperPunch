@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Task, WorksheetData } from "@/types/generation";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { answerHint, answerMatches, isSpellingContext, spellingNote } from "@/lib/answer-match";
+import { answerHint, answerMatches, isSpellingContext, spellingNote, splitLanguageNote } from "@/lib/answer-match";
 import { addPunches, SHEET_ANSWER_PUNCHES } from "@/lib/webapp/punches";
 import { MathText } from "@/components/ui/MathText";
 import { ReportProblem } from "@/components/ReportProblem";
@@ -391,7 +391,16 @@ export function SheetPractice({ data, onClose }: { data: WorksheetData; onClose:
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-extrabold text-[#0e7f97]">{t.task(task.number)} · {data.title}</span>
-        <h2 className="text-xl font-black leading-snug sm:text-2xl"><MathText text={task.question.replace("___", "______")} /></h2>
+        {(() => {
+          // Sprachhinweis ("auf Spanisch") klein über der Frage statt in der großen Überschrift
+          const { text, note } = splitLanguageNote(task.question);
+          return (
+            <>
+              {note && <h2 className="text-sm font-extrabold text-zinc-500">🌐 {note}</h2>}
+              <h1 className="text-xl font-black leading-snug sm:text-2xl"><MathText text={text.replace("___", "______")} /></h1>
+            </>
+          );
+        })()}
       </div>
 
       {isChoice(task) ? (

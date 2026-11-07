@@ -7,6 +7,14 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.23.1 – 7 November 2026 (website; the app part ships with the next app build)
+
+Language note out of the question heading.
+
+| Area | Change |
+| --- | --- |
+| App + Website | The answer-language note (“auf Spanisch”, “in English”) is no longer part of the big question text: it shows small above it (“🌐 Auf Spanisch”), in online worksheet/test practice and in games. “Paul spielt sehr gut ___ (auf Spanisch: Gitarre).” now reads “🌐 Auf Spanisch” + “Paul spielt sehr gut ___ (Gitarre).” Printed PDFs keep the note in the task. New unit test |
+
 ## v0.23.0 – 7 November 2026 (website; the app parts ship with the next app build)
 
 Online worksheet practice like in the app, hint button, explanations.

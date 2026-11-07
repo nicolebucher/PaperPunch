@@ -7,7 +7,7 @@ import { PunchIcon } from "../rewards";
 import { POINTS, spend, totalPunches, type RewardLine } from "../punches";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { answerHint, isSpellingContext } from "../answerMatch";
+import { answerHint, isSpellingContext, splitLanguageNote } from "../answerMatch";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
@@ -451,7 +451,15 @@ function LevelPlay({
 
         <div className={`qcard ${fx?.kind === "wrong" ? "shake" : ""}`} key={`q${replay ? "r" : ""}${index}-${fx?.id ?? 0}`}>
           {q.revanche && <span className="revanche-tag"><Icon name="punch" size={14} stroke={2.2} /> {t.revanche}</span>}
-          <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={q.type === "lueckentext" ? q.prompt.replace("___", "______") : q.prompt} /></h1>
+          {(() => {
+            const { text, note } = splitLanguageNote(q.prompt);
+            return (
+              <>
+                {note && <h2 className="lang-note">🌐 {note}</h2>}
+                <h1 style={{ fontSize: 24, lineHeight: 1.3 }}><MathText text={q.type === "lueckentext" ? text.replace("___", "______") : text} /></h1>
+              </>
+            );
+          })()}
           {fx?.kind === "right" && (
             <>
               <span className="gain">+{fx.gain}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { MathText } from "@/components/ui/MathText";
+import { splitLanguageNote } from "@/lib/answer-match";
 import type { Question } from "@/types/generation";
 
 export function QuestionCard({
@@ -23,7 +24,15 @@ export function QuestionCard({
 
   return (
     <div className="rounded-[28px] bg-white p-5 text-zinc-900 shadow-[0_10px_30px_rgba(0,0,0,0.25)] sm:p-6">
-      <p className="mb-5 text-[22px] font-extrabold leading-snug"><MathText text={question.prompt} /></p>
+      {(() => {
+        const { text, note } = splitLanguageNote(question.prompt);
+        return (
+          <>
+            {note && <h2 className="mb-2 text-sm font-extrabold text-zinc-500">🌐 {note}</h2>}
+            <p className="mb-5 text-[22px] font-extrabold leading-snug"><MathText text={text} /></p>
+          </>
+        );
+      })()}
       <div className="flex flex-col gap-2.5">
         {options.map((option, i) => {
           const isSelected = selected === i;

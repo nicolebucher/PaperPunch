@@ -86,3 +86,13 @@ test("App-Kopie ist identisch (bis auf die Kopfzeile)", () => {
   const body = (path) => readFileSync(new URL(path, import.meta.url), "utf8").split("\n").slice(1).join("\n");
   assert.equal(body("../mobile/src/answerMatch.ts"), body("../lib/answer-match.ts"));
 });
+
+test("splitLanguageNote moves the answer-language note out of the question", async () => {
+  const { splitLanguageNote } = await import("../lib/answer-match.ts");
+  assert.deepEqual(splitLanguageNote("Pau spielt sehr gut ___ (auf Spanisch: Gitarre)."), { text: "Pau spielt sehr gut ___ (Gitarre).", note: "Auf Spanisch" });
+  assert.deepEqual(splitLanguageNote("Paul spielt ___ (Gitarre) – auf Spanisch"), { text: "Paul spielt ___ (Gitarre)", note: "Auf Spanisch" });
+  assert.deepEqual(splitLanguageNote("Wie heißt „Hund“? (in English)"), { text: "Wie heißt „Hund“?", note: "In English" });
+  assert.deepEqual(splitLanguageNote("Auf Französisch: Ich heiße Tom."), { text: "Ich heiße Tom.", note: "Auf Französisch" });
+  assert.deepEqual(splitLanguageNote("Pau toca muy bien ___ (die Gitarre)."), { text: "Pau toca muy bien ___ (die Gitarre).", note: null });
+  assert.deepEqual(splitLanguageNote("Was ist 3/4 von 12?"), { text: "Was ist 3/4 von 12?", note: null });
+});
