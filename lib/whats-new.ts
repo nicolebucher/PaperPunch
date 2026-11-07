@@ -1,7 +1,7 @@
-// Was ist neu – identisch in mobile/src/whatsNew.ts (bei Änderungen beide anpassen).
+// Was ist neu – identisch in mobile/src/whatsNewData.ts (bei Änderungen beide anpassen).
 // „Was ist neu“: kurze Hinweise auf neue Funktionen, einmal nach einem Update (Website: components/webapp/WhatsNew.tsx,
 // App: mobile/src/WhatsNew.tsx). Neuer Eintrag = oben mit der nächsten id einfügen. Texte kindgerecht und kurz,
-// nicht wie im Changelog. Website und App nutzen dieselbe Liste (lib/whats-new.ts = mobile/src/whatsNew.ts ab Zeile 2).
+// nicht wie im Changelog. Website und App nutzen dieselbe Liste (lib/whats-new.ts = mobile/src/whatsNewData.ts ab Zeile 2).
 
 export interface WhatsNewEntry {
   id: number;

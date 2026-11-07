@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useT } from "./i18n";
-import { markWhatsNewSeen, WHATS_NEW, whatsNewToShow, type WhatsNewEntry } from "./whatsNew";
+import { markWhatsNewSeen, WHATS_NEW, whatsNewToShow, type WhatsNewEntry } from "./whatsNewData";
 import { totalPunches } from "./punches";
 
 // „Was ist neu“ in der App: einmal nach einem Update als Fenster von unten, in der App-Sprache (Deutsch/Englisch).

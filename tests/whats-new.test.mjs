@@ -5,7 +5,7 @@ import { WHATS_NEW } from "../lib/whats-new.ts";
 
 test("App-Kopie von Was-ist-neu ist identisch (bis auf die Kopfzeile)", () => {
   const body = (path) => readFileSync(new URL(path, import.meta.url), "utf8").split("\n").slice(1).join("\n");
-  assert.equal(body("../mobile/src/whatsNew.ts"), body("../lib/whats-new.ts"));
+  assert.equal(body("../mobile/src/whatsNewData.ts"), body("../lib/whats-new.ts"));
 });
 
 test("Was-ist-neu: ids absteigend, DE und EN gleich viele Punkte", () => {

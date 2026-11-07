@@ -23,6 +23,12 @@ Remaining fixes from the security review.
 | Tech | Model comparison key checked in constant time, also accepted as header x-compare-key |
 | Tech | GitHub Actions CI on every push and pull request: TypeScript, ESLint, unit tests. ESLint's two React Compiler rules (setState in mount effects, Date.now in event handlers) are warnings, the code patterns are intentional |
 
+## v0.27.1 – 7 November 2026 (app build fix)
+
+| Area | Change |
+| --- | --- |
+| Tech · App | The app build failed on Windows: mobile/src/whatsNew.ts and mobile/src/WhatsNew.tsx differ only in upper/lower case, which Windows treats as the same file. The data file is now mobile/src/whatsNewData.ts |
+
 ## v0.27.0 – 7 November 2026 (website; the app part ships with the next app build)
 
 “What's new” message.
