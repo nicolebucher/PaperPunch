@@ -7,6 +7,12 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## App 0.27.0 – 7 November 2026 (Android, version code 15, closed and internal test)
+
+| Area | Change |
+| --- | --- |
+| App | New app build with everything from v0.23.0–v0.27.1 that was marked “ships with the next app build”: speed round, matching / sentence building / ordering questions in games, hint button, explanations after each task, language note above the question, improved answer check, better shuffled matching, “What's new” sheet. Uploaded to the closed test (Alpha) and the internal test |
+
 ## v0.27.1 – 7 November 2026 (website)
 
 Remaining fixes from the security review.
