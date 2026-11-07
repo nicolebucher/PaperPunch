@@ -9,6 +9,8 @@ import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
 import { answerHint, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles, splitLanguageNote } from "../answerMatch";
 import { TileBoard } from "../TileBoard";
+import { BlitzPlay } from "./Blitz";
+import { blitzRecord } from "../blitz";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
@@ -95,6 +97,9 @@ export function GameScreen({
   const [stars, setStars] = useState<number[]>(() => (initial?.stars.length === game.levels.length ? initial.stars : game.levels.map(() => 0)));
   const [bossDone, setBossDone] = useState(initial?.bossDone ?? false);
   const [playing, setPlaying] = useState<number | "boss" | null>(null);
+  // Blitzrunde und "Fehler aus der Blitzrunde üben"
+  const [blitz, setBlitz] = useState(false);
+  const [practice, setPractice] = useState<Q[] | null>(null);
   // Punches aus einer früheren, unterbrochenen Runde wurden schon gutgeschrieben – hier nur Neues sammeln.
   const earned = useRef<{ answer: number; boss: number; correct: number; total: number; missed: string[] }>({ answer: 0, boss: 0, correct: 0, total: 0, missed: [] });
 
@@ -107,6 +112,47 @@ export function GameScreen({
     if (e.answer) lines.push({ source: "answer", amount: e.answer });
     if (e.boss) lines.push({ source: "boss", amount: e.boss });
     onExit({ lines, quiz: { correct: e.correct, total: Math.max(e.total, 1), missed: e.missed }, finished: bossDone });
+  }
+
+  if (practice) {
+    return (
+      <LevelPlay
+        key="blitz-practice"
+        title={t.blitzPracticeTitle}
+        gameTitle={game.gameTitle}
+        subject={game.subject}
+        isBoss={false}
+        questions={practice}
+        gameKey={gameKey}
+        onQuit={() => setPractice(null)}
+        onDone={(r) => {
+          const e = earned.current;
+          e.answer += r.points;
+          e.correct += r.correct;
+          e.total += r.total;
+          setPractice(null);
+        }}
+      />
+    );
+  }
+
+  if (blitz) {
+    return (
+      <BlitzPlay
+        questions={game.levels.flatMap((l) => l.questions)}
+        gameKey={gameKey}
+        onQuit={() => setBlitz(false)}
+        onPractice={(qs) => {
+          const diff = new Map(game.levels.flatMap((l) => l.questions.map((q) => [q.prompt, l.difficulty] as const)));
+          setBlitz(false);
+          setPractice(qs.map((q) => ({ ...q, difficulty: diff.get(q.prompt) ?? "mittel" })));
+        }}
+        onDone={(r) => {
+          earned.current.answer += r.points;
+          setBlitz(false);
+        }}
+      />
+    );
   }
 
   if (playing !== null) {
@@ -193,7 +239,20 @@ export function GameScreen({
         })}
       </ol>
 
-      <div className="stack" style={{ marginTop: "auto", padding: "16px 0 28px" }}>
+      <div className="stack" style={{ marginTop: "auto", padding: "16px 0 28px", gap: 12 }}>
+        {(() => {
+          const open = stars.some((s) => s > 0);
+          const rec = blitzRecord(gameKey);
+          return (
+            <button type="button" className="blitz-card" disabled={!open} onClick={() => setBlitz(true)}>
+              <span className="blitz-icon" aria-hidden="true">⏱</span>
+              <span>
+                <b>{t.blitzTitle}</b>
+                <span className="muted">{!open ? t.blitzLocked : rec > 0 ? t.blitzRecord(rec) : t.blitzSub}</span>
+              </span>
+            </button>
+          );
+        })()}
         <button type="button" className="btn ghost block" onClick={exit}>{t.finishGame}</button>
       </div>
     </div>

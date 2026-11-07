@@ -1,7 +1,7 @@
 "use client";
 
 import { track } from "@/lib/analytics";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GameData, Level } from "@/types/generation";
 import { buildStandaloneGameHtml } from "@/lib/game/build-standalone-game-html";
 import { buildMixedLevel } from "@/lib/game/build-mixed-level";
@@ -12,6 +12,9 @@ import { SnapIcon } from "@/components/icons/ActionIcons";
 import { LevelPlayer, type LevelResult } from "./LevelPlayer";
 import { addPunches } from "@/lib/webapp/punches";
 import { ResultScreen } from "./ResultScreen";
+import { BlitzRound } from "./BlitzRound";
+import { blitzRecord } from "@/lib/blitz";
+import type { Question } from "@/types/generation";
 
 export function GameShell({ game }: { game: GameData }) {
   const { locale, t } = useLanguage();
@@ -19,6 +22,12 @@ export function GameShell({ game }: { game: GameData }) {
   const [activeLevelId, setActiveLevelId] = useState<number | null>(null);
   const [totalSnaps, setTotalSnaps] = useState(0);
   const [snapBump, setSnapBump] = useState(0);
+  // Blitzrunde und "Fehler aus der Blitzrunde üben" (eigenes Level mit id -2, ohne Punches/Sterne)
+  const [blitz, setBlitz] = useState(false);
+  const [practice, setPractice] = useState<Question[] | null>(null);
+  const [blitzBest, setBlitzBest] = useState(0);
+  const gameKey = `${game.gameTitle}|${game.levels.length}|${game.levels[0]?.questions[0]?.prompt ?? ""}`.slice(0, 160);
+  useEffect(() => setBlitzBest(blitzRecord(gameKey)), [gameKey]);
 
   // Memoized on game.levels specifically (not recomputed on every render): earning a Snap
   // updates totalSnaps/snapBump state right here in GameShell, which re-renders this component
@@ -33,13 +42,16 @@ export function GameShell({ game }: { game: GameData }) {
   );
   const tiles: Level[] = mixedLevel ? [mixedLevel, ...sortedLevels] : sortedLevels;
 
-  const activeLevel = tiles.find((level) => level.id === activeLevelId) ?? null;
+  const practiceLevel: Level | null = practice?.length
+    ? { id: -2, title: locale === "de" ? "Fehler aus der Blitzrunde" : "Mistakes from the speed round", difficulty: "mittel", questions: practice }
+    : null;
+  const activeLevel = activeLevelId === -2 ? practiceLevel : tiles.find((level) => level.id === activeLevelId) ?? null;
   const allDone = sortedLevels.every((level) => results[level.id] !== undefined);
 
   function handleSnap(amount: number) {
     setTotalSnaps((prev) => prev + amount);
     // Punches wie in der App nur beim ersten Durchgang eines Levels, nicht im Mix-Level (Wiederholung).
-    if (activeLevelId !== null && activeLevelId !== -1 && results[activeLevelId] === undefined) addPunches(amount);
+    if (activeLevelId !== null && activeLevelId >= 0 && results[activeLevelId] === undefined) addPunches(amount);
     setSnapBump((n) => n + 1);
   }
 
@@ -58,18 +70,32 @@ export function GameShell({ game }: { game: GameData }) {
     URL.revokeObjectURL(url);
   }
 
+  if (blitz) {
+    return (
+      <BlitzRound
+        questions={sortedLevels.flatMap((l) => l.questions)}
+        gameKey={gameKey}
+        locale={locale}
+        onExit={() => { setBlitz(false); setBlitzBest(blitzRecord(gameKey)); }}
+        onPunches={(n) => { addPunches(n); setTotalSnaps((p) => p + n); setSnapBump((b) => b + 1); }}
+        onPractice={(qs) => { setBlitz(false); setBlitzBest(blitzRecord(gameKey)); setPractice(qs); setActiveLevelId(-2); }}
+      />
+    );
+  }
+
   if (activeLevel) {
     return (
       <LevelPlayer
         level={activeLevel}
         totalSnaps={totalSnaps}
-        onExit={() => setActiveLevelId(null)}
+        onExit={() => { if (activeLevelId === -2) setPractice(null); setActiveLevelId(null); }}
         onSnap={handleSnap}
         joker
         report={{ source: "web-game", title: game.gameTitle, subject: game.subject }}
         onComplete={(result) => {
           track("level_complete", { level: activeLevel.id === -1 ? "mixed" : String(activeLevel.id), difficulty: activeLevel.difficulty, stars: result.stars, correct: result.score, total: activeLevel.questions.length, replay: results[activeLevel.id] !== undefined });
-          if (activeLevel.id !== -1) {
+          if (activeLevel.id === -2) setPractice(null);
+          if (activeLevel.id >= 0) {
             setResults((prev) => ({ ...prev, [activeLevel.id]: result }));
           }
           setActiveLevelId(null);
@@ -146,6 +172,21 @@ export function GameShell({ game }: { game: GameData }) {
           );
         })}
       </ol>
+
+      {/* Blitzrunde: 60 Sekunden, Fragen aus allen Leveln */}
+      <button
+        type="button"
+        onClick={() => { track("blitz_start"); setBlitzBest(blitzRecord(gameKey)); setBlitz(true); }}
+        className="mx-auto mt-6 flex w-full max-w-md items-center gap-4 rounded-[24px] border-2 border-[#f23a8e] bg-[#f23a8e]/10 p-3.5 text-left transition active:scale-[0.98]"
+      >
+        <span className="grid h-16 w-16 flex-none place-items-center rounded-[20px] bg-[#f23a8e] text-3xl" aria-hidden="true">⏱</span>
+        <span className="flex flex-col gap-0.5">
+          <b className="text-base">{locale === "de" ? "Blitzrunde" : "Speed round"}</b>
+          <span className="text-xs font-semibold text-zinc-400">
+            {blitzBest > 0 ? (locale === "de" ? `Dein Rekord: ${blitzBest} richtig` : `Your record: ${blitzBest} right`) : locale === "de" ? "60 Sekunden – so viele wie möglich" : "60 seconds – as many as you can"}
+          </span>
+        </span>
+      </button>
     </div>
   );
 }

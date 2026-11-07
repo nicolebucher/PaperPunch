@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.26.0 – 7 November 2026 (website; the app part ships with the next app build)
+
+Speed round in learning games.
+
+| Area | Change |
+| --- | --- |
+| Website + App | New “Blitzrunde” (speed round) on the level map: 60 seconds, as many questions as possible from all levels – multiple choice, true/false (made from a multiple-choice question: “is this the right answer?”), matching (max. 4 pairs) and short gaps (max. 2 words). No second try and no combo bonus: a wrong answer shows the solution briefly, then the next question comes. Timer bar turns pulsing in the last 10 seconds |
+| Website + App | End screen: “14 right in 60 seconds”, personal record per game (on this device), list of missed questions with solution and explanation, “Practise these questions” starts a normal round with just those, “Play again”. Punches (3 per right answer) only for answers above your record, so the round can't be farmed. In the app it unlocks after the first level |
+| Tech | Shared logic in lib/blitz.ts = mobile/src/blitz.ts (unit tests, copy check) |
+
 ## v0.25.1 – 7 November 2026 (website; the app part ships with the next app build)
 
 Better shuffle for sentence and ordering tiles.
