@@ -1,3 +1,4 @@
+import { useBackClose } from "../backStack";
 import { Fragment, useCallback, useState } from "react";
 import { useT } from "../i18n";
 import { openPdf, shareFile } from "../platform";
@@ -20,6 +21,7 @@ function slug(s: string) {
 function SheetViewer({ base64, onClose, onPrint, onSolve }: { base64: string; onClose: () => void; onPrint: () => void; onSolve: () => void }) {
   const { t } = useT();
   const [pages, setPages] = useState(0);
+  useBackClose(true, onClose); // Android-Zurück schließt die Vorschau
   const onPages = useCallback((n: number) => setPages(n), []);
   return (
     <div className="viewer" role="dialog" aria-modal="true" aria-label={t.preview}>

@@ -1,3 +1,4 @@
+import { useBackClose } from "../backStack";
 import { detectForeignLanguage, FOREIGN_LANGUAGES, rememberedLangYear, rememberLangYear, type ForeignLanguage } from "../answerMatch";
 import { useEffect, useRef, useState } from "react";
 import { useT } from "../i18n";
@@ -37,6 +38,8 @@ export function Capture({
   const [flang, setFlang] = useState<ForeignLanguage | null>(null);
   const [langYear, setLangYear] = useState(1);
   const [langTouched, setLangTouched] = useState(false);
+  // Foto-Modus: Android-Zurück schließt das Auswahl-Sheet (zurück zur Kamera) statt den ganzen Bildschirm
+  useBackClose(sheet && mode === "photo", () => setSheet(false));
   useEffect(() => {
     if (langTouched) return;
     const found = detectForeignLanguage(`${topic} ${notes} ${teacherSubjects.length === 1 ? teacherSubjects[0] : ""}`, lang);

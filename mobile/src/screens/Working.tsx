@@ -10,7 +10,7 @@ const EXPECTED: Record<string, number> = { plan: 35, adjust: 25, podcast: 110, g
 const CELLS = 12;
 
 /** Ladebildschirm: Pixel werden aus dem Buch "gestanzt", darunter füllt sich eine Pixel-Leiste, dazu Lerntipps. */
-export function Working({ format, fileCount }: { format: MaterialFormat | "plan" | "adjust"; fileCount: number }) {
+export function Working({ format, fileCount, onBackground }: { format: MaterialFormat | "plan" | "adjust"; fileCount: number; onBackground?: () => void }) {
   const { t } = useT();
   const [seconds, setSeconds] = useState(0);
   // Jedes Mal an einer zufälligen Stelle anfangen, damit nicht immer dieselben Tipps kommen.
@@ -54,6 +54,13 @@ export function Working({ format, fileCount }: { format: MaterialFormat | "plan"
         ))}
       </div>
       </div>
+
+      {onBackground && (
+        <button type="button" className="btn ghost block bg-btn" onClick={onBackground}>
+          {t.bgButton}
+          <small>{t.bgButtonSub}</small>
+        </button>
+      )}
 
       <div className="tip" key={tip}>
         <span className="eyebrow">{t.tipLabel}</span>

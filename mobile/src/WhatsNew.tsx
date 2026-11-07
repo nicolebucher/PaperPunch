@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useT } from "./i18n";
 import { markWhatsNewSeen, WHATS_NEW, whatsNewToShow, type WhatsNewEntry } from "./whatsNewData";
 import { totalPunches } from "./punches";
+import { useBackClose } from "./backStack";
 
 // „Was ist neu“ in der App: einmal nach einem Update als Fenster von unten, in der App-Sprache (Deutsch/Englisch).
 // Wer noch nichts gemacht hat (keine Punches), bekommt es nicht. In den Einstellungen jederzeit nachlesbar.
@@ -31,11 +32,12 @@ export function WhatsNew({ ready }: { ready: boolean }) {
     if (show.length) setEntries(show);
   }, [ready, checked]);
 
-  if (!entries.length) return null;
   const close = () => {
     markWhatsNewSeen();
     setEntries([]);
   };
+  useBackClose(entries.length > 0, close);
+  if (!entries.length) return null;
   return (
     <div className="sheet-backdrop whatsnew" role="dialog" aria-modal="true" aria-labelledby="whatsnew-title" onClick={close}>
       <div className="whatsnew-sheet" onClick={(e) => e.stopPropagation()}>

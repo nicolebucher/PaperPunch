@@ -1,3 +1,4 @@
+import { SheetHead } from "../SheetHead";
 import { useEffect, useState, type CSSProperties } from "react";
 import { useT } from "../i18n";
 import { Beta, Icon, type IconName } from "../ui";
@@ -293,7 +294,7 @@ function ChallengeSheet({ games, onClose, onNewGame, say }: { games: StoredMater
     <>
       <div className="backdrop" onClick={onClose} />
       <div className="sheet home-b-sheet" role="dialog" aria-label={t.challengeOpt}>
-        <span className="home-b-grab" aria-hidden="true" />
+        <SheetHead onClose={onClose} />
         {games.length === 0 ? (
           <div className="home-b-sheet-empty">
             <span className="home-b-sheet-badge"><Icon name="punch" size={34} stroke={2} /></span>
@@ -379,11 +380,10 @@ function GroupSheet({ games, initialName, onClose, onNewGame, onCreated, say }: 
     <>
       <div className="backdrop" onClick={onClose} />
       <div className="sheet home-b-sheet" role="dialog" aria-label={t.groupStart}>
-        <span className="home-b-grab" aria-hidden="true" />
-        <div className="stack" style={{ gap: 4 }}>
+        <SheetHead onClose={onClose}>
           <h2>{t.groupStart}</h2>
           <p className="muted" style={{ fontSize: 14, fontWeight: 600 }}>{t.groupStartSub}</p>
-        </div>
+        </SheetHead>
         <span className="group-lab">{t.groupGame}</span>
         <div className="home-b-games">
           <button type="button" className="home-b-game new" onClick={onNewGame}>
@@ -461,7 +461,7 @@ function GroupBoardSheet({ group, onClose, onPlay, onNewRound, say }: { group: M
     <>
       <div className="backdrop" onClick={onClose} />
       <div className="sheet home-b-sheet group-board" role="dialog" aria-label={group.name}>
-        <span className="home-b-grab" aria-hidden="true" />
+        <SheetHead onClose={onClose} />
         <div className="group-board-head">
           <b>{group.name}</b>
           {left && <span className="group-pill">{left}</span>}

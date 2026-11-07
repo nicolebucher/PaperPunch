@@ -142,6 +142,22 @@ textarea.input { padding: 12px; min-height: 84px; resize: vertical; }
 }
 .sheet .grabber { align-self: center; width: 44px; height: 5px; border-radius: 3px; background: #d4d4d8; }
 .sheet .inner { max-width: 560px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+.bg-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 4px auto 0; max-width: 360px; }
+.bg-btn small { font-size: 12px; font-weight: 600; opacity: .7; }
+.bg-bar { position: fixed; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 40; display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 14px; border-radius: 16px; background: #111214; color: #fff; font-weight: 800; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.3); max-width: 560px; margin: 0 auto; }
+.bg-bar.done { background: var(--teal-dark, #0e7f97); }
+.bg-bar > span:not(.bg-spin) { flex: 1; min-width: 0; }
+.bg-bar button { border: 0; border-radius: 12px; padding: 8px 12px; background: #fff; color: #111214; font: inherit; font-weight: 900; cursor: pointer; }
+.bg-bar .bg-bar-x { background: transparent; color: #fff; font-size: 20px; padding: 4px 8px; }
+.bg-spin { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.3); border-top-color: #fff; animation: bg-spin .8s linear infinite; }
+@keyframes bg-spin { to { transform: rotate(360deg); } }
+
+.sh-head { position: sticky; top: -14px; z-index: 2; display: flex; flex-direction: column; gap: 8px; margin: -14px 0 0; padding: 14px 0 8px; background: inherit; touch-action: none; }
+.sh-grab { align-self: center; width: 44px; height: 5px; border-radius: 3px; background: var(--line, #d4d4d8); }
+.sh-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.sh-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.sh-close { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 0; background: color-mix(in srgb, currentColor 10%, transparent); color: inherit; cursor: pointer; }
+
 @keyframes up { from { transform: translateY(100%); } to { transform: none; } }
 .format {
   min-height: 60px; border-radius: 18px; display: flex; align-items: center; gap: 10px; padding: 0 14px;

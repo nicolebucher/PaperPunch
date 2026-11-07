@@ -29,6 +29,9 @@ import { GoHomeContext, Toast } from "./ui";
 import { activeChild, childLabel, isParent, kidsOf } from "./children";
 import { UpdateBanner } from "./appUpdate";
 import { WhatsNew } from "./WhatsNew";
+import { handleBack } from "./backStack";
+import { hapticRight } from "./feedback";
+import { cancelReadyNotice, scheduleReadyNotice } from "./readyNotice";
 
 /** Wenn Material aus einer Plan-Einheit stammt, merkt sich die App die Einheit. */
 export interface SessionRef {
@@ -132,7 +135,17 @@ function AppInner() {
 
   // Android-Zurück-Taste und Browser-Zurück führen zur Startseite statt die App zu schließen.
   useEffect(() => {
-    const onPop = () => setView((v) => (v.name === "home" || v.name === "onboarding" ? v : { name: "home" }));
+    const onPop = () => {
+      // offenes Sheet/Fenster zuerst schließen (backStack.ts)
+      if (handleBack()) return;
+      // Zurück während des Erstellens = im Hintergrund weiter (statt später ungefragt zum Ergebnis zu springen)
+      const g = gen.current;
+      if (g && !g.bg && g.allowBg) {
+        g.bg = true;
+        setBgJob({ format: g.format });
+      }
+      setView((v) => (v.name === "home" || v.name === "onboarding" ? v : { name: "home" }));
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
@@ -234,8 +247,43 @@ function AppInner() {
   // ohne Übergabe wurde mit der alten Klasse aus den Einstellungen erstellt)
   type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View; profile?: Profile; language?: { lang: string; year: number } };
 
-  /** Fertiges Ergebnis übernehmen: Zwischentest direkt starten, sonst speichern und anzeigen. */
+  // Erstellen im Hintergrund (Feedback: "Benachrichtigung, wenn man was anderes macht"): laufende Erstellung,
+  // ob sie in den Hintergrund geschickt wurde, und das fertige Ergebnis für die Leiste "Dein Test ist fertig".
+  const gen = useRef<{ format: MaterialFormat; startedAt: number; allowBg: boolean; bg: boolean } | null>(null);
+  const [bgJob, setBgJob] = useState<{ format: MaterialFormat } | null>(null);
+  const [ready, setReady] = useState<{ result: GenerateResult; materialId: string; from?: SessionRef } | null>(null);
+
+  function goBackground() {
+    if (!gen.current) return;
+    gen.current.bg = true;
+    void requestReminderPermission(); // für die "fertig"-Benachrichtigung, falls man die App verlässt
+    setBgJob({ format: gen.current.format });
+    setView({ name: "home" });
+  }
+
+  // App verlassen, während etwas erstellt wird: Benachrichtigung zur erwarteten Fertig-Zeit; zurück → löschen
+  useEffect(() => {
+    const EXPECTED_S: Record<string, number> = { game: 90, worksheet: 60, test: 50, podcast: 110 };
+    const onVis = () => {
+      const g = gen.current;
+      if (document.visibilityState === "hidden" && g) {
+        const left = (EXPECTED_S[g.format] ?? 70) - (Date.now() - g.startedAt) / 1000 + 10;
+        const what = t.formats[g.format];
+        void scheduleReadyNotice(left, t.readyNoticeTitle(what), t.readyNoticeBody);
+      } else if (document.visibilityState === "visible") {
+        void cancelReadyNotice();
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [t]);
+
+  /** Fertiges Ergebnis übernehmen: Zwischentest direkt starten, sonst speichern und anzeigen (im Hintergrund: Leiste). */
   async function finishGeneration(result: GenerateResult, opts: GenOpts) {
+    const inBackground = !!gen.current?.bg;
+    gen.current = null;
+    setBgJob(null);
+    void cancelReadyNotice();
     if (result.format === "game" && opts.from?.session.kind === "checkpoint") {
       setView({ name: "quiz", game: result.game, from: opts.from });
       return;
@@ -253,12 +301,18 @@ function AppInner() {
       notes: opts.notes,
       ...childTag(),
     });
-    setView({ name: "result", result, from: opts.from, materialId });
+    if (inBackground) {
+      setReady({ result, materialId, from: opts.from });
+      hapticRight();
+    } else setView({ name: "result", result, from: opts.from, materialId });
   }
 
   async function runGenerate(opts: GenOpts) {
     const prof = opts.profile ?? profile;
     if (!prof) return;
+    setReady(null);
+    // Hintergrund nur ohne Lernplan-Bezug (Zwischentests starten direkt)
+    gen.current = { format: opts.format, startedAt: Date.now(), allowBg: !opts.from, bg: false };
     setView({ name: "working", format: opts.format, fileCount: opts.files.length });
     try {
       const result = await generateMaterial({
@@ -275,7 +329,11 @@ function AppInner() {
     } catch (error) {
       clearPendingJob();
       say(errorText(error));
-      setView(opts.back);
+      const wasBg = !!gen.current?.bg;
+      gen.current = null;
+      setBgJob(null);
+      void cancelReadyNotice();
+      if (!wasBg) setView(opts.back);
     }
   }
 
@@ -290,6 +348,7 @@ function AppInner() {
       clearPendingJob();
       return;
     }
+    gen.current = { format: pending.format, startedAt: pending.startedAt, allowBg: !pending.from, bg: false };
     setView({ name: "working", format: pending.format, fileCount: pending.fileCount });
     void (async () => {
       const files = await loadPlanFiles(PENDING_FILES_KEY);
@@ -300,6 +359,8 @@ function AppInner() {
         await finishGeneration(result, opts);
       } catch (error) {
         clearPendingJob();
+        gen.current = null;
+        setBgJob(null);
         say(errorText(error));
         setView({ name: "home" });
       }
@@ -421,7 +482,7 @@ function AppInner() {
       );
       break;
     case "working":
-      screen = <Working format={view.format} fileCount={view.fileCount} />;
+      screen = <Working format={view.format} fileCount={view.fileCount} onBackground={gen.current?.allowBg ? goBackground : undefined} />;
       break;
     case "result":
       screen = (
@@ -634,6 +695,20 @@ function AppInner() {
         <div className="offline-bar" role="status">{t.offlineBar}</div>
       )}
       <UpdateBanner visible={!splash && !undoItem && !toast && (view.name === "home" || view.name === "materials" || view.name === "plan")} />
+      {/* Erstellen im Hintergrund: Leiste oben (läuft … / fertig – ansehen) */}
+      {(bgJob || ready) && view.name !== "working" && !splash && (
+        <div className={ready ? "bg-bar done" : "bg-bar"} role="status">
+          {ready ? (
+            <>
+              <span>✓ {t.bgReady(t.formats[ready.result.format])}</span>
+              <button type="button" onClick={() => { setView({ name: "result", result: ready.result, from: ready.from, materialId: ready.materialId }); setReady(null); }}>{t.bgOpen}</button>
+              <button type="button" className="bg-bar-x" aria-label={t.close} onClick={() => setReady(null)}>×</button>
+            </>
+          ) : (
+            <><span className="bg-spin" aria-hidden="true" /><span>{t.bgRunning(t.formats[bgJob!.format])}</span></>
+          )}
+        </div>
+      )}
       <WhatsNew ready={!splash && view.name === "home"} />
       {splash && <Splash onDone={endSplash} />}
     </LangProvider>

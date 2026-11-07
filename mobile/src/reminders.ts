@@ -100,7 +100,8 @@ export function takePushStat(): { rem: boolean; delivered: number; tapped: numbe
 export function listenReminderTaps(): void {
   if (!remindersSupported()) return;
   try {
-    void LocalNotifications.addListener("localNotificationActionPerformed", () => {
+    void LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+      if ((action?.notification?.id ?? 0) >= 9000) return; // "fertig"-Benachrichtigung zählt nicht als Erinnerung
       const stat = readJson<PushStat>(STAT_KEY, { delivered: 0, tapped: 0 });
       writeJson(STAT_KEY, { ...stat, tapped: stat.tapped + 1 });
     }).catch(() => undefined);
@@ -140,8 +141,10 @@ export async function rescheduleReminders(plans: ActivePlan[], texts: ReminderTe
       // ignorieren
     }
     const pending = await LocalNotifications.getPending();
-    if (pending.notifications.length) {
-      await LocalNotifications.cancel({ notifications: pending.notifications.map((n) => ({ id: n.id })) });
+    // nur Lernplan-Erinnerungen löschen, nicht die "fertig"-Benachrichtigung (readyNotice.ts, id 9001)
+    const old = pending.notifications.filter((n) => n.id < 9000);
+    if (old.length) {
+      await LocalNotifications.cancel({ notifications: old.map((n) => ({ id: n.id })) });
     }
     const settings = loadReminderSettings();
     if (!settings.on) return;

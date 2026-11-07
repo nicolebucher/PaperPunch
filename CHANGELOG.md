@@ -13,6 +13,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 | --- | --- |
 | Tech | Temporary: the cost-dashboard endpoint /api/admin/stats answers without the STATS_KEY until Monday 9 November, so the daily Cost Cockpit refresh keeps running (the scheduled task could no longer read the key from Vercel). It only returns sums (costs, counts, countries), no personal data. Monday: new key, endpoint locked again |
 
+## v0.29.0 – 7 November 2026 (app; ships with the next app build)
+
+Feedback from testers: notifications while creating, getting out of sheets.
+
+| Area | Change |
+| --- | --- |
+| App | Create in the background: the loading screen has “Im Hintergrund weiter / Continue in the background”. You can use the app meanwhile; a bar at the top shows “Dein Test wird erstellt …” and turns into “✓ Dein Test ist fertig – Ansehen” (with a short vibration). Android Back on the loading screen does the same instead of jumping to the result later. Not offered for study-plan checkpoints |
+| App | Leaving the app while something is being created schedules a local notification at the expected finish time (“Dein Test ist fertig 🎉 – tippe zum Ansehen”); coming back earlier cancels it. Without a push service the phone doesn't know the exact finish time, so it's an estimate (game ≈ 90 s, worksheet ≈ 60 s, test ≈ 50 s). Study-plan reminders no longer cancel or count this notification |
+| App | Bottom sheets (start study group, challenge, group ranking) have a close button ✕, can be swiped down at the handle, and the header stays visible while scrolling. Android Back now closes the open sheet, the PDF preview, the photo selection sheet or the “What's new” sheet instead of closing the whole app (new mobile/src/backStack.ts) |
+
 ## v0.28.1 – 7 November 2026 (website)
 
 | Area | Change |
