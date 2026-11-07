@@ -8,7 +8,7 @@ import { isBlockedName } from "@/lib/name-filter";
 // Speicher: groups/CODE/meta.json + groups/CODE/p-GERÄT.json. Jeder Eintrag ist eine eigene Datei – so gibt es
 // keine Schreibkonflikte, und "nur der erste Versuch" ist garantiert (zweites Schreiben auf dieselbe Datei
 // schlägt fehl). Nach 30 Tagen gelöscht.
-// Seit v0.22.3 liegen neue Gruppen im PRIVATEN Blob-Store (BLOB_STORE_ID, Anmeldung per OIDC, wie das Feedback):
+// Seit v0.22.4 liegen neue Gruppen im PRIVATEN Blob-Store (BLOB_STORE_ID, Anmeldung per OIDC, wie das Feedback):
 // Die Einträge enthalten Spitznamen und Antworten von Kindern, die nur die Lehrkraft sehen soll. Ältere Gruppen
 // liegen noch im öffentlichen Store (paperpunch-jobs) und werden dort weiter gelesen und beschrieben, bis sie
 // nach 30 Tagen auslaufen. Ohne BLOB_STORE_ID (lokal) wird wie früher der öffentliche Store genutzt.
@@ -120,7 +120,7 @@ const CACHE_MS = 15_000;
 async function load(code: string, fresh = false): Promise<{ meta: GroupMeta; entries: GroupEntry[]; backend: Backend } | null> {
   const hit = cache.get(code);
   if (!fresh && hit && Date.now() - hit.at < CACHE_MS) return hit;
-  // Erst der private Store (neue Gruppen), dann der öffentliche (Gruppen von vor v0.22.3)
+  // Erst der private Store (neue Gruppen), dann der öffentliche (Gruppen von vor v0.22.4)
   const backends: Backend[] = PRIVATE_STORE() ? ["private", "public"] : ["public"];
   let backend: Backend | null = null;
   let blobs: ListBlobResultBlob[] = [];

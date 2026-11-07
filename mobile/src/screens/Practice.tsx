@@ -18,11 +18,31 @@ function autoCheck(task: Task) {
   return task.type === "multiple-choice" || task.type === "unterstreichen" || task.type === "lueckentext" || (task.type === "zuordnen" && !!task.pairs?.length);
 }
 
-/** Rechte Seite einer Zuordnung gemischt (fest je Aufgabe), damit die Reihenfolge nichts verrät. */
+/** Rechte Seite einer Zuordnung gemischt (fest je Aufgabe), damit die Reihenfolge nichts verrät.
+ *  Echtes Mischen mit festem Startwert je Aufgabe; nie dieselbe Reihenfolge wie links. */
 function shuffledRights(task: Task): string[] {
   const rights = (task.pairs ?? []).map((p) => p.right);
-  const seed = task.question.length + task.number * 7;
-  return rights.map((v, i) => ({ v, k: (i * 9301 + seed * 49297) % 233280 })).sort((a, b) => a.k - b.k).map((x) => x.v);
+  if (rights.length < 2) return rights;
+  let seed = 2166136261;
+  for (const ch of `${task.number}|${task.question}`) seed = Math.imul(seed ^ ch.charCodeAt(0), 16777619);
+  const rand = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const fixed = (a: string[]) => a.filter((v, i) => v === rights[i]).length;
+  let out = [...rights];
+  // Höchstens ein Drittel darf zufällig neben seinem Partner stehen; sonst neu mischen
+  for (let tries = 0; tries < 12 && (tries === 0 || fixed(out) > Math.floor(rights.length / 3)); tries++) {
+    out = [...rights];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+  }
+  if (fixed(out) > Math.floor(rights.length / 3)) out = [...rights.slice(1), rights[0]];
+  return out;
 }
 
 /** Farben für verbundene Paare (linke Zeile bestimmt die Farbe). */
