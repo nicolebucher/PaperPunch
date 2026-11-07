@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { GameShell } from "@/components/game/GameShell";
 import { PdfPreview } from "@/components/pdf/PdfPreview";
-import { InteractiveWorksheet } from "@/components/worksheet/InteractiveWorksheet";
+import { SheetPractice } from "./SheetPractice";
 import { buildStandaloneGameHtml } from "@/lib/game/build-standalone-game-html";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { shareOrDownloadFile } from "@/lib/share";
@@ -81,7 +81,7 @@ export function ResultView({ material: initial }: { material: WebMaterial }) {
       <AppIcon name="back" />
     </button>
   );
-  if (view === "practice" && material.sheet) return <div>{back}<InteractiveWorksheet data={material.sheet.data} /></div>;
+  if (view === "practice" && material.sheet) return <div>{back}<SheetPractice data={material.sheet.data} onClose={() => setView("home")} /></div>;
   if (view === "pdf" && pdf) return <div>{back}<PdfPreview url={pdf.url} label={tx.download} /></div>;
   if (view === "play" && material.game) {
     return (

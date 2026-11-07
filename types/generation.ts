@@ -77,6 +77,8 @@ export const taskSchema = z
     answer: z.string(),
     // Weitere richtige Schreibweisen/Synonyme für die Online-Prüfung (z. B. "GCF", "ggT", "0,75").
     acceptedAnswers: z.array(z.string()).max(8).optional(),
+    // Kurze Erklärung (Regel/Merkhilfe), nur beim Online-Lösen nach dem Antworten sichtbar – nicht im PDF.
+    explanation: z.string().optional(),
   })
   // Verhindert eine Lösung, die nicht zur Aufgabe passt: bei multiple-choice/unterstreichen muss
   // "answer" wortgleich eine der "options" sein, statt z.B. ein Buchstabe oder eine Umschreibung -

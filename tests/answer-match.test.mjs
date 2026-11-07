@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { answerMatches, spellingNote } from "../lib/answer-match.ts";
+import { answerHint, answerMatches, spellingNote } from "../lib/answer-match.ts";
 
 const right = [
   // [Eingabe, erwartet]
@@ -72,6 +72,14 @@ test("Rechtschreib-Modus ist streng", () => {
 test("Schreibweisen-Hinweis bei Tippfehler", () => {
   assert.equal(spellingNote("Fotosintese", "Fotosynthese"), "Fotosynthese");
   assert.equal(spellingNote("Fotosynthese", "Fotosynthese"), null);
+});
+
+test("Tipp: erster Buchstabe je Wort", () => {
+  assert.equal(answerHint("la guitarra"), "l_ g_______");
+  assert.equal(answerHint("Spielplatz"), "S_________");
+  assert.equal(answerHint("12 cm"), null);
+  assert.equal(answerHint("1914"), null);
+  assert.equal(answerHint("ab"), null);
 });
 
 test("App-Kopie ist identisch (bis auf die Kopfzeile)", () => {

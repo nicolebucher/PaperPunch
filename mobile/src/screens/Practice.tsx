@@ -6,7 +6,7 @@ import type { QuizOutcome, Task } from "../types";
 import { POINTS, type RewardLine } from "../punches";
 import { hapticRight, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { isSpellingContext } from "../answerMatch";
+import { answerHint, isSpellingContext } from "../answerMatch";
 import type { PracticeProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
 
@@ -87,8 +87,10 @@ export function Practice({
   const [link, setLink] = useState<Record<number, number>>({});
   const [selLeft, setSelLeft] = useState<number | null>(null);
   const [selRight, setSelRight] = useState<number | null>(null);
+  const [usedHint, setUsedHint] = useState(false);
 
   const task = list[index];
+  const hintText = task.type === "lueckentext" && !isSpellingContext(title) ? answerHint(task.answer) : null;
   const last = index === list.length - 1;
   const rights = useMemo(() => shuffledRights(task), [task]);
   const match: Record<number, string> = Object.fromEntries(Object.entries(link).map(([l, r]) => [l, rights[r]]));
@@ -152,7 +154,7 @@ export function Practice({
     if (answered || status === "checking" || !value.trim()) return;
     if (isChoice(task)) {
       setPicked(value);
-      if (normalize(value) === normalize(task.answer)) record(true, false, status === "retry");
+      if (normalize(value) === normalize(task.answer)) record(true, false, status === "retry" || usedHint);
       else {
         setWrongPicks((w) => [...w, value]);
         wrongAttempt();
@@ -171,7 +173,7 @@ export function Practice({
     }
     if (result.correct) {
       setHint(result.feedback);
-      record(true, false, prev === "retry");
+      record(true, false, prev === "retry" || usedHint);
       setStatus("open");
     } else {
       setHint(result.feedback);
@@ -230,6 +232,7 @@ export function Practice({
     setWrongPicks([]);
     setHint("");
     setCheckFailedOnce(false);
+    setUsedHint(false);
   }
 
   const correct = results.filter(Boolean).length;
@@ -381,6 +384,15 @@ export function Practice({
           </form>
         )}
 
+        {hintText && !answered && !revealed && (usedHint ? (
+          <div className="hint-box" role="status">
+            <span><b>{t.hintLabel}</b> <span className="hint-word">{hintText}</span></span>
+            <small>{t.hintNote}</small>
+          </div>
+        ) : status !== "checking" && (
+          <button type="button" className="btn ghost small hint-btn" onClick={() => setUsedHint(true)}>{t.hintBtn}</button>
+        ))}
+
         {status === "open" && hint && !answered && !revealed && <p className="check-failed" role="status">{hint}</p>}
 
         {status === "retry" && !answered && !revealed && (
@@ -399,7 +411,7 @@ export function Practice({
         {/* Selbsteinschätzung bei offenen Aufgaben und Zuordnungen */}
         {!auto && revealed && !answered && (
           <div className="stack">
-            <div className="feedback ok"><span style={{ fontWeight: 900 }}>{t.solution}</span><span>{task.answer}</span></div>
+            <div className="feedback ok"><span style={{ fontWeight: 900 }}>{t.solution}</span><span>{task.answer}</span>{task.explanation && <span><MathText text={task.explanation} /></span>}</div>
             <span style={{ fontWeight: 800, color: "var(--sheet-muted)" }}>{t.selfCheck}</span>
             <div className="grid2">
               <button type="button" className="btn ghost" onClick={() => record(false, true)}>{t.selfWrong}</button>
@@ -412,6 +424,7 @@ export function Practice({
           <div className={ok ? "feedback ok" : "feedback no"} role="status">
             <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : t.wrong(task.answer)}</span>
             {ok && hint && <span style={{ fontWeight: 700 }}>{hint}</span>}
+            {task.explanation && <span><MathText text={task.explanation} /></span>}
           </div>
         )}
 

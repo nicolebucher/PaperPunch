@@ -40,6 +40,8 @@ export interface Task {
   points: number;
   answer: string;
   acceptedAnswers?: string[];
+  /** Kurze Erklärung, nur beim Online-Lösen nach dem Antworten (neu seit v0.23) */
+  explanation?: string;
 }
 
 export interface SheetResult {

@@ -7,7 +7,7 @@ import { PunchIcon } from "../rewards";
 import { POINTS, spend, totalPunches, type RewardLine } from "../punches";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { isSpellingContext } from "../answerMatch";
+import { answerHint, isSpellingContext } from "../answerMatch";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
@@ -228,6 +228,8 @@ function LevelPlay({
   const [wrongPicks, setWrongPicks] = useState<string[]>([]);
   const [hint, setHint] = useState("");
   const [gaveUp, setGaveUp] = useState(false);
+  // Tipp (erster Buchstabe je Wort) bei Lückenfragen: dann halbe Punches, keine Combo
+  const [usedHint, setUsedHint] = useState(false);
   const [checkFailedOnce, setCheckFailedOnce] = useState(false);
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
@@ -249,7 +251,7 @@ function LevelPlay({
     setHint(feedback);
     if (right) {
       const base = POINTS.answer[q.difficulty] ?? 10;
-      const firstTry = wrongPicks.length === 0 && status !== "retry";
+      const firstTry = wrongPicks.length === 0 && status !== "retry" && !usedHint;
       const newStreak = firstTry ? streak + 1 : 0;
       const f = firstTry ? comboFactor(newStreak, isBoss) : 1;
       // im zweiten Versuch halbe Punches, keine Combo
@@ -346,6 +348,7 @@ function LevelPlay({
     setWrongPicks([]);
     setHint("");
     setGaveUp(false);
+    setUsedHint(false);
     setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
@@ -377,6 +380,7 @@ function LevelPlay({
     setWrongPicks([]);
     setHint("");
     setGaveUp(false);
+    setUsedHint(false);
     setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
@@ -484,6 +488,19 @@ function LevelPlay({
             )}
           </form>
         )}
+
+        {q.type !== "multiple-choice" && !answered && (() => {
+          const h = isSpellingContext(`${subject ?? ""} ${gameTitle ?? ""} ${title}`) ? null : answerHint(answer);
+          if (!h) return null;
+          return usedHint ? (
+            <div className="hint-box" role="status">
+              <span><b>{t.hintLabel}</b> <span className="hint-word">{h}</span></span>
+              <small>{t.hintNote}</small>
+            </div>
+          ) : status !== "checking" ? (
+            <button type="button" className="btn ghost small hint-btn" onClick={() => setUsedHint(true)}>{t.hintBtn}</button>
+          ) : null;
+        })()}
 
         {status === "open" && hint && <p className="check-failed" role="status">{hint}</p>}
 

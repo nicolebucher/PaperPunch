@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.23.0 – 7 November 2026 (website; the app parts ship with the next app build)
+
+Online worksheet practice like in the app, hint button, explanations.
+
+| Area | Change |
+| --- | --- |
+| Website | “Solve online” for worksheets and tests now works exactly like the app: one task at a time with progress bar, immediate feedback per answer, a second try, tap-to-connect matching, AI check for answers that aren't word-for-word (spelling stays strict), self-check for open tasks, finish screen with score, missed tasks and Punches (once per sheet, half on the second try) |
+| App + Website | 💡 Hint button for typed gap answers in worksheets, tests and games: shows the first letter of each word and the length (“l_ g_______”). With a hint you get half the Punches. Not offered in spelling practice or for numbers |
+| App + Website · AI | Worksheet and test tasks get a short explanation (rule or memory aid), shown after answering online – never printed on the PDF. Games already showed one after every question |
+
 ## v0.22.5 – 7 November 2026 (website)
 
 Study group data private, shared games checked.

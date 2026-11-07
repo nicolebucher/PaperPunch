@@ -182,3 +182,17 @@ function matchOne(given: string, expected: string, accepted: string[], prompt: s
   }
   return false;
 }
+
+
+/**
+ * Tipp für Lückentexte: erster Buchstabe jedes Worts, Rest als Striche ("la guitarra" → "l_ g_______").
+ * Satzzeichen und Leerzeichen bleiben. Bei Zahlen (auch mit Einheit) und sehr kurzen Antworten (≤ 2 Zeichen) kein Tipp (null).
+ */
+export function answerHint(answer: string): string | null {
+  const a = answer.trim();
+  if (a.length <= 2 || /\d/.test(a) || !/\p{L}/u.test(a)) return null;
+  return a
+    .split(/(\s+)/)
+    .map((w) => (/^\s+$/.test(w) ? w : w.replace(/(\p{L})([\p{L}'’-]*)/u, (_, first: string, rest: string) => first + rest.replace(/\p{L}/gu, "_"))))
+    .join("");
+}

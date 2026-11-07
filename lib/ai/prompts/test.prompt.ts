@@ -33,6 +33,9 @@ Create a realistic test with:
   shown separately as an answer key). For "lueckentext" and short "offen" answers, also fill
   "acceptedAnswers" with other answers that must count as correct (synonyms, abbreviation and
   spelled-out form, equivalent numbers); leave it out when there are none
+- for every task a short "explanation" (one or two sentences, max. 200 characters): why the answer is right,
+  the rule or a memory aid (e.g. "jugar → juego: in the present tense u becomes ue"). It is shown after answering
+  online, never printed on the sheet, so it may give the solution away.
 
 Answer-key accuracy is critical - a wrong or mismatched answer key is a serious failure, worse than
 a slightly-off difficulty level:

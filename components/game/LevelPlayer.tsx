@@ -9,7 +9,7 @@ import { SnapIcon } from "@/components/icons/ActionIcons";
 import { QuestionCard } from "./QuestionCard";
 import { FillBlankCard } from "./FillBlankCard";
 import { SnapEffect } from "./SnapEffect";
-import { answerMatches, isSpellingContext } from "@/lib/answer-match";
+import { answerHint, answerMatches, isSpellingContext } from "@/lib/answer-match";
 import { ReportProblem } from "@/components/ReportProblem";
 
 export interface LevelResult {
@@ -47,6 +47,8 @@ export function LevelPlayer({
   const [aiOk, setAiOk] = useState(false);
   const [checking, setChecking] = useState(false);
   const [feedback, setFeedback] = useState("");
+  // Tipp (erster Buchstabe je Wort) bei Lückenfragen – dann halbe Snaps, wie in der App
+  const [usedHint, setUsedHint] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [typedValue, setTypedValue] = useState("");
@@ -74,7 +76,12 @@ export function LevelPlayer({
   const isCorrect = isMultipleChoice
     ? answered && selected === question.correctIndex
     : answered && (aiOk || answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt));
-  const snapsForThisQuestion = SNAPS_BY_DIFFICULTY[level.difficulty] ?? 10;
+  const baseSnaps = SNAPS_BY_DIFFICULTY[level.difficulty] ?? 10;
+  const snapsForThisQuestion = usedHint ? Math.round(baseSnaps / 2) : baseSnaps;
+  const hintText =
+    !isMultipleChoice && !isSpellingContext(`${report?.subject ?? ""} ${report?.title ?? ""} ${level.title}`)
+      ? answerHint(question.correctAnswer ?? "")
+      : null;
 
   useEffect(() => {
     readyAtRef.current = Date.now() + 400;
@@ -164,6 +171,7 @@ export function LevelPlayer({
       setChecked(false);
       setAiOk(false);
       setFeedback("");
+      setUsedHint(false);
       answeredRef.current = false;
       advancingRef.current = false;
       setIndex((i) => i + 1);
@@ -200,6 +208,17 @@ export function LevelPlayer({
             feedback={feedback}
           />
         )}
+        {hintText && !answered && !checking && (usedHint ? (
+          <div className="mt-3 rounded-2xl border-2 border-dashed border-amber-300/60 bg-amber-300/10 px-4 py-3 text-sm" role="status">
+            <b>{locale === "de" ? "Tipp:" : "Hint:"}</b>{" "}
+            <span className="font-mono text-base font-bold tracking-wider">{hintText}</span>
+            <small className="mt-1 block text-xs text-zinc-400">{locale === "de" ? "Mit Tipp gibt es die Hälfte der Punches." : "With a hint you get half the Punches."}</small>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setUsedHint(true)} className="mt-3 rounded-full border-2 border-dashed border-zinc-600 px-4 py-2 text-sm font-bold text-zinc-300 hover:border-zinc-400">
+            💡 {locale === "de" ? "Tipp" : "Hint"}
+          </button>
+        ))}
         {snapBurst && <SnapEffect key={snapBurst.key} amount={snapBurst.amount} snapsUnit={t.game.snapsUnit} />}
       </div>
       {/* Joker kostet Punches – Preis als Chip mit Minus, damit klar ist, dass etwas abgezogen wird. */}

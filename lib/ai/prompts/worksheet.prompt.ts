@@ -41,6 +41,9 @@ Create a thorough worksheet for independent practice that spans several A4 pages
   common synonyms, abbreviation and spelled-out form, equivalent numbers ("3/4", "0.75", "0,75"),
   e.g. for "greatest common factor" also "GCF", "highest common factor", "largest common factor".
   Leave it out when there are no real alternatives; never list wrong or merely related answers.
+- for every task a short "explanation" (one or two sentences, max. 200 characters): why the answer is right,
+  the rule or a memory aid (e.g. "jugar → juego: in the present tense u becomes ue"). It is shown after answering
+  online, never printed on the sheet, so it may give the solution away.
 - a short, motivating introduction (2-3 sentences)
 
 Answer-key accuracy is critical - a wrong or mismatched answer key is a serious failure, worse than
