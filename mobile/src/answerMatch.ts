@@ -275,3 +275,16 @@ export function orderMatches(built: string[], items: string[]): boolean {
   const k = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
   return built.length === items.length && built.every((b, i) => k(b) === k(items[i]));
 }
+
+/**
+ * Verrät die Aufgabe die Lösung? Steht die Antwort (oder eine akzeptierte Antwort) wortgleich in einer Klammer der
+ * Aufgabe – z. B. "Write the number as a word: ___ (five)." mit Antwort "five" –, wird diese Klammer entfernt.
+ * Übersetzungshilfen in einer anderen Sprache ("___ (die Gitarre)" für "la guitarra") bleiben stehen.
+ */
+export function stripAnswerLeak(prompt: string, answer: string, accepted: string[] = []): string {
+  const key = (s: string) => ` ${s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim()} `;
+  const answers = [answer, ...accepted].map(key).filter((a) => a.trim().length >= 2);
+  if (!answers.length || !prompt.includes("(")) return prompt;
+  const out = prompt.replace(/\s*\(([^()]*)\)/g, (m, inner: string) => (answers.some((a) => key(inner).includes(a)) ? "" : m));
+  return out === prompt ? prompt : out.replace(/\s+([.,!?;:])/g, "$1").replace(/\s{2,}/g, " ").trim();
+}

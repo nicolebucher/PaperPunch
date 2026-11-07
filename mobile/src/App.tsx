@@ -230,7 +230,9 @@ function AppInner() {
     return { childId: kid.id, child: childLabel(kid, kids.indexOf(kid), t.childN) };
   }
 
-  type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View };
+  // profile: die beim Erstellen gewählte Klasse/Schulart (setProfile wirkt erst beim nächsten Rendern –
+  // ohne Übergabe wurde mit der alten Klasse aus den Einstellungen erstellt)
+  type GenOpts = { format: MaterialFormat; files: File[]; subject?: string; notes?: string; from?: SessionRef; back: View; profile?: Profile };
 
   /** Fertiges Ergebnis übernehmen: Zwischentest direkt starten, sonst speichern und anzeigen. */
   async function finishGeneration(result: GenerateResult, opts: GenOpts) {
@@ -255,12 +257,13 @@ function AppInner() {
   }
 
   async function runGenerate(opts: GenOpts) {
-    if (!profile) return;
+    const prof = opts.profile ?? profile;
+    if (!prof) return;
     setView({ name: "working", format: opts.format, fileCount: opts.files.length });
     try {
       const result = await generateMaterial({
-        profile,
         ...opts,
+        profile: prof,
         // Job merken (samt Fotos), damit das Ergebnis auch nach Sperren/Schließen der App ankommt
         onJob: (job) => {
           savePendingJob({ ...job, subject: opts.subject, notes: opts.notes, from: opts.from, fileCount: opts.files.length });
@@ -412,7 +415,7 @@ function AppInner() {
               setProfile(p);
               saveProfile(p);
             }
-            void runGenerate({ format, files, subject: topic || undefined, notes: notes || undefined, back: { name: "capture", mode: view.mode } });
+            void runGenerate({ format, files, subject: topic || undefined, notes: notes || undefined, back: { name: "capture", mode: view.mode }, profile: p });
           }}
         />
       );

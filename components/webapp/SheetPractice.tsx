@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Task, WorksheetData } from "@/types/generation";
 import { useLanguage } from "@/lib/i18n/language-context";
-import { answerHint, answerMatches, isSpellingContext, spellingNote, splitLanguageNote } from "@/lib/answer-match";
+import { answerHint, answerMatches, isSpellingContext, spellingNote, splitLanguageNote, stripAnswerLeak } from "@/lib/answer-match";
 import { addPunches, SHEET_ANSWER_PUNCHES } from "@/lib/webapp/punches";
 import { MathText } from "@/components/ui/MathText";
 import { ReportProblem } from "@/components/ReportProblem";
@@ -393,7 +393,7 @@ export function SheetPractice({ data, onClose }: { data: WorksheetData; onClose:
         <span className="text-sm font-extrabold text-[#0e7f97]">{t.task(task.number)} · {data.title}</span>
         {(() => {
           // Sprachhinweis ("auf Spanisch") klein über der Frage statt in der großen Überschrift
-          const { text, note } = splitLanguageNote(task.question);
+          const { text, note } = splitLanguageNote(task.type === "lueckentext" ? stripAnswerLeak(task.question, task.answer, task.acceptedAnswers) : task.question);
           return (
             <>
               {note && <h2 className="text-sm font-extrabold text-zinc-500">🌐 {note}</h2>}

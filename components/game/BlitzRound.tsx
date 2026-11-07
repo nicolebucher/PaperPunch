@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Question } from "@/types/generation";
 import { MathText } from "@/components/ui/MathText";
-import { answerMatches, splitLanguageNote } from "@/lib/answer-match";
+import { answerMatches, splitLanguageNote, stripAnswerLeak } from "@/lib/answer-match";
 import { BLITZ_PUNCHES, BLITZ_SECONDS, blitzRecord, buildBlitzDeck, saveBlitzRecord, type BlitzItem } from "@/lib/blitz";
 import { isRightLink, MatchCard, matchRights } from "./MatchCard";
 
@@ -196,7 +196,7 @@ export function BlitzRound({
     );
   }
 
-  const { text, note } = splitLanguageNote(item.prompt);
+  const { text, note } = splitLanguageNote(item.kind === "gap" ? stripAnswerLeak(item.prompt, item.answer, item.accepted) : item.prompt);
   return shell(
     <>
       <div className="mb-4 flex items-center gap-3">

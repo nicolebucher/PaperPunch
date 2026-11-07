@@ -52,6 +52,9 @@ const FEEDBACK_RULES = `Rules from learner feedback (important):
   like "Pau spielt sehr gut ___" is not allowed (Gitarre? Fußball? Klavier?). For vocabulary gaps give the word to
   translate in brackets, e.g. "Pau toca muy bien ___ (die Gitarre)." or "Pau spielt sehr gut ___ (auf Spanisch:
   Gitarre)." For other gaps add a clear clue (definition, context, first letter) when the sentence alone is open.
+- The question must never contain its own answer: a word in brackets is only allowed as a TRANSLATION aid in another
+  language than the answer (e.g. "(die Gitarre)" for "la guitarra"). Never write the answer itself in brackets or
+  anywhere else in the question - "Write the number as a word: ___ (five)." with the answer "five" is a serious failure.
 - Vocabulary and translation answers: the stored correct answer ("correctAnswer" or "answer") is the most common
   translation a learner would give (e.g. playground = "Spielplatz", not only "Schulhof"); put every other common
   correct translation in "acceptedAnswers".

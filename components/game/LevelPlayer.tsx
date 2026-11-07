@@ -11,7 +11,7 @@ import { FillBlankCard } from "./FillBlankCard";
 import { isRightLink, MatchCard, matchRights } from "./MatchCard";
 import { TileCard } from "./TileCard";
 import { SnapEffect } from "./SnapEffect";
-import { answerHint, answerMatches, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles } from "@/lib/answer-match";
+import { answerHint, answerMatches, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles, stripAnswerLeak } from "@/lib/answer-match";
 import { ReportProblem } from "@/components/ReportProblem";
 
 export interface LevelResult {
@@ -302,7 +302,7 @@ export function LevelPlayer({
           <QuestionCard question={question} selected={selected} onSelect={handleSelect} hidden={hidden} />
         ) : (
           <FillBlankCard
-            prompt={question.prompt}
+            prompt={stripAnswerLeak(question.prompt, question.correctAnswer ?? "", question.acceptedAnswers)}
             value={typedValue}
             checked={checked}
             isCorrect={isCorrect}

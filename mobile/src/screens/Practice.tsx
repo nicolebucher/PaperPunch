@@ -6,7 +6,7 @@ import type { QuizOutcome, Task } from "../types";
 import { POINTS, type RewardLine } from "../punches";
 import { hapticRight, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { answerHint, isSpellingContext, splitLanguageNote } from "../answerMatch";
+import { answerHint, isSpellingContext, splitLanguageNote, stripAnswerLeak } from "../answerMatch";
 import type { PracticeProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
 
@@ -298,7 +298,7 @@ export function Practice({
           </span>
           {(() => {
             // Sprachhinweis ("auf Spanisch") klein über der Frage statt in der großen Überschrift
-            const { text, note } = splitLanguageNote(task.question);
+            const { text, note } = splitLanguageNote(task.type === "lueckentext" ? stripAnswerLeak(task.question, task.answer, task.acceptedAnswers) : task.question);
             return (
               <>
                 {note && <h2 className="lang-note">🌐 {note}</h2>}

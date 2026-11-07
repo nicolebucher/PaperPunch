@@ -7,6 +7,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.27.3 – 7 November 2026 (website; the app part ships with the next app build)
+
+Two fixes from testing the new app.
+
+| Area | Change |
+| --- | --- |
+| Website + App · AI | A gap question could give its own answer away in brackets (“Write the number as a word: ___ (five).”). New generation rule: brackets only as a translation aid in another language; after generation a bracket that contains the answer is removed automatically (worksheets, tests, games). Older materials are cleaned up when shown (games, online solving, speed round). New unit test |
+| App | The class chosen on the create screen (e.g. Klasse 1) was ignored for that material and the class from the settings (e.g. Klasse 6) was used: the profile change only took effect after the request had already started. The chosen class/school type is now passed along directly |
+
 ## App 0.27.0 – 7 November 2026 (Android, version code 15, closed and internal test)
 
 | Area | Change |

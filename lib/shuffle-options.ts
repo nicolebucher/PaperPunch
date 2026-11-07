@@ -1,4 +1,5 @@
 import type { Task, Question } from "@/types/generation";
+import { stripAnswerLeak } from "@/lib/answer-match";
 
 // LLMs systematically default to writing the correct option first (it's the natural order to
 // generate: state the question, write the right answer, then invent distractors afterwards).
@@ -28,12 +29,18 @@ export function shuffleTaskOptions(tasks: Task[]): Task[] {
   return tasks.map((task) =>
     (task.type === "multiple-choice" || task.type === "unterstreichen") && task.options
       ? { ...task, options: shuffleArray(uniqueOptions(task.options)) }
+      : task.type === "lueckentext" && task.answer
+      ? // Lösung, die in einer Klammer der Aufgabe steht ("___ (five)"), wieder entfernen
+        { ...task, question: stripAnswerLeak(task.question, task.answer, task.acceptedAnswers) }
       : task
   );
 }
 
 export function shuffleQuestionOptions(questions: Question[]): Question[] {
   return questions.map((question) => {
+    if (question.type === "lueckentext" && question.correctAnswer) {
+      return { ...question, prompt: stripAnswerLeak(question.prompt, question.correctAnswer, question.acceptedAnswers) };
+    }
     if (question.type !== "multiple-choice" || !question.options || question.correctIndex === undefined) {
       return question;
     }

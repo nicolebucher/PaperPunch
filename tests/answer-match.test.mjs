@@ -131,3 +131,12 @@ test("order/sentence shuffle: at most a third in place, first entry never first"
   }
   assert.notEqual(sentenceTiles("Ich spiele gern Fußball.", "a")[0], "Ich");
 });
+
+test("stripAnswerLeak removes brackets that give the answer away", async () => {
+  const { stripAnswerLeak } = await import("../lib/answer-match.ts");
+  assert.equal(stripAnswerLeak("Write the number as a word: ___ (five).", "five"), "Write the number as a word: ___.");
+  assert.equal(stripAnswerLeak("Pau toca ___ (die Gitarre).", "la guitarra"), "Pau toca ___ (die Gitarre).");
+  assert.equal(stripAnswerLeak("Pau spielt ___ (auf Spanisch: Gitarre).", "la guitarra", ["guitarra"]), "Pau spielt ___ (auf Spanisch: Gitarre).");
+  assert.equal(stripAnswerLeak("Der ___ bellt (Hund).", "der Hund", ["Hund"]), "Der ___ bellt.");
+  assert.equal(stripAnswerLeak("3 + 4 = ___ (Tipp: zähle weiter)", "7"), "3 + 4 = ___ (Tipp: zähle weiter)");
+});

@@ -7,7 +7,7 @@ import { PunchIcon } from "../rewards";
 import { POINTS, spend, totalPunches, type RewardLine } from "../punches";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { answerHint, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles, splitLanguageNote } from "../answerMatch";
+import { answerHint, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles, splitLanguageNote, stripAnswerLeak } from "../answerMatch";
 import { TileBoard } from "../TileBoard";
 import { BlitzPlay } from "./Blitz";
 import { blitzRecord } from "../blitz";
@@ -570,7 +570,8 @@ function LevelPlay({
         <div className={`qcard ${fx?.kind === "wrong" ? "shake" : ""}`} key={`q${replay ? "r" : ""}${index}-${fx?.id ?? 0}`}>
           {q.revanche && <span className="revanche-tag"><Icon name="punch" size={14} stroke={2.2} /> {t.revanche}</span>}
           {(() => {
-            const { text, note } = splitLanguageNote(q.prompt);
+            // Lösung in einer Klammer der Aufgabe (ältere Spiele) nicht anzeigen
+            const { text, note } = splitLanguageNote(q.type === "lueckentext" ? stripAnswerLeak(q.prompt, answer, q.acceptedAnswers) : q.prompt);
             return (
               <>
                 {note && <h2 className="lang-note">🌐 {note}</h2>}

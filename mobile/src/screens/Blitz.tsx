@@ -4,7 +4,7 @@ import { MathText } from "../math";
 import { Icon } from "../ui";
 import { PunchIcon } from "../rewards";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
-import { answerMatches, splitLanguageNote } from "../answerMatch";
+import { answerMatches, splitLanguageNote, stripAnswerLeak } from "../answerMatch";
 import { BLITZ_PUNCHES, BLITZ_SECONDS, blitzRecord, buildBlitzDeck, saveBlitzRecord, type BlitzItem, type BlitzSource } from "../blitz";
 import { countCorrect, MatchBoard, matchRights } from "../MatchBoard";
 import type { Question } from "../types";
@@ -175,7 +175,7 @@ export function BlitzPlay({
     );
   }
 
-  const { text, note } = splitLanguageNote(item.prompt);
+  const { text, note } = splitLanguageNote(item.kind === "gap" ? stripAnswerLeak(item.prompt, item.answer, item.accepted) : item.prompt);
   const pct = (left / BLITZ_SECONDS) * 100;
   return (
     <div className="screen light play blitz-play">
