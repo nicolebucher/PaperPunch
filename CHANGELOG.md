@@ -7,6 +7,12 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.28.1 – 7 November 2026 (website)
+
+| Area | Change |
+| --- | --- |
+| Tech | The GitHub check (CI: types, ESLint, unit tests) failed since the speed round: its result was read from a React ref during rendering (rule react-hooks/refs). Now kept as state, CI is green again. The website itself was not affected |
+
 ## v0.28.0 – 7 November 2026 (website; the app part ships with the next app build)
 
 Year of learning for foreign languages.
