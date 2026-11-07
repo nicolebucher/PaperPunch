@@ -25,6 +25,10 @@ const right = [
   ["Hauptstadt", "die Hauptstadt"],
   ["GCF", "greatest common factor (GCF)"],
   ["Zehntel Hundertstel", "Zehntel und Hundertstel"],
+  ["despistado/a", "despistado"],
+  ["el despistado/la despistada", "despistado"],
+  ["el despistado / la despistada", "el despistado"],
+  ["Lehrer/in", "Lehrer"],
 ];
 
 const wrong = [
@@ -39,6 +43,9 @@ const wrong = [
   ["1915", "1914"],
   ["Meiose", "Mitose"],
   ["1914 n. Chr.", "1915 n. Chr."],
+  ["Mitose/Meiose", "Mitose"],
+  ["Hund/Katze", "Hund"],
+  ["km/m", "km"],
 ];
 
 for (const [given, expected] of right) {
@@ -50,6 +57,11 @@ for (const [given, expected] of wrong) {
 
 test("Lückentext: Wort aus dem Satz muss nicht mitgetippt werden", () => {
   assert.equal(answerMatches("proper", "proper fraction", [], "It is called a ___ fraction."), true);
+});
+
+test("Schrägstrich-Formen mit erlaubten Varianten", () => {
+  assert.equal(answerMatches("el despistado/la despistada", "despistado", ["despistada", "el despistado", "la despistada"], "Die Person … nennt man 'el/la ___'."), true);
+  assert.equal(answerMatches("despistado/a", "despistado", ["despistada"]), true);
 });
 
 test("Rechtschreib-Modus ist streng", () => {

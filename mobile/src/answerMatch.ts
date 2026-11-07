@@ -68,7 +68,7 @@ function variants(expected: string): string[] {
   // (ab 4 Buchstaben): "Mitose / Meiose", "Mitose/Meiose" – aber Einheiten wie "km/h", "m/s" bleiben ganz.
   for (const part of expected.split(/\s+(?:oder|or|bzw\.)\s+|\s+\/\s+|(?<=\p{L}{4})\/(?=\p{L}{4})/u)) if (part.trim()) out.add(part);
   // ohne Artikel am Anfang
-  for (const v of [...out]) out.add(v.replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/i, ""));
+  for (const v of [...out]) out.add(v.replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an|el|la|los|las|un|una|le|les|il|lo|gli)\s+/i, ""));
   return [...out].map(fold).filter(Boolean);
 }
 
@@ -130,13 +130,38 @@ export function spellingNote(given: string, expected: string, accepted: string[]
   return distance(fold(g), fold(e)) <= 2 && (fold(g) !== fold(e) || g !== e) ? expected : null;
 }
 
+/**
+ * Antwort mit Schrägstrich in Einzelformen zerlegen: "el despistado/la despistada" → beide Formen,
+ * "despistado/a" → "despistado", "despistada"; "Lehrer/in" → "Lehrer", "Lehrerin". null = kein Schrägstrich.
+ */
+function slashForms(given: string): string[] | null {
+  if (!given.includes("/")) return null;
+  const parts = given.split(/\s*\/\s*/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  const out: string[] = [parts[0]];
+  for (const p of parts.slice(1)) {
+    // kurze Endung (a, in, e, innen …) = nur die weibliche/andere Form derselben Antwort ("despistado/a",
+    // "Lehrer/in") – dann zählt die erste Form; eigenständige Formen ("la despistada") müssen selbst stimmen
+    if (/^\p{L}{4,}$/u.test(parts[0]) && /^\p{L}{1,5}$/u.test(p) && p.length < parts[0].length / 2 + 1) continue;
+    out.push(p);
+  }
+  return out;
+}
+
 /** true, wenn `given` als richtig gilt. `prompt` (optional) = Aufgabentext mit "___" für Lückentexte. `strict` = Rechtschreib-Übung. */
 export function answerMatches(given: string, expected: string, accepted: string[] = [], prompt = "", strict = false): boolean {
   if (strict) {
     const g = foldKeep(given);
     return !!g && [expected, ...accepted].some((a) => foldKeep(a) === g);
   }
-  const g = fold(given).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an)\s+/, "");
+  if (matchOne(given, expected, accepted, prompt)) return true;
+  // Mehrere Formen mit Schrägstrich ("despistado/a", "el amigo/la amiga"): richtig, wenn jede Form für sich richtig ist
+  const forms = slashForms(given);
+  return !!forms && forms.every((f) => matchOne(f, expected, accepted, prompt));
+}
+
+function matchOne(given: string, expected: string, accepted: string[], prompt: string): boolean {
+  const g = fold(given).replace(/^(der|die|das|den|dem|ein|eine|einen|the|a|an|el|la|los|las|un|una|le|les|il|lo|gli)\s+/, "");
   if (!g) return false;
   const answers = [expected, ...accepted];
   const candidates = [...answers, ...gapVariants(prompt, answers)].flatMap(variants);

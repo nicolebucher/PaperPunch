@@ -10,11 +10,17 @@ export function FillBlankCard({
   isCorrect,
   onChange,
   onSubmit,
+  checking = false,
+  feedback = "",
 }: {
   prompt: string;
   value: string;
   checked: boolean;
   isCorrect: boolean;
+  /** KI-Prüfung läuft (Antwort nicht wortgleich, wird inhaltlich geprüft) */
+  checking?: boolean;
+  /** Kurzer Hinweis der KI-Prüfung */
+  feedback?: string;
   onChange: (value: string) => void;
   onSubmit: () => void;
 }) {
@@ -28,7 +34,7 @@ export function FillBlankCard({
         <input
           type="text"
           value={value}
-          disabled={checked}
+          disabled={checked || checking}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") onSubmit();
@@ -49,12 +55,13 @@ export function FillBlankCard({
         <button
           type="button"
           onClick={onSubmit}
-          disabled={value.trim() === ""}
+          disabled={value.trim() === "" || checking}
           className="mt-5 w-full rounded-[18px] bg-zinc-900 px-5 py-3.5 text-base font-extrabold text-white disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
         >
-          {t.game.check}
+          {checking ? "…" : t.game.check}
         </button>
       )}
+      {checked && feedback && <p className="mt-3 text-sm font-semibold text-zinc-600">{feedback}</p>}
     </div>
   );
 }

@@ -7,6 +7,16 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.22.4 – 7 November 2026 (website; the app answer check ships with the next app build)
+
+Fixes from learner feedback (Spanish class, English vocabulary).
+
+| Area | Change |
+| --- | --- |
+| App + Website | Answer check accepts answers with a slash when every form is right: “el despistado/la despistada”, “despistado/a”, “Lehrer/in”; Spanish, French and Italian articles (el, la, los, las, un, una, le, les, il, lo, gli) are ignored like German/English ones. Units stay strict (“km/m” is not “km”). New unit tests |
+| Website | Learning games (incl. study groups and challenges) now ask the AI check when a typed answer isn't a word-for-word match, like the app – e.g. “Spielplatz” for “playground”. Spelling games stay strict. Short hint shown after checking |
+| Website · AI | New generation rules for all materials: say which language to answer in when it differs from the question (“auf Spanisch”); every gap must have exactly one answer that can be worked out from the question (vocabulary gaps show the word to translate in brackets); the most common translation is the stored answer, others and masculine/feminine forms go into the accepted answers; with uploaded material only ask about vocabulary and forms that appear in it; simple wording without unnecessary technical terms |
+
 ## v0.22.4 – 7 November 2026 (website)
 
 Study group data private, shared games checked.

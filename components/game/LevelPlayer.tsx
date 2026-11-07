@@ -9,7 +9,7 @@ import { SnapIcon } from "@/components/icons/ActionIcons";
 import { QuestionCard } from "./QuestionCard";
 import { FillBlankCard } from "./FillBlankCard";
 import { SnapEffect } from "./SnapEffect";
-import { answerMatches } from "@/lib/answer-match";
+import { answerMatches, isSpellingContext } from "@/lib/answer-match";
 import { ReportProblem } from "@/components/ReportProblem";
 
 export interface LevelResult {
@@ -41,8 +41,12 @@ export function LevelPlayer({
   onExit: () => void;
   onSnap: (amount: number) => void;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [index, setIndex] = useState(0);
+  // Nicht wortgleiche Freitext-Antworten prüft die KI inhaltlich (Synonyme, andere Formen) – wie in der App
+  const [aiOk, setAiOk] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [feedback, setFeedback] = useState("");
   const [correctCount, setCorrectCount] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [typedValue, setTypedValue] = useState("");
@@ -69,7 +73,7 @@ export function LevelPlayer({
   const answered = isMultipleChoice ? selected !== null : checked;
   const isCorrect = isMultipleChoice
     ? answered && selected === question.correctIndex
-    : answered && answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt);
+    : answered && (aiOk || answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt));
   const snapsForThisQuestion = SNAPS_BY_DIFFICULTY[level.difficulty] ?? 10;
 
   useEffect(() => {
@@ -110,13 +114,38 @@ export function LevelPlayer({
     onAnswer?.(index, optionIndex === question.correctIndex, question.options?.[optionIndex] ?? "");
   }
 
-  function handleCheckTyped() {
+  async function handleCheckTyped() {
     if (answeredRef.current || Date.now() < readyAtRef.current || typedValue.trim() === "") return;
     answeredRef.current = true;
+    const given = typedValue.trim();
+    let ok = answerMatches(given, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt);
+    // Rechtschreib-Spiele bleiben streng; sonst inhaltlich prüfen lassen (z. B. "Spielplatz" für "playground")
+    if (!ok && question.correctAnswer && !isSpellingContext(`${report?.title ?? ""} ${level.title}`)) {
+      setChecking(true);
+      try {
+        const ctrl = new AbortController();
+        const timer = window.setTimeout(() => ctrl.abort(), 9000);
+        const res = await fetch("/api/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: question.prompt.slice(0, 600), expected: question.correctAnswer.slice(0, 300), accepted: question.acceptedAnswers?.slice(0, 8).map((a) => a.slice(0, 120)), given: given.slice(0, 300), locale: locale === "de" ? "de" : "en" }),
+          signal: ctrl.signal,
+        });
+        window.clearTimeout(timer);
+        if (res.ok) {
+          const json = (await res.json()) as { correct?: boolean; feedback?: string };
+          ok = !!json.correct;
+          setFeedback(json.feedback ?? "");
+        }
+      } catch {
+        // ohne Netz/Antwort bleibt es beim einfachen Vergleich
+      }
+      setChecking(false);
+    }
+    setAiOk(ok);
     setChecked(true);
-    const ok = answerMatches(typedValue, question.correctAnswer ?? "", question.acceptedAnswers, question.prompt);
     awardIfCorrect(ok);
-    onAnswer?.(index, ok, typedValue.trim());
+    onAnswer?.(index, ok, given);
   }
 
   function handleNext() {
@@ -133,6 +162,8 @@ export function LevelPlayer({
       setHidden([]);
       setTypedValue("");
       setChecked(false);
+      setAiOk(false);
+      setFeedback("");
       answeredRef.current = false;
       advancingRef.current = false;
       setIndex((i) => i + 1);
@@ -164,7 +195,9 @@ export function LevelPlayer({
             checked={checked}
             isCorrect={isCorrect}
             onChange={setTypedValue}
-            onSubmit={handleCheckTyped}
+            onSubmit={() => void handleCheckTyped()}
+            checking={checking}
+            feedback={feedback}
           />
         )}
         {snapBurst && <SnapEffect key={snapBurst.key} amount={snapBurst.amount} snapsUnit={t.game.snapsUnit} />}

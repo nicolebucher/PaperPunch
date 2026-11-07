@@ -43,8 +43,27 @@ idiomatic, natural phrasing, never word-for-word translations or invented idioms
 every question, option and explanation once purely for wording, grammar and spelling and fix anything a
 native speaker would find odd.`;
 
+/** Regeln aus dem Tester-Feedback vom 6. Nov. 2026 (Spanisch-Klasse, Englisch-Vokabeln, "zu viele Fachwörter"). */
+const FEEDBACK_RULES = `Rules from learner feedback (important):
+- Foreign-language tasks: whenever the answer must be written in a different language than the question sentence
+  (e.g. a German sentence with a gap that needs a Spanish word), say so explicitly in the question, e.g. "(auf
+  Spanisch)" / "(in English)". Never leave the learner guessing which language to type in.
+- Every gap must have exactly one sensible answer that the learner can work out from the question alone. A sentence
+  like "Pau spielt sehr gut ___" is not allowed (Gitarre? Fußball? Klavier?). For vocabulary gaps give the word to
+  translate in brackets, e.g. "Pau toca muy bien ___ (die Gitarre)." or "Pau spielt sehr gut ___ (auf Spanisch:
+  Gitarre)." For other gaps add a clear clue (definition, context, first letter) when the sentence alone is open.
+- Vocabulary and translation answers: the stored correct answer ("correctAnswer" or "answer") is the most common
+  translation a learner would give (e.g. playground = "Spielplatz", not only "Schulhof"); put every other common
+  correct translation in "acceptedAnswers".
+  For nouns and adjectives with masculine and feminine forms (el despistado / la despistada, Lehrer / Lehrerin),
+  accept both forms, with and without article.
+- When material is attached, only ask about vocabulary, grammar forms and facts that appear in the material (or are
+  directly needed to understand it) - never about words or forms the learner has not met there.
+- Keep the wording of questions simple and age-appropriate: avoid technical terms in the question text unless the
+  term itself is what is being practised; explain briefly in plain words instead.`;
+
 export function contentLanguage(hasMaterial: boolean, locale: Locale, fields: string): string {
-  return `${contentLanguageRule(hasMaterial, locale, fields)}\n\n${NATURAL_LANGUAGE}`;
+  return `${contentLanguageRule(hasMaterial, locale, fields)}\n\n${NATURAL_LANGUAGE}\n\n${FEEDBACK_RULES}`;
 }
 
 function contentLanguageRule(hasMaterial: boolean, locale: Locale, fields: string): string {
