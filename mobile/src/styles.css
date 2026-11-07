@@ -1089,6 +1089,27 @@ h1 .beta { position: relative; top: -3px; }
 .hint-box { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 16px; background: #ecfeff; color: #083344; }
 .hint-box small { font-size: 12px; font-weight: 700; opacity: .8; }
 .hint-word { font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: 800; letter-spacing: .12em; }
+.order-list { display: flex; flex-direction: column; gap: 8px; min-height: 64px; padding: 10px; border-radius: 16px; border: 2px dashed #d4d4d8; background: #fafafa; }
+.order-list.ok { border-style: solid; border-color: #65a30d; background: #f7fee7; }
+.order-list.no { border-style: solid; border-color: #f97316; background: #fff7ed; }
+.order-pool { display: flex; flex-direction: column; gap: 8px; }
+.order-tile { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 8px 14px; border-radius: 14px; border: 2px solid #e4e4e7; border-bottom-width: 4px; background: #fff; color: #111214; font: inherit; font-weight: 800; font-size: 16px; text-align: left; cursor: pointer; transition: transform .12s ease; }
+.order-tile:active { transform: scale(.97); }
+.order-tile.in { border-color: #1fd6ea; background: #ecfeff; }
+.order-tile:disabled { cursor: default; }
+.order-num { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #111214; color: #fff; font-size: 14px; font-weight: 900; }
+
+.sentence-line { display: flex; flex-wrap: wrap; gap: 8px; min-height: 64px; padding: 10px; border-radius: 16px; border: 2px dashed #d4d4d8; background: #fafafa; align-items: center; }
+.sentence-line.ok { border-style: solid; border-color: #65a30d; background: #f7fee7; }
+.sentence-line.no { border-style: solid; border-color: #f97316; background: #fff7ed; }
+.sentence-empty { font-size: 14px; font-weight: 700; padding: 0 4px; }
+.tile-pool { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.word-tile { min-height: 46px; padding: 8px 14px; border-radius: 12px; border: 2px solid #e4e4e7; border-bottom-width: 4px; background: #fff; color: #111214; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer; transition: transform .12s ease; }
+.word-tile:active { transform: scale(.95); }
+.word-tile.in { border-color: #1fd6ea; background: #ecfeff; }
+.word-tile.ghost { visibility: hidden; }
+.word-tile:disabled { cursor: default; }
+
 .match-hint { font-size: 13px; font-weight: 700; margin: 0 0 2px; }
 .match-board { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .match-col { display: flex; flex-direction: column; gap: 8px; }

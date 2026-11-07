@@ -13,7 +13,32 @@ Additionally, include "zuordnen" (matching) questions where the material has nat
     when the content really has such pairs - never force them. Still mix in both other types as described.
 `;
 
-export function buildGameLevelsSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean, match = false): string {
+/** Satz bauen: Wortkärtchen in die richtige Reihenfolge tippen – vor allem für Sprachfächer. */
+const SENTENCE_RULE = `
+Additionally, for language subjects (foreign languages, German/English grammar and word order) include "satzbau"
+(sentence building) questions: the learner gets the words of a sentence as shuffled tiles and taps them into the right
+order.
+  - "satzbau": "prompt" says what to build and gives the meaning, e.g. "Bilde den Satz auf Spanisch: Ich spiele gern
+    Fußball." or "Put the words in the right order: question in the simple past". "correctAnswer" is the target
+    sentence (3-9 words, correctly spelled and punctuated) - its words become the tiles, so never write the target
+    sentence itself in the prompt in the same language. Put every other correct word order that uses exactly the
+    same words into "acceptedAnswers" (e.g. "Gestern bin ich ins Kino gegangen." for "Ich bin gestern ins Kino
+    gegangen."). Leave out options/correctIndex/pairs.
+  - at most 2 "satzbau" questions per level, none in the boss round, only where word order is actually being
+    learned - not for maths, science or history facts.
+`;
+
+/** Reihenfolge: Karten in die richtige Folge tippen (Zeitstrahl, Arbeitsschritte, Abläufe, Größen). */
+const ORDER_RULE = `
+Additionally, include "reihenfolge" (put in order) questions where the material has a real sequence - timeline of
+events, steps of a process or experiment, stages of a cycle, steps of a calculation, numbers or sizes from small to large:
+  - "reihenfolge": "prompt" says what to order and in which direction, e.g. "Bringe die Epochen in die richtige
+    Reihenfolge – von früh nach spät." "items" holds 3-6 short entries (max. ~8 words each) in the CORRECT order;
+    the game shuffles them. There must be exactly one correct order. Leave out options/correctIndex/correctAnswer/pairs.
+  - at most 2 "reihenfolge" questions per level, none in the boss round, and only when the content has a clear sequence.
+`;
+
+export function buildGameLevelsSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean, match = false, sentence = false, order = false): string {
   return `You create the content for a quiz-style learning game for a student.
 
 Target audience: ${describeProfile(profile, hasMaterial)}.
@@ -47,7 +72,7 @@ For every level:
     are no real alternatives. Never put a wrong or merely related answer there.
   - roughly balance the two types across a level's questions rather than using only one or two of
     one type
-${match ? MATCH_RULE : ""}- a short, clear explanation per question of why the answer is correct
+${match ? MATCH_RULE : ""}${sentence ? SENTENCE_RULE : ""}${order ? ORDER_RULE : ""}- a short, clear explanation per question of why the answer is correct
 - questions within a level should vary in wording and example, not repeat each other
 
 Also fill "boss": the final boss round, 6 NEW questions on the same material that are clearly

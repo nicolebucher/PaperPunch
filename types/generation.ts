@@ -129,7 +129,9 @@ export const testSchema = z.object({
 });
 
 const questionBaseSchema = z.object({
-    type: z.enum(["multiple-choice", "lueckentext", "zuordnen"]),
+    type: z.enum(["multiple-choice", "lueckentext", "zuordnen", "satzbau", "reihenfolge"]),
+    // nur "reihenfolge": 3-6 Einträge in der RICHTIGEN Reihenfolge; die Anzeige mischt sie.
+    items: z.array(z.string()).min(2).max(7).optional(),
     prompt: z.string(),
     // nur "zuordnen": 3-5 Paare (links Begriff, rechts Gegenstück); die rechte Spalte mischt die Anzeige.
     pairs: z.array(z.object({ left: z.string(), right: z.string() })).min(2).max(6).optional(),
@@ -150,6 +152,15 @@ export const questionSchema = questionBaseSchema
       if (q.type === "multiple-choice") {
         return !!q.options && q.correctIndex !== undefined && q.correctIndex < q.options.length;
       }
+      if (q.type === "reihenfolge") {
+        const items = (q.items ?? []).map((i) => i.trim().toLowerCase());
+        return items.length >= 3 && items.length <= 6 && items.every(Boolean) && new Set(items).size === items.length;
+      }
+      if (q.type === "satzbau") {
+        // Lösungssatz in "correctAnswer", 3-12 Wörter; die Kärtchen entstehen daraus beim Anzeigen
+        const n = (q.correctAnswer ?? "").trim().split(/\s+/).filter(Boolean).length;
+        return n >= 3 && n <= 12;
+      }
       if (q.type === "zuordnen") {
         const rights = (q.pairs ?? []).map((p) => p.right.trim().toLowerCase());
         return rights.length >= 3 && new Set(rights).size === rights.length && (q.pairs ?? []).every((p) => p.left.trim() !== "" && p.right.trim() !== "");
@@ -158,7 +169,7 @@ export const questionSchema = questionBaseSchema
     },
     {
       message:
-        'A "multiple-choice" question needs "options" and a valid "correctIndex"; a "lueckentext" question needs "correctAnswer" and a "___" gap in "prompt"; a "zuordnen" question needs 3-5 "pairs" with different right sides.',
+        'A "multiple-choice" question needs "options" and a valid "correctIndex"; a "lueckentext" question needs "correctAnswer" and a "___" gap in "prompt"; a "zuordnen" question needs 3-5 "pairs" with different right sides; a "satzbau" question needs the sentence (3-12 words) in "correctAnswer"; a "reihenfolge" question needs 3-6 different "items" in the correct order.',
     }
   );
 export type Question = z.infer<typeof questionSchema>;

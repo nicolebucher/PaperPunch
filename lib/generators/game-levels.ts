@@ -10,12 +10,16 @@ import mockLevelsDe from "./mock/mock-levels.de.json";
 
 const MOCKS: Record<Locale, unknown> = { en: mockLevelsEn, de: mockLevelsDe };
 
-/** match: Zuordnen-Fragen erlaubt (der Client kann sie anzeigen). Ohne Flag werden sie sicherheitshalber entfernt. */
-export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFileBlock[], locale: Locale, match = false): Promise<GameData> {
+/** Neue Fragetypen ("zuordnen", "satzbau", "reihenfolge") nur, wenn der Client sie anzeigen kann – sonst werden sie entfernt. */
+export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFileBlock[], locale: Locale, extraTypes: string[] = []): Promise<GameData> {
+  const match = extraTypes.includes("zuordnen");
+  const sentence = extraTypes.includes("satzbau");
+  const order = extraTypes.includes("reihenfolge");
+  const allowed = (q: { type: string }) => q.type === "multiple-choice" || q.type === "lueckentext" || extraTypes.includes(q.type);
   const data = isMockMode()
     ? gameSchema.parse(MOCKS[locale])
     : await generateStructuredOutput({
-        system: buildGameLevelsSystemPrompt(profile, locale, fileBlocks.length > 0, match),
+        system: buildGameLevelsSystemPrompt(profile, locale, fileBlocks.length > 0, match, sentence, order),
         userContent: [...fileBlocks, { type: "text", text: fileBlocks.length > 0 ? "Create the levels for the learning game from this material." : "Create the levels for the learning game for this topic." }],
         schema: gameSchema,
         toolName: "create_game_levels",
@@ -27,8 +31,8 @@ export async function generateGameLevels(profile: Profile, fileBlocks: ClaudeFil
   const { boss, ...rest } = data;
   return {
     ...rest,
-    levels: data.levels.map((level) => ({ ...level, questions: shuffleQuestionOptions(match ? level.questions : level.questions.filter((q) => q.type !== "zuordnen")) })),
-    ...bossRound(boss?.filter((q) => q.type !== "zuordnen")),
+    levels: data.levels.map((level) => ({ ...level, questions: shuffleQuestionOptions(level.questions.filter(allowed)) })),
+    ...bossRound(boss?.filter((q) => q.type === "multiple-choice" || q.type === "lueckentext")),
   };
 }
 

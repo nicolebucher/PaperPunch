@@ -220,3 +220,52 @@ export function splitLanguageNote(question: string): { text: string; note: strin
   if (m && question.length > m[0].length) return { text: tidy(question.slice(m[0].length)), note: cap(m[1].replace(/\s+/g, " ")) };
   return { text: question, note: null };
 }
+
+/** Satz bauen: Wortkärtchen aus dem Lösungssatz, fest gemischt (nie in der richtigen Reihenfolge). Satzzeichen am
+ *  Satzanfang/-ende (¿ ¡ . ! ?) kommen nicht auf die Kärtchen – sie zählen beim Prüfen ohnehin nicht. */
+export function sentenceTiles(answer: string, seedText: string): string[] {
+  const words = answer.trim().replace(/^[¿¡"„“'«]+/, "").replace(/[.!?…"“”'»]+$/, "").split(/\s+/).filter(Boolean);
+  return orderTiles(words, seedText);
+}
+
+/** Reihenfolge: Einträge fest gemischt, nie in der richtigen Reihenfolge (auch Grundlage für die Satz-Kärtchen). */
+export function orderTiles(items: string[], seedText: string): string[] {
+  const words = items;
+  if (words.length < 2) return [...words];
+  let seed = 2166136261;
+  for (const ch of seedText) seed = Math.imul(seed ^ ch.charCodeAt(0), 16777619);
+  const rand = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  let out = [...words];
+  for (let tries = 0; tries < 12 && (tries === 0 || out.join(" ") === words.join(" ")); tries++) {
+    out = [...words];
+    for (let i = out.length - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [out[i], out[j]] = [out[j], out[i]];
+    }
+  }
+  if (out.join(" ") === words.join(" ")) out = [...words.slice(1), words[0]];
+  return out;
+}
+
+/** Gebauten Satz prüfen: Reihenfolge zählt, Groß/klein und Satzzeichen nicht; andere richtige Wortstellungen aus acceptedAnswers zählen auch. */
+export function sentenceMatches(built: string, answer: string, accepted: string[] = []): boolean {
+  const key = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[¿¡.,!?;:…"„“”'«»()]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  const b = key(built);
+  return b !== "" && [answer, ...accepted].some((a) => key(a) === b);
+}
+
+/** Reihenfolge prüfen: gleiche Einträge in derselben Folge (Groß/klein und Leerzeichen egal). */
+export function orderMatches(built: string[], items: string[]): boolean {
+  const k = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  return built.length === items.length && built.every((b, i) => k(b) === k(items[i]));
+}

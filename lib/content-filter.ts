@@ -66,6 +66,7 @@ export function checkSharedGame(game: GameData): ContentProblem | null {
     for (const o of q.options ?? []) texts.push([o, LIMITS.option]);
     if (q.correctAnswer) texts.push([q.correctAnswer, LIMITS.answer]);
     for (const a of q.acceptedAnswers ?? []) texts.push([a, LIMITS.answer]);
+    for (const it of q.items ?? []) texts.push([it, LIMITS.option]);
     for (const p of q.pairs ?? []) texts.push([p.left, LIMITS.option], [p.right, LIMITS.option]);
   }
   if (texts.some(([t, max]) => t.length > max)) return "too-long";

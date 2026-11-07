@@ -7,7 +7,8 @@ import { PunchIcon } from "../rewards";
 import { POINTS, spend, totalPunches, type RewardLine } from "../punches";
 import { hapticRight, hapticWin, hapticWrong } from "../feedback";
 import { checkTypedAnswer } from "../api";
-import { answerHint, isSpellingContext, splitLanguageNote } from "../answerMatch";
+import { answerHint, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles, splitLanguageNote } from "../answerMatch";
+import { TileBoard } from "../TileBoard";
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
@@ -21,6 +22,7 @@ const BOSS_REVANCHE = 3;
 
 function answerOf(q: Question): string {
   if (q.type === "zuordnen") return (q.pairs ?? []).map((p) => `${p.left} → ${p.right}`).join("; ");
+  if (q.type === "reihenfolge") return (q.items ?? []).join(" → ");
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
 }
 /** Doppelte Antwortoptionen (kommt bei KI-Fragen vor) nur einmal zeigen – sonst leuchten zwei gleiche Knöpfe auf. */
@@ -235,6 +237,8 @@ function LevelPlay({
   const [checkFailedOnce, setCheckFailedOnce] = useState(false);
   // Zuordnen: linke Zeile → Index in der gemischten rechten Spalte
   const [link, setLink] = useState<Record<number, number>>({});
+  // Satz bauen / Reihenfolge: angetippte Kärtchen in Reihenfolge
+  const [picked, setPicked] = useState<number[]>([]);
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
   const [end, setEnd] = useState(false);
@@ -253,6 +257,28 @@ function LevelPlay({
   const isMatch = q.type === "zuordnen" && (q.pairs?.length ?? 0) >= 2;
   const rights = useMemo(() => (isMatch ? matchRights(q.pairs ?? [], q.prompt) : []), [q, isMatch]);
   const allLinked = isMatch && (q.pairs ?? []).every((_, i) => link[i] !== undefined);
+  const tileMode: "sentence" | "order" | null =
+    q.type === "satzbau" && (q.correctAnswer ?? "").trim().includes(" ") ? "sentence" : q.type === "reihenfolge" && (q.items?.length ?? 0) >= 2 ? "order" : null;
+  const tiles = useMemo(
+    () => (tileMode === "sentence" ? sentenceTiles(q.correctAnswer ?? "", q.prompt) : tileMode === "order" ? orderTiles(q.items ?? [], q.prompt) : []),
+    [q, tileMode]
+  );
+  const builtRight = (p: number[]) =>
+    tileMode === "sentence" ? sentenceMatches(p.map((i) => tiles[i]).join(" "), q.correctAnswer ?? "", q.acceptedAnswers) : orderMatches(p.map((i) => tiles[i]), q.items ?? []);
+
+  /** Satz bauen / Reihenfolge prüfen: falsch → 2. Versuch, der richtige Anfang bleibt stehen; danach Auflösung. */
+  function submitTiles() {
+    if (!tileMode || answered || picked.length !== tiles.length) return;
+    if (builtRight(picked)) return handle(true);
+    if (status !== "retry") {
+      const target = tileMode === "order" ? q.items ?? [] : (q.correctAnswer ?? "").trim().replace(/^[¿¡"„“'«]+/, "").replace(/[.!?…"“”'»]+$/, "").split(/\s+/);
+      const k = (s: string) => s.trim().toLowerCase();
+      let n = 0;
+      while (n < picked.length && n < target.length && k(tiles[picked[n]]) === k(target[n])) n++;
+      setPicked(picked.slice(0, n));
+    }
+    handle(false);
+  }
 
   /** Zuordnen prüfen: alles richtig → wie richtige Antwort; sonst 2. Versuch (richtige Paare bleiben stehen),
    *  danach Auflösung mit anteiligen Punches für die richtig verbundenen Paare. */
@@ -379,6 +405,7 @@ function LevelPlay({
     setGaveUp(false);
     setUsedHint(false);
     setLink({});
+    setPicked([]);
     setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
@@ -412,6 +439,7 @@ function LevelPlay({
     setGaveUp(false);
     setUsedHint(false);
     setLink({});
+    setPicked([]);
     setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
@@ -514,6 +542,15 @@ function LevelPlay({
               );
             })}
           </div>
+        ) : tileMode ? (
+          <div className="stack">
+            <TileBoard mode={tileMode} tiles={tiles} picked={picked} onPick={setPicked} solved={answered} ok={ok} />
+            {!answered && (
+              <button type="button" className="btn dark block" disabled={picked.length !== tiles.length} onClick={submitTiles}>
+                {secondTry ? t.checkAgain : t.check}
+              </button>
+            )}
+          </div>
         ) : isMatch ? (
           <div className="stack">
             <MatchBoard pairs={q.pairs ?? []} rights={rights} link={link} onLink={setLink} solved={answered} />
@@ -581,7 +618,7 @@ function LevelPlay({
 
         {answered && (
           <div className={ok ? "feedback ok" : "feedback no"} role="status">
-            <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : isMatch ? t.matchSolved : gaveUp ? t.solutionIs(answer) : t.wrong(answer)}</span>
+            <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : isMatch ? t.matchSolved : tileMode === "sentence" ? t.sentenceSolution(answer) : tileMode === "order" ? `${t.orderSolution} ${answer}` : gaveUp ? t.solutionIs(answer) : t.wrong(answer)}</span>
             {ok && hint && <span style={{ fontWeight: 700 }}>{hint}</span>}
             <span>{q.explanation}</span>
           </div>
