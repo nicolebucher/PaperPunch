@@ -9,8 +9,9 @@ import { SnapIcon } from "@/components/icons/ActionIcons";
 import { QuestionCard } from "./QuestionCard";
 import { FillBlankCard } from "./FillBlankCard";
 import { isRightLink, MatchCard, matchRights } from "./MatchCard";
+import { TileCard } from "./TileCard";
 import { SnapEffect } from "./SnapEffect";
-import { answerHint, answerMatches, isSpellingContext } from "@/lib/answer-match";
+import { answerHint, answerMatches, isSpellingContext, orderMatches, orderTiles, sentenceMatches, sentenceTiles } from "@/lib/answer-match";
 import { ReportProblem } from "@/components/ReportProblem";
 
 export interface LevelResult {
@@ -50,6 +51,8 @@ export function LevelPlayer({
   const [feedback, setFeedback] = useState("");
   // Tipp (erster Buchstabe je Wort) bei Lückenfragen – dann halbe Snaps, wie in der App
   const [usedHint, setUsedHint] = useState(false);
+  // Satz bauen / Reihenfolge: angetippte Kärtchen in Reihenfolge (2. Versuch/fertig wie beim Zuordnen)
+  const [picked, setPicked] = useState<number[]>([]);
   // Zuordnen: Verbindungen (linke Zeile → Index rechts), 2. Versuch, fertig
   const [link, setLink] = useState<Record<number, number>>({});
   const [matchRetry, setMatchRetry] = useState(false);
@@ -81,8 +84,26 @@ export function LevelPlayer({
   const pairs = useMemo(() => (isMatch ? question.pairs ?? [] : []), [isMatch, question]);
   const rights = useMemo(() => matchRights(pairs, question.prompt), [pairs, question.prompt]);
   const matchRight = pairs.length > 0 && pairs.every((p, i) => isRightLink(p, rights, link[i]));
-  const answered = isMatch ? matchDone : isMultipleChoice ? selected !== null : checked;
-  const isCorrect = isMatch
+  const tileMode: "sentence" | "order" | null =
+    question.type === "satzbau" && (question.correctAnswer ?? "").trim().includes(" ")
+      ? "sentence"
+      : question.type === "reihenfolge" && (question.items?.length ?? 0) >= 2
+      ? "order"
+      : null;
+  const tiles = useMemo(
+    () => (tileMode === "sentence" ? sentenceTiles(question.correctAnswer ?? "", question.prompt) : tileMode === "order" ? orderTiles(question.items ?? [], question.prompt) : []),
+    [tileMode, question]
+  );
+  const builtRight =
+    tileMode === "sentence"
+      ? sentenceMatches(picked.map((i) => tiles[i]).join(" "), question.correctAnswer ?? "", question.acceptedAnswers)
+      : tileMode === "order"
+      ? orderMatches(picked.map((i) => tiles[i]), question.items ?? [])
+      : false;
+  const answered = isMatch || tileMode ? matchDone : isMultipleChoice ? selected !== null : checked;
+  const isCorrect = tileMode
+    ? matchDone && builtRight
+    : isMatch
     ? matchDone && matchRight
     : isMultipleChoice
     ? answered && selected === question.correctIndex
@@ -90,7 +111,7 @@ export function LevelPlayer({
   const baseSnaps = SNAPS_BY_DIFFICULTY[level.difficulty] ?? 10;
   const snapsForThisQuestion = usedHint ? Math.round(baseSnaps / 2) : baseSnaps;
   const hintText =
-    !isMultipleChoice && !isMatch && !isSpellingContext(`${report?.subject ?? ""} ${report?.title ?? ""} ${level.title}`)
+    question.type === "lueckentext" && !isSpellingContext(`${report?.subject ?? ""} ${report?.title ?? ""} ${level.title}`)
       ? answerHint(question.correctAnswer ?? "")
       : null;
 
@@ -201,6 +222,35 @@ export function LevelPlayer({
     onAnswer?.(index, false, given);
   }
 
+  /** Satz bauen / Reihenfolge prüfen: falsch → 2. Versuch (richtiger Anfang bleibt stehen), danach Auflösung. */
+  function handleCheckTiles() {
+    if (answeredRef.current || !tileMode || picked.length !== tiles.length) return;
+    const given = picked.map((i) => tiles[i]).join(tileMode === "order" ? " → " : " ");
+    if (builtRight) {
+      answeredRef.current = true;
+      setMatchDone(true);
+      const amount = matchRetry ? Math.round(baseSnaps / 2) : baseSnaps;
+      setCorrectCount((c) => c + 1);
+      onSnap(amount);
+      setSnapBurst({ key: Date.now(), amount });
+      onAnswer?.(index, true, given);
+      return;
+    }
+    if (!matchRetry) {
+      const target =
+        tileMode === "order" ? question.items ?? [] : (question.correctAnswer ?? "").trim().replace(/^[¿¡"„“'«]+/, "").replace(/[.!?…"“”'»]+$/, "").split(/\s+/);
+      const k = (s: string) => s.trim().toLowerCase();
+      let n = 0;
+      while (n < picked.length && n < target.length && k(tiles[picked[n]]) === k(target[n])) n++;
+      setPicked(picked.slice(0, n));
+      setMatchRetry(true);
+      return;
+    }
+    answeredRef.current = true;
+    setMatchDone(true);
+    onAnswer?.(index, false, given);
+  }
+
   function handleNext() {
     if (advancingRef.current) return;
     advancingRef.current = true;
@@ -219,6 +269,7 @@ export function LevelPlayer({
       setFeedback("");
       setUsedHint(false);
       setLink({});
+      setPicked([]);
       setMatchRetry(false);
       setMatchDone(false);
       answeredRef.current = false;
@@ -243,7 +294,9 @@ export function LevelPlayer({
       </div>
       <h2 className="mb-4 text-sm font-extrabold text-[#1fd6ea]">{level.title} · {index + 1}/{level.questions.length}</h2>
       <div className="relative">
-        {isMatch ? (
+        {tileMode ? (
+          <TileCard mode={tileMode} prompt={question.prompt} tiles={tiles} picked={picked} onPick={setPicked} solved={matchDone} ok={builtRight} retry={matchRetry} onSubmit={handleCheckTiles} locale={locale} />
+        ) : isMatch ? (
           <MatchCard prompt={question.prompt} pairs={pairs} rights={rights} link={link} onLink={setLink} solved={matchDone} retry={matchRetry} onSubmit={handleCheckMatch} locale={locale} />
         ) : isMultipleChoice ? (
           <QuestionCard question={question} selected={selected} onSelect={handleSelect} hidden={hidden} />
@@ -298,7 +351,8 @@ export function LevelPlayer({
         >
           <p className="mb-1 text-lg font-black">{isCorrect ? t.game.correct : t.game.wrong}</p>
           {!isCorrect && isMatch && <p className="mb-1">{locale === "de" ? "Oben siehst du, wie die Paare zusammengehören." : "Above you can see how the pairs go together."}</p>}
-          {!isCorrect && !isMultipleChoice && !isMatch && (
+          {!isCorrect && tileMode === "order" && <p className="mb-1">{(locale === "de" ? "Richtige Reihenfolge: " : "Right order: ") + (question.items ?? []).join(" → ")}</p>}
+          {!isCorrect && !isMultipleChoice && !isMatch && tileMode !== "order" && (
             <p className="mb-1">{t.game.correctAnswerWas(question.correctAnswer ?? "")}</p>
           )}
           <p>{question.explanation}</p>
@@ -320,9 +374,9 @@ export function LevelPlayer({
           subject: report?.subject,
           level: level.title,
           question: question.prompt,
-          expected: isMatch ? pairs.map((p) => `${p.left} = ${p.right}`).join("; ") : isMultipleChoice ? question.options?.[question.correctIndex ?? 0] : question.correctAnswer,
+          expected: tileMode === "order" ? (question.items ?? []).join(" → ") : isMatch ? pairs.map((p) => `${p.left} = ${p.right}`).join("; ") : isMultipleChoice ? question.options?.[question.correctIndex ?? 0] : question.correctAnswer,
           options: isMultipleChoice ? question.options : question.acceptedAnswers,
-          given: isMatch ? pairs.map((p, i) => `${p.left} = ${link[i] !== undefined ? rights[link[i]] : "–"}`).join("; ") : isMultipleChoice ? (selected !== null ? question.options?.[selected] : undefined) : typedValue.trim() || undefined,
+          given: tileMode ? picked.map((i) => tiles[i]).join(tileMode === "order" ? " → " : " ") || undefined : isMatch ? pairs.map((p, i) => `${p.left} = ${link[i] !== undefined ? rights[link[i]] : "–"}`).join("; ") : isMultipleChoice ? (selected !== null ? question.options?.[selected] : undefined) : typedValue.trim() || undefined,
         }}
       />}
     </div>

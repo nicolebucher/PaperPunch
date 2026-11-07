@@ -164,8 +164,10 @@ async function handleGenerate(request: NextRequest) {
       }
 
       if (format === "game") {
-        // "match=1": Website und neue App können Zuordnen-Fragen im Spiel anzeigen
-        const game = await generateGameLevels(profile, fileBlocks, locale, formData.get("match") === "1");
+        // "gameTypes": neue Fragetypen, die der Client im Spiel anzeigen kann ("match=1" = nur Zuordnen, Website v0.24.0)
+        const gameTypes = String(formData.get("gameTypes") ?? "").split(",").map((s) => s.trim()).filter((s) => s === "zuordnen" || s === "satzbau" || s === "reihenfolge");
+        if (formData.get("match") === "1" && !gameTypes.includes("zuordnen")) gameTypes.push("zuordnen");
+        const game = await generateGameLevels(profile, fileBlocks, locale, gameTypes);
         await track("Material generated", { format });
         return NextResponse.json({ game });
       }

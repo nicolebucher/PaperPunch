@@ -17,7 +17,8 @@ export const maxDuration = 120;
 const str = (max: number) => z.string().max(max);
 // Eingehende Fragen nur grob prüfen (sie stammen aus dem eigenen Spiel), Längen begrenzen.
 const inQuestion = z.object({
-  type: z.enum(["multiple-choice", "lueckentext", "zuordnen"]),
+  type: z.enum(["multiple-choice", "lueckentext", "zuordnen", "satzbau", "reihenfolge"]),
+  items: z.array(str(160)).max(7).optional(),
   prompt: str(600),
   pairs: z.array(z.object({ left: str(120), right: str(120) })).max(6).optional(),
   options: z.array(str(200)).max(6).optional(),
@@ -59,7 +60,9 @@ export async function POST(request: NextRequest) {
 }
 
 const describeQ = (q: z.infer<typeof inQuestion>) =>
-  q.type === "zuordnen"
+  q.type === "reihenfolge"
+    ? `${q.prompt} | order: ${(q.items ?? []).join(" → ")}`
+    : q.type === "zuordnen"
     ? `${q.prompt} | pairs: ${(q.pairs ?? []).map((p) => `${p.left} = ${p.right}`).join(" / ")}`
     : q.type === "multiple-choice"
     ? `${q.prompt} | options: ${(q.options ?? []).join(" / ")} | correct: ${(q.options ?? [])[q.correctIndex ?? 0] ?? "?"}`

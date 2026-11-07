@@ -357,7 +357,9 @@ export async function teacherReport(code: string, key: string): Promise<TeacherR
       const agg = qmap.get(`${level.id}:${i}`);
       if (!agg) return;
       const correct =
-        q.type === "zuordnen"
+        q.type === "reihenfolge"
+          ? (q.items ?? []).join(" → ")
+          : q.type === "zuordnen"
           ? (q.pairs ?? []).map((p) => `${p.left} = ${p.right}`).join(" · ")
           : q.type === "multiple-choice" ? (q.options ?? [])[q.correctIndex ?? 0] ?? "" : q.correctAnswer ?? "";
       questions.push({

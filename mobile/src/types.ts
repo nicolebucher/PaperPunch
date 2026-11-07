@@ -51,7 +51,9 @@ export interface SheetResult {
 }
 
 export interface Question {
-  type: "multiple-choice" | "lueckentext" | "zuordnen";
+  type: "multiple-choice" | "lueckentext" | "zuordnen" | "satzbau" | "reihenfolge";
+  /** nur "reihenfolge": Einträge in der richtigen Reihenfolge (die Anzeige mischt sie) */
+  items?: string[];
   prompt: string;
   /** nur "zuordnen" (Spiele): 3–5 Paare, rechte Spalte wird gemischt */
   pairs?: { left: string; right: string }[];

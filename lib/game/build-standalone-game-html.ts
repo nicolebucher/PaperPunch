@@ -10,8 +10,8 @@ import { t, type Locale } from "@/lib/i18n/translations";
 export function buildStandaloneGameHtml(game: GameData, locale: Locale): string {
   const labels = t(locale);
   // </script> im generierten Text darf das Script-Tag nicht vorzeitig beenden.
-  // Die HTML-Datei kennt nur Auswahl- und Lückenfragen – Zuordnen-Fragen bleiben draußen
-  const plain = { ...game, levels: game.levels.map((l) => ({ ...l, questions: l.questions.filter((q) => q.type !== "zuordnen") })).filter((l) => l.questions.length > 0) };
+  // Die HTML-Datei kennt nur Auswahl- und Lückenfragen – Zuordnen- und Satzbau-Fragen bleiben draußen
+  const plain = { ...game, levels: game.levels.map((l) => ({ ...l, questions: l.questions.filter((q) => q.type === "multiple-choice" || q.type === "lueckentext") })).filter((l) => l.questions.length > 0) };
   const safeJson = JSON.stringify(plain).replace(/</g, "\\u003c");
   const difficultyMap = JSON.stringify(labels.difficulty).replace(/</g, "\\u003c");
   const strings = JSON.stringify({

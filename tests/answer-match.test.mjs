@@ -96,3 +96,38 @@ test("splitLanguageNote moves the answer-language note out of the question", asy
   assert.deepEqual(splitLanguageNote("Pau toca muy bien ___ (die Gitarre)."), { text: "Pau toca muy bien ___ (die Gitarre).", note: null });
   assert.deepEqual(splitLanguageNote("Was ist 3/4 von 12?"), { text: "Was ist 3/4 von 12?", note: null });
 });
+
+test("sentence building: tiles are shuffled, check ignores case and punctuation", async () => {
+  const { sentenceTiles, sentenceMatches } = await import("../lib/answer-match.ts");
+  const tiles = sentenceTiles("¿Cómo te llamas?", "q1");
+  assert.deepEqual([...tiles].sort(), ["Cómo", "llamas", "te"].sort());
+  assert.notEqual(tiles.join(" "), "Cómo te llamas");
+  assert.equal(sentenceTiles("Me gusta jugar al fútbol.", "x").length, 5);
+  assert.ok(sentenceMatches("cómo te llamas", "¿Cómo te llamas?"));
+  assert.ok(!sentenceMatches("te cómo llamas", "¿Cómo te llamas?"));
+  assert.ok(sentenceMatches("Gestern bin ich ins Kino gegangen", "Ich bin gestern ins Kino gegangen.", ["Gestern bin ich ins Kino gegangen."]));
+  assert.ok(!sentenceMatches("", "Hallo Welt"));
+});
+
+test("order: tiles shuffled, exact order required", async () => {
+  const { orderTiles, orderMatches } = await import("../lib/answer-match.ts");
+  const items = ["Eiszeit", "Römer", "Mittelalter", "Neuzeit"];
+  const t = orderTiles(items, "q");
+  assert.notDeepEqual(t, items);
+  assert.deepEqual([...t].sort(), [...items].sort());
+  assert.ok(orderMatches(["eiszeit", "Römer", "Mittelalter", "Neuzeit"], items));
+  assert.ok(!orderMatches(["Römer", "Eiszeit", "Mittelalter", "Neuzeit"], items));
+});
+
+test("order/sentence shuffle: at most a third in place, first entry never first", async () => {
+  const { orderTiles, sentenceTiles } = await import("../lib/answer-match.ts");
+  for (let n = 3; n <= 9; n++) {
+    const items = Array.from({ length: n }, (_, i) => `w${i}`);
+    for (let s = 0; s < 200; s++) {
+      const t = orderTiles(items, `seed-${n}-${s}`);
+      assert.ok(t.filter((v, i) => v === items[i]).length <= Math.floor(n / 3), `n=${n} s=${s}`);
+      assert.notEqual(t[0], items[0]);
+    }
+  }
+  assert.notEqual(sentenceTiles("Ich spiele gern Fußball.", "a")[0], "Ich");
+});
