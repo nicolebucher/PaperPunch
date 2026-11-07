@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteJob, isJobId, readJob } from "@/lib/jobs";
+import { deleteJob, isJobId, jobStatus, readJob } from "@/lib/jobs";
 import { preflight, withCors } from "@/lib/cors";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, { params }: Ctx) {
   if (!isJobId(id)) return withCors(request, NextResponse.json({ error: "invalid" }, { status: 400 }));
   try {
     const job = await readJob(id);
-    const response = NextResponse.json(job ?? { status: "running" });
+    const response = NextResponse.json(jobStatus(job));
     response.headers.set("Cache-Control", "no-store");
     return withCors(request, response);
   } catch (error) {

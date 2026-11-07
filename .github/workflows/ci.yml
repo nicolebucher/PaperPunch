@@ -1,0 +1,29 @@
+# Schnelle Prüfung bei jedem Push und Pull Request: Typen, ESLint, Unit-Tests (Security-Review L7).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: TypeScript
+        # PageProps/LayoutProps erzeugt Next.js selbst (sonst nur beim Build), daher erst typegen
+        run: npx next typegen && npx tsc --noEmit -p .
+      - name: ESLint
+        run: npx eslint .
+      - name: Unit tests
+        run: npm test

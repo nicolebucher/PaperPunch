@@ -9,6 +9,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { locales, t, type Locale } from "@/lib/i18n/translations";
 import { preflight, withCors } from "@/lib/cors";
 
+const tagSafe = (s: string) => s.replace(/</g, "‹").replace(/>/g, "›");
+
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
@@ -60,7 +62,8 @@ async function handleCheck(request: NextRequest) {
       userContent: [
         {
           type: "text",
-          text: `Question: ${body.question}\nExpected answer: ${body.expected}${body.accepted?.length ? `\nAlso accepted: ${body.accepted.join("; ")}` : ""}\nStudent's answer: ${body.given}`,
+          // Schülerantwort klar als Daten markieren (Security-Review L6); spitze Klammern werden zu ‹ ›, damit niemand die Tags schließt
+          text: `<question>${tagSafe(body.question)}</question>\n<expected_answer>${tagSafe(body.expected)}</expected_answer>${body.accepted?.length ? `\n<also_accepted>${tagSafe(body.accepted.join("; "))}</also_accepted>` : ""}\n<student_answer>${tagSafe(body.given)}</student_answer>`,
         },
       ],
       schema: answerCheckSchema,

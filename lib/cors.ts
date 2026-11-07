@@ -3,14 +3,19 @@ import { NextResponse } from "next/server";
 // Die Android-App (Capacitor) lädt ihre Oberfläche lokal und ruft die API von einer anderen
 // Origin auf. Erlaubt sind die Capacitor-Origins plus die Domains aus APP_ALLOWED_ORIGINS
 // (kommagetrennt, z.B. die Vercel-Vorschau der App).
-const BUILT_IN = ["capacitor://localhost", "https://localhost", "http://localhost", "http://localhost:5173"];
+// https://localhost ist die Origin der Android-App (Capacitor 7), capacitor://localhost die von iOS.
+// http://localhost und der Vite-Dev-Server gelten nur außerhalb der Produktion (Security-Review L3).
+const APP_ORIGINS = ["capacitor://localhost", "https://localhost"];
+const DEV_ORIGINS = ["http://localhost", "http://localhost:5173"];
+const BUILT_IN = [...APP_ORIGINS, ...DEV_ORIGINS];
 
 function allowedOrigins(): string[] {
   const extra = (process.env.APP_ALLOWED_ORIGINS ?? "")
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
-  return [...BUILT_IN, ...extra];
+  const builtIn = process.env.VERCEL_ENV === "production" ? APP_ORIGINS : BUILT_IN;
+  return [...builtIn, ...extra];
 }
 
 // Vorschau-Deployments der App (eigenes Vercel-Projekt "paperpunch-app") haben wechselnde Adressen.
