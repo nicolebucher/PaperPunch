@@ -7,6 +7,15 @@ How everything is set up (tools, accounts, domains, email): https://claude.ai/ar
 - **v0.x** = beta phase before the Play Store launch. New features bump the second digit (v0.3), pure bug fixes the third (v0.2.1).
 - **v1.0** = first public release in the Play Store.
 
+## v0.27.0 – 7 November 2026 (website; the app part ships with the next app build)
+
+“What's new” message.
+
+| Area | Change |
+| --- | --- |
+| Website + App | After an update a short “Neu bei PaperPunch ✨ / New in PaperPunch ✨” sheet shows once, in the chosen language (German or English): 3–4 short, kid-friendly points with emoji and a “Cool, let's go!” button. Brand-new users (no Punches, no materials yet) don't get it. Readable again any time: website menu “Was ist neu / What's new”, app settings “✨ Was ist neu” |
+| Tech | One shared list in lib/whats-new.ts = mobile/src/whatsNew.ts (new entry = add on top with the next id); the device remembers the last seen id (localStorage). First entry: speed round, new game questions, hint button, step-by-step online solving |
+
 ## v0.26.0 – 7 November 2026 (website; the app part ships with the next app build)
 
 Speed round in learning games.

@@ -1089,6 +1089,14 @@ h1 .beta { position: relative; top: -3px; }
 .hint-box { display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-radius: 16px; background: #ecfeff; color: #083344; }
 .hint-box small { font-size: 12px; font-weight: 700; opacity: .8; }
 .hint-word { font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: 800; letter-spacing: .12em; }
+.whatsnew { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; background: rgba(0,0,0,.55); padding: 12px; }
+.whatsnew-sheet { width: 100%; max-width: 440px; max-height: 85dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; padding: 24px 20px calc(20px + env(safe-area-inset-bottom)); border-radius: 28px; background: #fff; color: #111214; animation: whatsnew-up .3s ease-out; }
+.whatsnew-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.whatsnew-list li { display: flex; gap: 12px; padding: 12px 14px; border-radius: 16px; background: #f4f4f5; font-size: 15px; font-weight: 600; line-height: 1.35; }
+.whatsnew-list li > span:first-child { flex: none; width: 28px; text-align: center; font-size: 20px; }
+.linklike { background: none; border: 0; padding: 0; font: inherit; text-align: left; cursor: pointer; }
+@keyframes whatsnew-up { from { transform: translateY(40px); opacity: 0; } }
+
 .blitz-time { flex: none; min-width: 42px; text-align: right; font-weight: 900; font-size: 17px; font-variant-numeric: tabular-nums; }
 .blitz-bar > div { background: var(--pink); transition: width .2s linear; }
 .blitz-bar.hurry { animation: blitz-pulse .8s ease-in-out infinite; }

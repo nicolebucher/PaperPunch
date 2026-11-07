@@ -1,3 +1,4 @@
+import { openWhatsNew } from "../WhatsNew";
 import { useEffect, useState, type ReactNode } from "react";
 import { COUNTRIES, getCountry, guessCountry, type CountryCode } from "../countries";
 import { DICTS, deviceLang, LangProvider, type Lang } from "../i18n";
@@ -119,6 +120,7 @@ export function Onboarding({ initial, isSettings, onSave, onBack }: { initial: P
               <span className="field-label">{t.contactTitle}</span>
               <span className="muted" style={{ fontSize: 15 }}>{t.contactText}</span>
               <a href="mailto:hello@paper-punch.com" className="contact-link">hello@paper-punch.com</a>
+              <button type="button" className="contact-link linklike" onClick={openWhatsNew}>{t.whatsNewLink}</button>
               <span className="legal-links">
                 <a href="https://paper-punch.com/terms" target="_blank" rel="noopener noreferrer">{t.legalTerms}</a>
                 <a href="https://paper-punch.com/privacy" target="_blank" rel="noopener noreferrer">{t.legalPrivacy}</a>

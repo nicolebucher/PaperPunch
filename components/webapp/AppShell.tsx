@@ -7,6 +7,7 @@ import { useState, type ReactNode } from "react";
 import { useLanguage } from "@/lib/i18n/language-context";
 import { AppIcon, BrandMark, RecommendButton, useAppText } from "./ui";
 import { PunchBadge } from "./PunchBadge";
+import { openWhatsNew, WhatsNew } from "./WhatsNew";
 import { openConsentSettings } from "@/components/consent/ConsentAnalytics";
 
 // Die App ist noch im geschlossenen Test – die Karte führt zur Infoseite mit Beta-Anmeldung.
@@ -51,6 +52,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Link>
       ))}
       <RecommendButton className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-[15px] font-bold text-zinc-400 hover:text-zinc-100" />
+      <button type="button" onClick={() => { setMenu(false); openWhatsNew(); }} className="flex items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-[15px] font-bold text-zinc-400 hover:text-zinc-100">
+        <span className="grid w-5 place-items-center text-base" aria-hidden="true">✨</span>
+        {locale === "de" ? "Was ist neu" : "What's new"}
+      </button>
     </>
   );
 
@@ -108,6 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         )}
         <main className="mx-auto flex w-full max-w-[1000px] flex-1 flex-col px-4 pb-8 lg:px-11 lg:pb-8 lg:pt-2">{children}</main>
+        <WhatsNew />
       </div>
     </div>
   );

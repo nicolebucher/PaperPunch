@@ -28,6 +28,7 @@ import { PlanView } from "./screens/PlanView";
 import { GoHomeContext, Toast } from "./ui";
 import { activeChild, childLabel, isParent, kidsOf } from "./children";
 import { UpdateBanner } from "./appUpdate";
+import { WhatsNew } from "./WhatsNew";
 
 /** Wenn Material aus einer Plan-Einheit stammt, merkt sich die App die Einheit. */
 export interface SessionRef {
@@ -630,6 +631,7 @@ function AppInner() {
         <div className="offline-bar" role="status">{t.offlineBar}</div>
       )}
       <UpdateBanner visible={!splash && !undoItem && !toast && (view.name === "home" || view.name === "materials" || view.name === "plan")} />
+      <WhatsNew ready={!splash && view.name === "home"} />
       {splash && <Splash onDone={endSplash} />}
     </LangProvider>
   );
