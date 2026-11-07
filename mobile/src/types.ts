@@ -51,8 +51,10 @@ export interface SheetResult {
 }
 
 export interface Question {
-  type: "multiple-choice" | "lueckentext";
+  type: "multiple-choice" | "lueckentext" | "zuordnen";
   prompt: string;
+  /** nur "zuordnen" (Spiele): 3–5 Paare, rechte Spalte wird gemischt */
+  pairs?: { left: string; right: string }[];
   options?: string[];
   correctIndex?: number;
   correctAnswer?: string;

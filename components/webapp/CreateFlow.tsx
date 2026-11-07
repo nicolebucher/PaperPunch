@@ -99,6 +99,7 @@ export function CreateFlow({ mode, topic, notes: initialNotes, format: initialFo
     body.set("format", format);
     body.set("locale", locale);
     body.set("device", deviceId());
+    body.set("match", "1"); // Zuordnen-Fragen im Spiel
     if (grade) body.set("grade", grade);
     if (schoolType) body.set("schoolType", schoolType);
     if (subject.trim()) body.set("subject", subject.trim().slice(0, 60));

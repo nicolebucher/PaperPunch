@@ -129,8 +129,10 @@ export const testSchema = z.object({
 });
 
 const questionBaseSchema = z.object({
-    type: z.enum(["multiple-choice", "lueckentext"]),
+    type: z.enum(["multiple-choice", "lueckentext", "zuordnen"]),
     prompt: z.string(),
+    // nur "zuordnen": 3-5 Paare (links Begriff, rechts Gegenstück); die rechte Spalte mischt die Anzeige.
+    pairs: z.array(z.object({ left: z.string(), right: z.string() })).min(2).max(6).optional(),
     // nur "multiple-choice":
     options: z.array(z.string()).min(2).max(5).optional(),
     correctIndex: z.number().int().min(0).optional(),
@@ -148,11 +150,15 @@ export const questionSchema = questionBaseSchema
       if (q.type === "multiple-choice") {
         return !!q.options && q.correctIndex !== undefined && q.correctIndex < q.options.length;
       }
+      if (q.type === "zuordnen") {
+        const rights = (q.pairs ?? []).map((p) => p.right.trim().toLowerCase());
+        return rights.length >= 3 && new Set(rights).size === rights.length && (q.pairs ?? []).every((p) => p.left.trim() !== "" && p.right.trim() !== "");
+      }
       return !!q.correctAnswer && q.correctAnswer.trim() !== "" && q.prompt.includes("___");
     },
     {
       message:
-        'A "multiple-choice" question needs "options" and a valid "correctIndex"; a "lueckentext" question needs "correctAnswer" and a "___" gap in "prompt".',
+        'A "multiple-choice" question needs "options" and a valid "correctIndex"; a "lueckentext" question needs "correctAnswer" and a "___" gap in "prompt"; a "zuordnen" question needs 3-5 "pairs" with different right sides.',
     }
   );
 export type Question = z.infer<typeof questionSchema>;

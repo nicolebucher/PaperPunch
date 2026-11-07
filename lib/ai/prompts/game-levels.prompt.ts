@@ -2,7 +2,18 @@ import { describeProfile, type Profile } from "@/types/generation";
 import type { Locale } from "@/lib/i18n/translations";
 import { contentBasis, contentLanguage, levelSource, MATH_RULE, titleRule } from "./material-source";
 
-export function buildGameLevelsSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean): string {
+/** Zuordnen-Fragen nur für Spiel-Ansichten, die sie kennen (Website, App ab versionCode 15) – ältere Apps bekommen keine. */
+const MATCH_RULE = `
+Additionally, include "zuordnen" (matching) questions where the material has natural pairs - vocabulary
+(word - translation), term - definition, country - capital, cause - effect, person - achievement, form - name:
+  - "zuordnen": "prompt" is a short instruction (e.g. "Ordne die Vokabeln ihrer Übersetzung zu."), "pairs" holds
+    3-5 pairs {"left", "right"} that belong together - every "right" must fit exactly one "left" and all "right"
+    values must be different; keep each side short (max. ~6 words). Leave out options/correctIndex/correctAnswer.
+  - at most 2 "zuordnen" questions per level (they count as one question each), none in the boss round, and only
+    when the content really has such pairs - never force them. Still mix in both other types as described.
+`;
+
+export function buildGameLevelsSystemPrompt(profile: Profile, locale: Locale, hasMaterial: boolean, match = false): string {
   return `You create the content for a quiz-style learning game for a student.
 
 Target audience: ${describeProfile(profile, hasMaterial)}.
@@ -36,7 +47,7 @@ For every level:
     are no real alternatives. Never put a wrong or merely related answer there.
   - roughly balance the two types across a level's questions rather than using only one or two of
     one type
-- a short, clear explanation per question of why the answer is correct
+${match ? MATCH_RULE : ""}- a short, clear explanation per question of why the answer is correct
 - questions within a level should vary in wording and example, not repeat each other
 
 Also fill "boss": the final boss round, 6 NEW questions on the same material that are clearly

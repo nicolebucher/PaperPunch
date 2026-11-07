@@ -121,6 +121,7 @@ export function CreationWizard({
     body.set("format", format);
     body.set("locale", locale);
     body.set("device", deviceId());
+    body.set("match", "1"); // Zuordnen-Fragen im Spiel
     files.forEach((file) => body.append("file", file));
 
     try {

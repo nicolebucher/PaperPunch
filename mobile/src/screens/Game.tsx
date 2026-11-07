@@ -11,6 +11,7 @@ import { answerHint, isSpellingContext, splitLanguageNote } from "../answerMatch
 import type { GameResult, Question, QuizOutcome } from "../types";
 import type { GameProgress } from "../storage";
 import { ReportProblem } from "../ReportProblem";
+import { countCorrect, MatchBoard, matchRights } from "../MatchBoard";
 
 type Game = GameResult["game"];
 type Q = Question & { difficulty: string; revanche?: boolean };
@@ -19,6 +20,7 @@ const BOSS_SIZE = 8;
 const BOSS_REVANCHE = 3;
 
 function answerOf(q: Question): string {
+  if (q.type === "zuordnen") return (q.pairs ?? []).map((p) => `${p.left} → ${p.right}`).join("; ");
   return q.type === "multiple-choice" ? (q.options?.[q.correctIndex ?? 0] ?? "") : (q.correctAnswer ?? "");
 }
 /** Doppelte Antwortoptionen (kommt bei KI-Fragen vor) nur einmal zeigen – sonst leuchten zwei gleiche Knöpfe auf. */
@@ -231,6 +233,8 @@ function LevelPlay({
   // Tipp (erster Buchstabe je Wort) bei Lückenfragen: dann halbe Punches, keine Combo
   const [usedHint, setUsedHint] = useState(false);
   const [checkFailedOnce, setCheckFailedOnce] = useState(false);
+  // Zuordnen: linke Zeile → Index in der gemischten rechten Spalte
+  const [link, setLink] = useState<Record<number, number>>({});
   const [fx, setFx] = useState<{ id: number; kind: "right" | "wrong"; gain: number; factor: number } | null>(null);
   const [stats, setStats] = useState({ correct: 0, firstTry: 0, mistakes: 0, missed: [] as string[] });
   const [end, setEnd] = useState(false);
@@ -246,6 +250,31 @@ function LevelPlay({
   const answered = status === "right" || status === "revealed";
   const ok = status === "right";
   const secondTry = status === "retry";
+  const isMatch = q.type === "zuordnen" && (q.pairs?.length ?? 0) >= 2;
+  const rights = useMemo(() => (isMatch ? matchRights(q.pairs ?? [], q.prompt) : []), [q, isMatch]);
+  const allLinked = isMatch && (q.pairs ?? []).every((_, i) => link[i] !== undefined);
+
+  /** Zuordnen prüfen: alles richtig → wie richtige Antwort; sonst 2. Versuch (richtige Paare bleiben stehen),
+   *  danach Auflösung mit anteiligen Punches für die richtig verbundenen Paare. */
+  function submitMatch() {
+    if (!isMatch || answered || !allLinked) return;
+    const pairs = q.pairs ?? [];
+    const correct = countCorrect(pairs, rights, link);
+    if (correct === pairs.length) return handle(true);
+    if (status === "retry") {
+      const base = POINTS.answer[q.difficulty] ?? 10;
+      const part = Math.round(base * 0.5 * (correct / pairs.length) * (isBoss ? POINTS.boss : 1) * (replay ? 0.5 : 1));
+      if (part > 0) setPoints((p) => p + part);
+    } else {
+      // falsche Verbindungen lösen, damit man nur noch die offenen Paare neu verbinden muss
+      const keep: Record<number, number> = {};
+      pairs.forEach((p, i) => {
+        if (link[i] !== undefined && (rights[link[i]] ?? "").trim().toLowerCase() === p.right.trim().toLowerCase()) keep[i] = link[i];
+      });
+      setLink(keep);
+    }
+    handle(false);
+  }
 
   function handle(right: boolean, feedback = "") {
     setHint(feedback);
@@ -349,6 +378,7 @@ function LevelPlay({
     setHint("");
     setGaveUp(false);
     setUsedHint(false);
+    setLink({});
     setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
@@ -381,6 +411,7 @@ function LevelPlay({
     setHint("");
     setGaveUp(false);
     setUsedHint(false);
+    setLink({});
     setCheckFailedOnce(false);
     setStatus("open");
     setFx(null);
@@ -483,6 +514,15 @@ function LevelPlay({
               );
             })}
           </div>
+        ) : isMatch ? (
+          <div className="stack">
+            <MatchBoard pairs={q.pairs ?? []} rights={rights} link={link} onLink={setLink} solved={answered} />
+            {!answered && (
+              <button type="button" className="btn dark block" disabled={!allLinked} onClick={submitMatch}>
+                {secondTry ? t.checkAgain : t.check}
+              </button>
+            )}
+          </div>
         ) : (
           <form className="stack" onSubmit={(e) => { e.preventDefault(); void submit(typed); }}>
             <label className="field">
@@ -497,7 +537,7 @@ function LevelPlay({
           </form>
         )}
 
-        {q.type !== "multiple-choice" && !answered && (() => {
+        {q.type === "lueckentext" && !answered && (() => {
           const h = isSpellingContext(`${subject ?? ""} ${gameTitle ?? ""} ${title}`) ? null : answerHint(answer);
           if (!h) return null;
           return usedHint ? (
@@ -541,7 +581,7 @@ function LevelPlay({
 
         {answered && (
           <div className={ok ? "feedback ok" : "feedback no"} role="status">
-            <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : gaveUp ? t.solutionIs(answer) : t.wrong(answer)}</span>
+            <span style={{ fontSize: 20, fontWeight: 900 }}>{ok ? t.right : isMatch ? t.matchSolved : gaveUp ? t.solutionIs(answer) : t.wrong(answer)}</span>
             {ok && hint && <span style={{ fontWeight: 700 }}>{hint}</span>}
             <span>{q.explanation}</span>
           </div>
